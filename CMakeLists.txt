@@ -11,7 +11,16 @@ project(
 	HOMEPAGE_URL "http://lameguy64.net/?page=psn00bsdk"
 )
 
-psn00bsdk_add_executable(castlemanya GPREL main.c)
+psn00bsdk_add_executable(
+	castlemanya GPREL
+	main.c
+	engine/game.c
+	engine/input.c
+	gameplay/demo_game.c
+	graphics/renderer.c
+	ui/main_menu.c
+	ui/settings.c
+)
 
 psn00bsdk_add_cd_image(
 	castlemanya_iso      # Target name
