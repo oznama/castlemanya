@@ -3,4 +3,4 @@
 #include <stdint.h>
 
 void input_init(void);
-uint16_t input_read_pressed(void);
+void input_read(uint16_t *held_buttons, uint16_t *pressed_buttons);

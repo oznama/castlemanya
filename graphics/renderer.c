@@ -56,7 +56,7 @@ static void *new_primitive(RenderContext *ctx, int z, size_t size) {
 void renderer_init(void) {
 	ResetGraph(0);
 	FntLoad(960, 0);
-	setup_context(&render_context, SCREEN_XRES, SCREEN_YRES, 8, 8, 24);
+	setup_context(&render_context, SCREEN_XRES, SCREEN_YRES, 0, 0, 0);
 }
 
 void renderer_present(void) {

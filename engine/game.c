@@ -17,7 +17,10 @@ void game_init(void) {
 }
 
 void game_frame(void) {
-	uint16_t pressed_buttons = input_read_pressed();
+	uint16_t held_buttons;
+	uint16_t pressed_buttons;
+
+	input_read(&held_buttons, &pressed_buttons);
 
 	switch (game_state) {
 		case GAME_STATE_MENU:
@@ -27,7 +30,7 @@ void game_frame(void) {
 			game_state = settings_update(pressed_buttons);
 			break;
 		case GAME_STATE_GAME:
-			game_state = demo_game_update(pressed_buttons);
+			game_state = demo_game_update(held_buttons, pressed_buttons);
 			break;
 	}
 

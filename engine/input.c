@@ -17,7 +17,7 @@ void input_init(void) {
 	ExitCriticalSection();
 }
 
-uint16_t input_read_pressed(void) {
+void input_read(uint16_t *held_buttons, uint16_t *pressed_buttons) {
 	PADTYPE *pad = (PADTYPE *) pad_buffer[0];
 	uint16_t buttons = 0;
 
@@ -30,8 +30,7 @@ uint16_t input_read_pressed(void) {
 		buttons = (uint16_t) ~pad->btn;
 	}
 
-	uint16_t pressed_buttons = buttons & (uint16_t) ~previous_buttons;
+	*held_buttons = buttons;
+	*pressed_buttons = buttons & (uint16_t) ~previous_buttons;
 	previous_buttons = buttons;
-
-	return pressed_buttons;
 }
