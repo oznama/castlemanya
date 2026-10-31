@@ -159,12 +159,12 @@ int main(int argc, const char **argv) {
 
 		setTile(tile);
 		setXY0 (tile, x, y);
-		setWH  (tile, 64, 64);
-		setRGB0(tile, 255, 255, 0);
+		setWH  (tile, 0, 0);
+		setRGB0(tile, 64, 64, 54);
 
 		// Draw some text in front of the square (Z = 0, primitives with higher
 		// Z indices are drawn first).
-		draw_text(&ctx, 8, 16, 0, "Hello world!");
+		draw_text(&ctx, 8, 16, 0, "CastleManyA");
 
 		flip_buffers(&ctx);
 	}

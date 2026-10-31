@@ -23,4 +23,3 @@ cmake --build ./build
 
 echo.
 echo Build generado correctamente.
-pause
