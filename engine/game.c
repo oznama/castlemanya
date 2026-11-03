@@ -30,6 +30,9 @@ void game_frame(void) {
 			game_state = settings_update(pressed_buttons);
 			break;
 		case GAME_STATE_GAME:
+			// TODO
+			break;
+		case GAME_STATE_TESTS:
 			game_state = demo_game_update(held_buttons, pressed_buttons);
 			break;
 	}
@@ -42,6 +45,9 @@ void game_frame(void) {
 			settings_render();
 			break;
 		case GAME_STATE_GAME:
+			// TODO
+			break;
+		case GAME_STATE_TESTS:
 			demo_game_render();
 			break;
 	}

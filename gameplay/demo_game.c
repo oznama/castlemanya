@@ -31,8 +31,8 @@ typedef struct {
 static SquareColor square_color = { 255, 0, 0 };
 
 GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
-	// if (pressed_buttons & (PAD_CIRCLE | PAD_START))
-	// 	return GAME_STATE_MENU;
+	if (pressed_buttons & (PAD_CIRCLE | PAD_START))
+		return GAME_STATE_MENU;
 
     action_move(held_buttons);
 
@@ -55,7 +55,7 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 	// else if (y > (SCREEN_YRES - TILE_HEIGHT - FLOOR_LIMIT))
 	// 	y = SCREEN_YRES - TILE_HEIGHT - FLOOR_LIMIT;
 
-	return GAME_STATE_GAME;
+	return GAME_STATE_TESTS;
 }
 
 void action_block(uint16_t held_buttons)
@@ -140,7 +140,7 @@ void demo_game_render(void) {
 		square_color.g,
 		square_color.b
 	);
-	renderer_draw_text(8, 8, 0, "CASTLEMANYA - DEMO");
+	renderer_draw_text(8, 8, 0, "TEST AREA");
 	// Dibuja un titulo en la pantalla con las instrucciones del juego
 	// renderer_draw_text(8, 32, 0, "D-PAD: MOVE");
 
