@@ -29,8 +29,11 @@ void main_menu_render(void) {
 	int selected_y = selected_option == 0 ? 100 : selected_option == 1 ? 132 : 164;
 
 	renderer_draw_text(60, 40, 0, "CASTLEMANYA - MAIN MENU");
-	renderer_draw_rect(76, selected_y, 168, 24, 72, 36, 16);
-	renderer_draw_text(92, selected_y + 4, 0, ">");
+
+	// Selector
+	renderer_draw_rect(76, selected_y, 168, 24, 72, 36, 16); // Dibuja un rectángulo detrás de la opción seleccionada
+	renderer_draw_text(92, selected_y + 4, 0, ">"); // Dibuja un símbolo de flecha delante de la opción seleccionada
+
 	renderer_draw_text(112, 104, 0, "START GAME");
 	renderer_draw_text(112, 136, 0, "SETTINGS");
 	renderer_draw_text(112, 168, 0, "TEST AREA");
