@@ -14,6 +14,7 @@ project(
 psn00bsdk_add_executable(
 	castlemanya GPREL
 	main.c
+	engine/collisions.c
 	engine/game.c
 	engine/input.c
 	gameplay/demo_game.c
