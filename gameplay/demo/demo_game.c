@@ -67,11 +67,6 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 	}
 
 	if ( life > 0 ) {
-
-		if ( score % 100 == 0 && attack_width < (ATTACK_WIDTH_BASE * 3) ) {
-			attack_width += ATTACK_WIDTH_BASE;
-		}
-
 		init_actions_player(held_buttons, pressed_buttons);
 		if (x < 5)
 			x = 5;
@@ -99,7 +94,7 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 			if (enemy_delay_timer == 0) {
 				enemies[enemy_inactive_index].x = enemy_inactive_index % 2 == 0 ? 0 : SCREEN_XRES - TILE_WIDTH;
 				enemies[enemy_inactive_index].is_active = 1;
-				enemy_delay_timer = ENEMY_DELAY;
+				enemy_delay_timer = ENEMY_DELAY - (level * 10);
 				enemy_inactive_index += 1;
 				if (enemy_inactive_index >= ENEMY_NUMBER)
 					enemy_inactive_index = 0;
@@ -123,9 +118,9 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 				if ( total_distance > 0 ) {
 					// Move enemy towards player
 					if (diff_x < 0) {
-						enemies[i].x -= 1; // Move left
+						enemies[i].x -= level; // Move left
 					} else if (diff_x > 0) {
-						enemies[i].x += 1; // Move right
+						enemies[i].x += level; // Move right
 					}
 				}
 			}
@@ -158,7 +153,7 @@ void demo_game_render(void) {
 		square_color.b
 	);
 
-	// Dibuja un cuadrito que representa el poder
+	// Dibuja un cuadrito que representa el arma
 	if (attack_active) {
 		renderer_draw_rect(
 			attack_x_position,
@@ -378,7 +373,12 @@ void check_enemy_collision(void) {
 				score += enemies[i].point; // Increase score when enemy is killed
 				if ( score % 100 == 0 && level < 10 ) {
 					level += 1;
+					if ( level <= 3 ) {
+						attack_width += (ATTACK_WIDTH_BASE * level);
+						printf("Attack powered up!\n");
+					}
 				}
+				printf("Enemy killed, score: %d, attack_width: %d\n", score, attack_width);
 			}
 		}
 
