@@ -1,12 +1,34 @@
 #include <psxpad.h>
+#include <stdio.h>
 
 #include "main_menu.h"
 #include "../graphics/renderer.h"
+#include "../helpers/utils.h"
+
+#define SELECTOR_COLOR_1 ((RGBColor){ 255, 0, 0 })
+#define SELECTOR_COLOR_2 ((RGBColor){ 68, 12, 8 })
 
 static int selected_option;
 static int option_count = 4;
 
+static RGBColor selector_color = SELECTOR_COLOR_1;
+
+static float factor = 0.0f;
+static float velocity = 0.02f;
+static int direction = 1;
+
 GameState main_menu_update(uint16_t pressed_buttons) {
+
+	selector_color = interpolateColor(SELECTOR_COLOR_1, SELECTOR_COLOR_2, factor);
+	factor += velocity * direction;
+	if (factor >= 1.0f) {
+		factor = 1.0f;
+		direction = -1;
+	} else if (factor <= 0.0f) {
+		factor = 0.0f;
+		direction = 1;
+	}
+	
 	if (pressed_buttons & (PAD_UP | PAD_DOWN)) {
 		if (pressed_buttons & PAD_UP && selected_option > 0)
 			selected_option--;
@@ -60,7 +82,7 @@ void main_menu_render(void) {
 	renderer_draw_text(60, 40, 0, "CASTLEMANYA - MAIN MENU");
 
 	// Selector
-	renderer_draw_rect(76, selected_y, 168, 20, 255, 0, 0); // Dibuja un rectángulo detrás de la opción seleccionada
+	renderer_draw_rect(76, selected_y, 168, 20, selector_color.r, selector_color.g, selector_color.b); // Dibuja un rectángulo detrás de la opción seleccionada
 	renderer_draw_text(92, selected_y + 4, 0, ">"); // Dibuja un símbolo de flecha delante de la opción seleccionada
 
 	renderer_draw_text(112, 100, 0, "START GAME");

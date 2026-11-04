@@ -4,6 +4,20 @@
 
 #include "../../engine/game_state.h"
 
+typedef struct {
+	int r;
+	int g;
+	int b;
+} SquareColor;
+
+typedef struct {
+	int x, y; // Position
+	int r, g, b; // Color
+	int width, height; // Size
+	int point;
+	int is_active; // Active state
+} GenericEnemy;
+
 GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons);
 void init_actions_player(uint16_t held_buttons, uint16_t pressed_buttons);
 void reset_demo_game(uint16_t pressed_buttons, uint8_t reset_game_state);

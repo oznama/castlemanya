@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "test_area.h"
-#include "../../engine/collisions.h"
 #include "../../graphics/renderer.h"
 
 #define SCREEN_XRES 320

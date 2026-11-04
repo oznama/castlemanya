@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 #include "demo_game.h"
-#include "../../engine/collisions.h"
 #include "../../graphics/renderer.h"
+#include "../../helpers/collisions.h"
 
 #define SCREEN_XRES 320
 #define SCREEN_YRES 240
@@ -45,20 +45,6 @@ static uint8_t enemy_inactive_index = 0;
 // Score
 static int score = 0;
 static uint8_t life = 100;
-
-typedef struct {
-	int r;
-	int g;
-	int b;
-} SquareColor;
-
-typedef struct {
-	int x, y; // Position
-	int r, g, b; // Color
-	int width, height; // Size
-	int point;
-	int is_active; // Active state
-} GenericEnemy;
 
 static SquareColor square_color = { 255, 0, 0 };
 
