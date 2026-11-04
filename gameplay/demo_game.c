@@ -70,7 +70,7 @@ static GenericEnemy enemies[ENEMY_NUMBER] = {
 };
 
 GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
-	if (pressed_buttons & (PAD_CIRCLE | PAD_START))
+	if (pressed_buttons & PAD_SELECT)
 		return GAME_STATE_MENU;
 
 	if ( life > 0 ) {
@@ -130,9 +130,113 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 				}
 			}
 		}
+	} else {
+		// Reset game state when life is 0
+		if (pressed_buttons & PAD_START) {
+			life = 100;
+			score = 0;
+			x = 10;
+			y_position = (SCREEN_YRES - TILE_HEIGHT - FLOOR_LIMIT) * FIXED_ONE;
+			y_velocity = 0;
+			grounded = 1;
+			posture_active = 0;
+			block_active = 0;
+			slash_active = 0;
+			x_slash_distance = 0;
+			title_height = TILE_HEIGHT;
+			attack_active = 0;
+			attack_animation_timer = ATTACK_DURATION;
+			hurted = 0;
+
+			enemy_delay_timer = ENEMY_DELAY;
+			enemy_inactive_index = 0;
+
+			for (int i = 0; i < ENEMY_NUMBER; i++) {
+				enemies[i].is_active = (i == 0) ? 1 : 0; // Only the first enemy is active at the start
+				enemies[i].x = (i % 2 == 0) ? SCREEN_XRES - TILE_WIDTH : 0; // Position enemies on opposite sides
+				enemies[i].y = SCREEN_YRES - FLOOR_LIMIT - TILE_HEIGHT; // Position enemies on the floor
+				enemies[i].r = 205; // Set enemy color to gray
+				enemies[i].g = 205;
+				enemies[i].b = 205;
+				enemies[i].width = TILE_WIDTH; // Set enemy size
+				enemies[i].height = TILE_HEIGHT;
+				enemies[i].point = 10; // Set points for each enemy
+			}
+		}
 	}
 
 	return GAME_STATE_TESTS;
+}
+
+void demo_game_render(void) {
+
+	if ( life <= 0 ) {
+		renderer_draw_text(100, 80, 0, "GAME OVER");
+		renderer_draw_text(36, 160, 0, "Press START to restart the game");
+		renderer_draw_text(36, 180, 0, "Press SELECT to return to menu");
+		return;
+	}
+
+	// Dibuja un cuadrado en la pantalla con el color actual
+	renderer_draw_rect(
+		x,
+		(y_position >> FIXED_SHIFT) + TILE_HEIGHT - title_height,
+		TILE_WIDTH,
+		title_height,
+		square_color.r,
+		square_color.g,
+		square_color.b
+	);
+
+	// Dibuja un cuadrito que representa el poder
+	if (attack_active) {
+		renderer_draw_rect(
+			x + TILE_WIDTH,
+			(y_position >> FIXED_SHIFT) + TILE_HEIGHT - title_height + ATTACK_PADDING,
+			20,
+			8,
+			square_color.r,
+			square_color.g,
+			square_color.b
+		);
+	}
+
+	for (int i = 0; i < ENEMY_NUMBER; i++) {
+		if ( enemies[i].is_active ) {
+			renderer_draw_rect(
+				enemies[i].x,
+				enemies[i].y,
+				enemies[i].width,
+				enemies[i].height,
+				enemies[i].r,
+				enemies[i].g,
+				enemies[i].b
+			);
+		}
+	}
+
+	// Draw life
+	char life_text[20];
+	sprintf(life_text, "LIFE: %d", life);
+	renderer_draw_text(5, 8, 0, life_text);
+	
+	renderer_draw_text(SCREEN_XRES - 100, 8, 0, "TEST AREA"); // Draw test area label
+
+	// Draw score
+	char score_text[20];
+	sprintf(score_text, "SCORE: %d", score);
+	renderer_draw_text(5, 20, 0, score_text);
+
+	// Dibuja piso
+	renderer_draw_rect(
+		0,
+		SCREEN_YRES - FLOOR_LIMIT,
+		SCREEN_XRES,
+		FLOOR_LIMIT,
+		0,
+		255,
+		0
+	);
 }
 
 void init_actions_player(uint16_t held_buttons, uint16_t pressed_buttons) {
@@ -259,11 +363,9 @@ void check_enemy_collision(void) {
 				.height = enemies[i].height
 			};
 			if (check_collision_AABB(player, enemy_rect)) {
-				printf("Enemy killed!\n");
 				// Handle collision logic here
 				enemies[i].is_active = 0; // Deactivate the enemy after collision
 				score += enemies[i].point; // Increase score when enemy is killed
-				printf("Score: %d\n", score); // Print the updated score
 			}
 		}
 
@@ -285,72 +387,9 @@ void check_enemy_collision(void) {
 				hurted = 1;
 				x_slash_distance = x - (TILE_WIDTH * BACK_SLASH_MOVES); // Set the distance to move back
 				if (x_slash_distance < 0) x_slash_distance = 0; // Ensure we don't go off-screen
-				printf("Player hurted!\n");
 				// Handle collision logic here
 				life -= enemies[i].point; // Decrease life when player is hurt
-				printf("Life: %d\n", life); // Print the updated life
 			}
 		}
 	}
-}
-
-void demo_game_render(void) {
-
-	if ( life <= 0 ) {
-		renderer_draw_text(100, 100, 0, "GAME OVER");
-		renderer_draw_text(10, 120, 0, "Press CIRCLE or START to return to menu");
-		return;
-	}
-
-	// Dibuja un cuadrado en la pantalla con el color actual
-	renderer_draw_rect(
-		x,
-		(y_position >> FIXED_SHIFT) + TILE_HEIGHT - title_height,
-		TILE_WIDTH,
-		title_height,
-		square_color.r,
-		square_color.g,
-		square_color.b
-	);
-
-	// Dibuja un cuadrito que representa el poder
-	if (attack_active) {
-		renderer_draw_rect(
-			x + TILE_WIDTH,
-			(y_position >> FIXED_SHIFT) + TILE_HEIGHT - title_height + ATTACK_PADDING,
-			20,
-			8,
-			square_color.r,
-			square_color.g,
-			square_color.b
-		);
-	}
-
-	for (int i = 0; i < ENEMY_NUMBER; i++) {
-		if ( enemies[i].is_active ) {
-			renderer_draw_rect(
-				enemies[i].x,
-				enemies[i].y,
-				enemies[i].width,
-				enemies[i].height,
-				enemies[i].r,
-				enemies[i].g,
-				enemies[i].b
-			);
-		}
-	}
-	renderer_draw_text(8, 8, 0, "TEST AREA");
-	// Dibuja un titulo en la pantalla con las instrucciones del juego
-	// renderer_draw_text(8, 32, 0, "D-PAD: MOVE");
-
-	// Dibuja piso
-	renderer_draw_rect(
-		0,
-		SCREEN_YRES - FLOOR_LIMIT,
-		SCREEN_XRES,
-		FLOOR_LIMIT,
-		0,
-		255,
-		0
-	);
 }
