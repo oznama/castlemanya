@@ -15,6 +15,7 @@
 #define FIXED_ONE (1 << FIXED_SHIFT)
 #define JUMP_SPEED (8 * FIXED_ONE)
 #define GRAVITY (FIXED_ONE / 2)
+#define ATTACK_WIDTH_BASE 10
 #define ATTACK_DURATION 24
 #define ATTACK_PADDING 10
 #define BACK_SLASH_MOVES 4
@@ -31,12 +32,15 @@ static uint8_t grounded = 1;
 static uint8_t posture_active;
 static uint8_t block_active;
 static uint8_t slash_active;
+static uint8_t direction;
 static int x_slash_distance;
 static int title_height = TILE_HEIGHT;
 
 // Attack variables
+static uint8_t attack_x_position;
 static uint8_t attack_active = 0;
 static uint8_t attack_animation_timer = ATTACK_DURATION;
+static uint8_t attack_width = ATTACK_WIDTH_BASE;
 static uint8_t hurted = 0;
 
 static uint8_t enemy_delay_timer = ENEMY_DELAY;
@@ -45,6 +49,7 @@ static uint8_t enemy_inactive_index = 0;
 // Score
 static int score = 0;
 static uint8_t life = 100;
+static uint8_t level = 1;
 
 static SquareColor square_color = { 255, 0, 0 };
 
@@ -62,6 +67,11 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 	}
 
 	if ( life > 0 ) {
+
+		if ( score % 100 == 0 && attack_width < (ATTACK_WIDTH_BASE * 3) ) {
+			attack_width += ATTACK_WIDTH_BASE;
+		}
+
 		init_actions_player(held_buttons, pressed_buttons);
 		if (x < 5)
 			x = 5;
@@ -81,6 +91,8 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 				attack_animation_timer = ATTACK_DURATION;
 			}
 		}
+
+		attack_x_position = direction ? x - attack_width : x + TILE_WIDTH;
 
 		if (!enemies[enemy_inactive_index].is_active) {
 			enemy_delay_timer--;
@@ -149,9 +161,9 @@ void demo_game_render(void) {
 	// Dibuja un cuadrito que representa el poder
 	if (attack_active) {
 		renderer_draw_rect(
-			x + TILE_WIDTH,
+			attack_x_position,
 			(y_position >> FIXED_SHIFT) + TILE_HEIGHT - title_height + ATTACK_PADDING,
-			20,
+			attack_width,
 			8,
 			square_color.r,
 			square_color.g,
@@ -180,10 +192,10 @@ void demo_game_render(void) {
 
 	renderer_draw_text(SCREEN_XRES - 100, 8, 0, "DEMO GAME"); // Draw test area label
 
-	// Draw score
-	char score_text[20];
-	sprintf(score_text, "SCORE: %d", score);
-	renderer_draw_text(5, 20, 0, score_text);
+	// Draw level
+	char level_text[20];
+	sprintf(level_text, "LEVEL: %d", level);
+	renderer_draw_text(5, 20, 0, level_text);
 
 	// Dibuja piso
 	renderer_draw_rect(
@@ -201,16 +213,19 @@ void reset_demo_game(uint16_t pressed_buttons, uint8_t reset_game_state) {
 	if ((pressed_buttons & PAD_START) || reset_game_state) {
 			life = 100;
 			score = 0;
+			level = 1;
 			x = 10;
 			y_position = (SCREEN_YRES - TILE_HEIGHT - FLOOR_LIMIT) * FIXED_ONE;
 			y_velocity = 0;
 			grounded = 1;
+			direction = 0;
 			posture_active = 0;
 			block_active = 0;
 			slash_active = 0;
 			x_slash_distance = 0;
 			title_height = TILE_HEIGHT;
 			attack_active = 0;
+			attack_width = ATTACK_WIDTH_BASE;
 			attack_animation_timer = ATTACK_DURATION;
 			hurted = 0;
 
@@ -308,10 +323,13 @@ void action_jump(uint16_t pressed_buttons)
 void action_move(uint16_t held_buttons)
 {
     // Movimientos horizontales
-    if ((held_buttons & PAD_LEFT && !block_active) && !block_active)
+    if ((held_buttons & PAD_LEFT && !block_active) && !block_active && !attack_active) {
         x -= MOVE_SPEED;
-    else if ((held_buttons & PAD_RIGHT) && !block_active)
+		direction = 1;
+	} else if ((held_buttons & PAD_RIGHT) && !block_active && !attack_active) {
         x += MOVE_SPEED;
+		direction = 0;
+	}
 
 	// Back Slash movement
 	if (slash_active || hurted) {
@@ -342,10 +360,10 @@ void check_enemy_collision(void) {
 	// Colision cuando el enemigo está activo y el ataque del jugador también lo está
 	for (int i = 0; i < ENEMY_NUMBER; i++) {
 		if (enemies[i].is_active && attack_active) {
-			RectangleCollisioner player = {
-				.x = x + TILE_WIDTH,
+			RectangleCollisioner player_attack = {
+				.x = attack_x_position,
 				.y = (y_position >> FIXED_SHIFT) + TILE_HEIGHT - title_height + ATTACK_PADDING,
-				.width = 20,
+				.width = attack_width,
 				.height = 8
 			};
 			RectangleCollisioner enemy_rect = {
@@ -354,10 +372,13 @@ void check_enemy_collision(void) {
 				.width = enemies[i].width,
 				.height = enemies[i].height
 			};
-			if (check_collision_AABB(player, enemy_rect)) {
+			if (check_collision_AABB(player_attack, enemy_rect)) {
 				// Handle collision logic here
 				enemies[i].is_active = 0; // Deactivate the enemy after collision
 				score += enemies[i].point; // Increase score when enemy is killed
+				if ( score % 100 == 0 && level < 10 ) {
+					level += 1;
+				}
 			}
 		}
 
