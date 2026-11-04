@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 #include "demo_game.h"
-#include "../engine/collisions.h"
-#include "../graphics/renderer.h"
+#include "../../engine/collisions.h"
+#include "../../graphics/renderer.h"
 
 #define SCREEN_XRES 320
 #define SCREEN_YRES 240
@@ -70,8 +70,10 @@ static GenericEnemy enemies[ENEMY_NUMBER] = {
 };
 
 GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
-	if (pressed_buttons & PAD_SELECT)
+	if (pressed_buttons & PAD_SELECT) {
+		reset_demo_game(pressed_buttons, 1);
 		return GAME_STATE_MENU;
+	}
 
 	if ( life > 0 ) {
 		init_actions_player(held_buttons, pressed_buttons);
@@ -132,40 +134,10 @@ GameState demo_game_update(uint16_t held_buttons, uint16_t pressed_buttons) {
 		}
 	} else {
 		// Reset game state when life is 0
-		if (pressed_buttons & PAD_START) {
-			life = 100;
-			score = 0;
-			x = 10;
-			y_position = (SCREEN_YRES - TILE_HEIGHT - FLOOR_LIMIT) * FIXED_ONE;
-			y_velocity = 0;
-			grounded = 1;
-			posture_active = 0;
-			block_active = 0;
-			slash_active = 0;
-			x_slash_distance = 0;
-			title_height = TILE_HEIGHT;
-			attack_active = 0;
-			attack_animation_timer = ATTACK_DURATION;
-			hurted = 0;
-
-			enemy_delay_timer = ENEMY_DELAY;
-			enemy_inactive_index = 0;
-
-			for (int i = 0; i < ENEMY_NUMBER; i++) {
-				enemies[i].is_active = (i == 0) ? 1 : 0; // Only the first enemy is active at the start
-				enemies[i].x = (i % 2 == 0) ? SCREEN_XRES - TILE_WIDTH : 0; // Position enemies on opposite sides
-				enemies[i].y = SCREEN_YRES - FLOOR_LIMIT - TILE_HEIGHT; // Position enemies on the floor
-				enemies[i].r = 205; // Set enemy color to gray
-				enemies[i].g = 205;
-				enemies[i].b = 205;
-				enemies[i].width = TILE_WIDTH; // Set enemy size
-				enemies[i].height = TILE_HEIGHT;
-				enemies[i].point = 10; // Set points for each enemy
-			}
-		}
+		reset_demo_game(pressed_buttons, 0);
 	}
 
-	return GAME_STATE_TESTS;
+	return GAME_STATE_DEMO;
 }
 
 void demo_game_render(void) {
@@ -219,8 +191,8 @@ void demo_game_render(void) {
 	char life_text[20];
 	sprintf(life_text, "LIFE: %d", life);
 	renderer_draw_text(5, 8, 0, life_text);
-	
-	renderer_draw_text(SCREEN_XRES - 100, 8, 0, "TEST AREA"); // Draw test area label
+
+	renderer_draw_text(SCREEN_XRES - 100, 8, 0, "DEMO GAME"); // Draw test area label
 
 	// Draw score
 	char score_text[20];
@@ -237,6 +209,40 @@ void demo_game_render(void) {
 		255,
 		0
 	);
+}
+
+void reset_demo_game(uint16_t pressed_buttons, uint8_t reset_game_state) {
+	if ((pressed_buttons & PAD_START) || reset_game_state) {
+			life = 100;
+			score = 0;
+			x = 10;
+			y_position = (SCREEN_YRES - TILE_HEIGHT - FLOOR_LIMIT) * FIXED_ONE;
+			y_velocity = 0;
+			grounded = 1;
+			posture_active = 0;
+			block_active = 0;
+			slash_active = 0;
+			x_slash_distance = 0;
+			title_height = TILE_HEIGHT;
+			attack_active = 0;
+			attack_animation_timer = ATTACK_DURATION;
+			hurted = 0;
+
+			enemy_delay_timer = ENEMY_DELAY;
+			enemy_inactive_index = 0;
+
+			for (int i = 0; i < ENEMY_NUMBER; i++) {
+				enemies[i].is_active = (i == 0) ? 1 : 0; // Only the first enemy is active at the start
+				enemies[i].x = (i % 2 == 0) ? SCREEN_XRES - TILE_WIDTH : 0; // Position enemies on opposite sides
+				enemies[i].y = SCREEN_YRES - FLOOR_LIMIT - TILE_HEIGHT; // Position enemies on the floor
+				enemies[i].r = 205; // Set enemy color to gray
+				enemies[i].g = 205;
+				enemies[i].b = 205;
+				enemies[i].width = TILE_WIDTH; // Set enemy size
+				enemies[i].height = TILE_HEIGHT;
+				enemies[i].point = 10; // Set points for each enemy
+			}
+		}
 }
 
 void init_actions_player(uint16_t held_buttons, uint16_t pressed_buttons) {

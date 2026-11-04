@@ -3,7 +3,8 @@
 #include "game.h"
 #include "game_state.h"
 #include "input.h"
-#include "../gameplay/demo_game.h"
+#include "../gameplay/demo/demo_game.h"
+#include "../gameplay/test/test_area.h"
 #include "../graphics/renderer.h"
 #include "../ui/main_menu.h"
 #include "../ui/settings.h"
@@ -33,6 +34,9 @@ void game_frame(void) {
 			// TODO
 			break;
 		case GAME_STATE_TESTS:
+			game_state = test_area_update(held_buttons, pressed_buttons);
+			break;
+		case GAME_STATE_DEMO:
 			game_state = demo_game_update(held_buttons, pressed_buttons);
 			break;
 	}
@@ -48,6 +52,9 @@ void game_frame(void) {
 			// TODO
 			break;
 		case GAME_STATE_TESTS:
+			test_area_render();
+			break;
+		case GAME_STATE_DEMO:
 			demo_game_render();
 			break;
 	}

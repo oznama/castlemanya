@@ -4,7 +4,7 @@
 #include "../graphics/renderer.h"
 
 static int selected_option;
-static int option_count = 3;
+static int option_count = 4;
 
 GameState main_menu_update(uint16_t pressed_buttons) {
 	if (pressed_buttons & (PAD_UP | PAD_DOWN)) {
@@ -14,28 +14,58 @@ GameState main_menu_update(uint16_t pressed_buttons) {
 			selected_option++;
 	}
 
+	GameState next_state = GAME_STATE_MENU;
 	if (pressed_buttons & (PAD_CROSS | PAD_START)) {
-		return selected_option == 0
-			? GAME_STATE_GAME
-			: selected_option == 1
-				? GAME_STATE_SETTINGS
-				: GAME_STATE_TESTS;
+		switch (selected_option)
+		{
+		case 0:
+			next_state = GAME_STATE_GAME;
+			break;
+		case 1 :
+			next_state = GAME_STATE_SETTINGS;
+			break;
+		case 2:
+			next_state = GAME_STATE_TESTS;
+			break;
+		case 3:
+			next_state = GAME_STATE_DEMO;
+			break;
+		default:
+			return GAME_STATE_MENU;
+		}
 	}
-
-	return GAME_STATE_MENU;
+	return next_state;
 }
 
 void main_menu_render(void) {
-	int selected_y = selected_option == 0 ? 100 : selected_option == 1 ? 132 : 164;
+	int selected_y = 100; // Default position for the first option
+	switch (selected_option) {
+		case 0:
+			selected_y = 95;
+			break;
+		case 1:
+			selected_y = 115;
+			break;
+		case 2:
+			selected_y = 135;
+			break;
+		case 3:
+			selected_y = 155;
+			break;
+		default:
+			selected_y = 95; // Default to the first option
+			break;
+	}
 
 	renderer_draw_text(60, 40, 0, "CASTLEMANYA - MAIN MENU");
 
 	// Selector
-	renderer_draw_rect(76, selected_y, 168, 24, 72, 36, 16); // Dibuja un rectángulo detrás de la opción seleccionada
+	renderer_draw_rect(76, selected_y, 168, 20, 255, 0, 0); // Dibuja un rectángulo detrás de la opción seleccionada
 	renderer_draw_text(92, selected_y + 4, 0, ">"); // Dibuja un símbolo de flecha delante de la opción seleccionada
 
-	renderer_draw_text(112, 104, 0, "START GAME");
-	renderer_draw_text(112, 136, 0, "SETTINGS");
-	renderer_draw_text(112, 168, 0, "TEST AREA");
-	renderer_draw_text(44, 220, 0, "UP/DOWN: SELECT   CROSS: CONFIRM");
+	renderer_draw_text(112, 100, 0, "START GAME");
+	renderer_draw_text(112, 120, 0, "SETTINGS");
+	renderer_draw_text(112, 140, 0, "TEST AREA");
+	renderer_draw_text(112, 160, 0, "DEMO GAME");
+	renderer_draw_text(25, 220, 0, "UP/DOWN: SELECT   CROSS: CONFIRM");
 }

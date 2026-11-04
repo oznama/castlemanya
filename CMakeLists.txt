@@ -17,7 +17,8 @@ psn00bsdk_add_executable(
 	engine/collisions.c
 	engine/game.c
 	engine/input.c
-	gameplay/demo_game.c
+	gameplay/demo/demo_game.c
+	gameplay/test/test_area.c
 	graphics/renderer.c
 	ui/main_menu.c
 	ui/settings.c
