@@ -1,8 +1,7 @@
+#include <stdlib.h>
 #include "engine/game.h"
 
-int main(int argc, const char **argv) {
-	(void) argc;
-	(void) argv;
+int main() {
 
 	game_init();
 

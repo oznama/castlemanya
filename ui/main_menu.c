@@ -1,5 +1,4 @@
 #include <psxpad.h>
-#include <stdio.h>
 
 #include "main_menu.h"
 #include "../graphics/renderer.h"
@@ -8,14 +7,14 @@
 #define SELECTOR_COLOR_1 ((RGBColor){ 255, 0, 0 })
 #define SELECTOR_COLOR_2 ((RGBColor){ 68, 12, 8 })
 
-static int selected_option;
-static int option_count = 4;
+int selected_option;
+int option_count = 4;
 
-static RGBColor selector_color = SELECTOR_COLOR_1;
+RGBColor selector_color = SELECTOR_COLOR_1;
 
-static float factor = 0.0f;
-static float velocity = 0.02f;
-static int direction = 1;
+float factor = 0.0f;
+float velocity = 0.02f;
+int direction = 1;
 
 GameState main_menu_update(uint16_t pressed_buttons) {
 
