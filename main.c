@@ -1,12 +1,22 @@
-#include <stdlib.h>
-#include "engine/game.h"
+#include <stdint.h>
+
+#include "engine/input.h"
+#include "graphics/graphic.h"
+#include "helpers/game_state.h"
+#include "helpers/utils.h"
+#include "ui/menu/main_menu.h"
 
 int main() {
 
-	game_init();
+	graphic_init();
+	input_init();
 
-	for (;;)
-		game_frame();
+	uint8_t currentLevel = 1;
+	GameState currentState = main_menu_display();
+	
+	if ( currentState == GAME_STATE_LOADING ) {
+		load_level(currentLevel);
+	}
 
 	return 0;
 }

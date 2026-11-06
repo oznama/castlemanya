@@ -5,3 +5,5 @@ typedef struct {
 } RGBColor;
 
 RGBColor interpolateColor(RGBColor c1, RGBColor c2, float t);
+
+void load_level(uint8_t currentLevel);

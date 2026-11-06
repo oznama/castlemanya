@@ -1,0 +1,113 @@
+#include <sys/types.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <psxgpu.h>
+#include <psxpad.h>
+
+#include "main_menu.h"
+#include "../../engine/input.h"
+#include "../../graphics/graphic.h"
+#include "../../helpers/utils.h"
+
+#define SELECTOR_COLOR_1 ((RGBColor){ 255, 0, 0 })
+#define SELECTOR_COLOR_2 ((RGBColor){ 68, 12, 8 })
+
+RGBColor selector_color = SELECTOR_COLOR_1;
+
+float factor = 0.0f;
+float velocity = 0.02f;
+int direction = 1;
+
+uint8_t option_count = 3;
+uint8_t selected_y;
+
+extern u_long	castlemanya_logo[];
+TIM_IMAGE 		tim;
+POLY_FT4	*quad;
+
+static void load_logo() {
+    GetTimInfo( castlemanya_logo, &tim);
+
+    LoadImage(tim.prect, tim.paddr);
+	DrawSync(0);
+	
+	if ( tim.mode & 0x8 ) {
+		LoadImage(tim.crect, tim.caddr);
+		DrawSync(0);
+	}
+}
+
+static void animate_rect_Selected() {
+    selector_color = interpolateColor(SELECTOR_COLOR_1, SELECTOR_COLOR_2, factor);
+	factor += velocity * direction;
+	if (factor >= 1.0f) {
+		factor = 1.0f;
+		direction = -1;
+	} else if (factor <= 0.0f) {
+		factor = 0.0f;
+		direction = 1;
+	}
+}
+
+static void move_selector(uint8_t selected_option) {
+    switch (selected_option) {
+        case 0:
+            selected_y = 115;
+            break;
+        case 1:
+            selected_y = 135;
+            break;
+        case 2:
+            selected_y = 155;
+            break;
+        default:
+            selected_y = 115;
+            break;
+    }
+}
+
+static void render_menu(uint8_t selected_option) {
+    render_tim(tim, 32, 32);
+    render_text(112, 120, 0, "START GAME");
+    render_text(112, 140, 0, "CONTINUE");
+    render_text(112, 160, 0, "SETTINGS");
+    // Selector
+    move_selector(selected_option);
+    render_rect(76, selected_y, 168, 20, selector_color.r, selector_color.g, selector_color.b); // Dibuja un rectángulo detrás de la opción seleccionada
+    render_text(92, selected_y + 4, 0, ">"); // Dibuja un símbolo de flecha delante de la opción seleccionada
+}
+
+GameState main_menu_display() {
+    GameState currentState = GAME_STATE_MENU;
+
+    uint8_t menuActive = 1;
+    uint8_t selected_option;
+
+    load_logo();
+
+    free(castlemanya_logo);
+    
+    while(menuActive) {
+        uint16_t held_buttons; // Not used in this page
+        uint16_t pressed_buttons;
+        input_read(&held_buttons, &pressed_buttons);
+
+        animate_rect_Selected();
+        if (pressed_buttons & (PAD_UP | PAD_DOWN)) {
+            if (pressed_buttons & PAD_UP && selected_option > 0)
+                selected_option--;
+            else if (pressed_buttons & PAD_DOWN && selected_option < option_count - 1)
+                selected_option++;
+        }
+        if (pressed_buttons & (PAD_CROSS | PAD_START)) {
+            menuActive = 0; // Break infinite while
+            currentState = GAME_STATE_LOADING;
+        }
+        render_menu(selected_option);
+        
+        graphic_display();
+    }
+
+    return currentState;
+
+}
