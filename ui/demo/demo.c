@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <stdio.h>
 #include <stdlib.h> // Este solo esta incluido por el free
 #include <psxgpu.h>
 #include <psxpad.h>
@@ -17,7 +18,11 @@ typedef enum {
 } ManyState;
 
 typedef struct {
-	uint32_t u, v;
+	// w: ancho del sprite
+	// h: altura del sprite
+	// u: posicion en coordenada x
+	// v: posicion en coordenada y
+	uint32_t w, h, u, v;
 } SPRITE_OBJECT;
 
 typedef struct {
@@ -29,11 +34,18 @@ typedef struct {
 } MANY_OBJECT;
 
 MANY_OBJECT many = {
+	.current_state = MANY_STATE_IDLE, // Estado base respirando
+	.x = 10, // Posicion en X
+	.y = 100, // Posicion en Y
+	.direction = 1, // Direccion derecha
+	.r = 128, // Color R
+	.g = 128, // Color G
+	.b = 128, // Color B
 	.amin = {
-		{ {0, 0}, {64, 0}, {128, 0} }, // sprites respirando
-		{ {64, 0}, {64, 64}, {64, 128} }, // sprites caminando
-		{ {128, 0}, {128, 64}, {128, 128} }, // sprites pegando
-		{ {192, 0}, {192, 0}, {192, 0} } // sprite saltando
+		{ {64, 64, 0, 0}, {64, 64, 64, 0}, {64, 64, 128, 0} }, // sprites respirando
+		{ {64, 64, 64, 0}, {64, 64, 64, 64}, {64, 64, 64, 128} }, // sprites caminando
+		{ {64, 64, 128, 0}, {64, 64, 128, 64}, {64, 64, 128, 128} }, // sprites pegando
+		{ {64, 64, 192, 0}, {64, 64, 192, 0}, {64, 64, 192, 0} } // sprite saltando
 	}
 };
 
@@ -56,15 +68,6 @@ void demo_game_main(void) {
 		DrawSync(0);
 	}
     free(many_sprites);
-
-	// Inicializar a many
-	many.current_state = MANY_STATE_IDLE; // Estado base respirando
-	many.x = 10; // Posicion en X
-	many.y = 100; // Posicion en Y
-	many.direction = 1; // Direccion derecha
-	many.r = 128; // Color R
-	many.g = 128; // Color G
-	many.b = 128; // Color B
 	
 	const int16_t MOVE_SPEED = 2;
 
@@ -79,9 +82,6 @@ void demo_game_main(void) {
 		uint16_t held_buttons;
         uint16_t pressed_buttons;
         input_read(&held_buttons, &pressed_buttons);
-
-		int many_sprt_width;
-		int many_sprt_height;
 
 		// Movimientos correr de many
 		if ((held_buttons & PAD_LEFT )) {
@@ -112,17 +112,9 @@ void demo_game_main(void) {
 			}
 		}
 
-		switch (many.current_state)
-		{
-			default:
-				many_sprt_width = many.x;
-				many_sprt_height = many.y;
-				break;
-		}
-
 		render_sprt(tim,
 			many.x, many.y,
-			many_sprt_width, many_sprt_height,
+			many.amin[many.current_state][many_current_frame].w, many.amin[many.current_state][many_current_frame].h,
 			many.amin[many.current_state][many_current_frame].u, many.amin[many.current_state][many_current_frame].v,
 			many.r, many.g, many.b
 		);
