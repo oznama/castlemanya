@@ -1,6 +1,6 @@
 #include <sys/types.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <stdlib.h> // Este solo esta incluido por el free
 #include <psxgpu.h>
 #include <psxpad.h>
 
@@ -75,7 +75,7 @@ GameState main_menu_display() {
         }
 
         // Render menu
-        render_tim(tim, 32, 32);
+        render_sprt(tim, 32, 32, 128, 128, 128);
         render_text(112, 120, 0, "START GAME");
         render_text(112, 140, 0, "CONTINUE");
         render_text(112, 160, 0, "SETTINGS");
