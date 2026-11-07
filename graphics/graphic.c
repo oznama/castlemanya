@@ -89,28 +89,28 @@ void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
 	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
 }
 
-void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b) {
+void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t width, uint32_t height, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
 	int depth = tim.mode & 3;
 	int pixels_per_word = (depth == 0) ? 4 : (depth == 1) ? 2 : 1;
-	int width = tim.prect->w * pixels_per_word;
-	int height = tim.prect->h;
-	int u = (tim.prect->x & 0x3f) * pixels_per_word;
-	int v = tim.prect->y & 0xff;
+	// int width = tim.prect->w * pixels_per_word;
+	// int height = tim.prect->h;
+	int uc = (tim.prect->x & 0x3f) * pixels_per_word;
+	int vc = tim.prect->y & 0xff;
 
 	const unsigned int max_size_allowed = 256;
 
 	// Validaciones para garantizar que el sprite no sea mayor de 256x256
 	assert(width > 0 && width <= max_size_allowed);
 	assert(height > 0 && height <= max_size_allowed);
-	assert(u + width <= max_size_allowed);
-	assert(v + height <= max_size_allowed);
+	assert(uc + width <= max_size_allowed);
+	assert(vc + height <= max_size_allowed);
 
 	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
 	setSprt(sprt);
-	setXY0(sprt, x, y);
-	setRGB0(sprt, r, g, b);
-	setUV0(sprt, u, v);
-	setWH(sprt, width, height);
+	setXY0(sprt, x, y); // Coordenadas en pantalla
+	setRGB0(sprt, r, g, b); // Colores RGB
+	setUV0(sprt, uc, vc); // Posicion en el sprite
+	setWH(sprt, width, height); // Ancho y alto tomado del sprite (porcion de la imagen)
 
 	if ( tim.mode & 0x8 ) {
 		setClut(sprt, tim.crect->x, tim.crect->y);

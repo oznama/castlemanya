@@ -30,3 +30,4 @@ psn00bsdk_add_cd_image(
 )
 
 psn00bsdk_target_incbin(castlemanya PRIVATE castlemanya_logo "assets/Castlemanya-logo.tim")
+psn00bsdk_target_incbin(castlemanya PRIVATE many_sprites "assets/Many-sprite.tim")

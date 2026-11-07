@@ -75,7 +75,7 @@ GameState main_menu_display() {
         }
 
         // Render menu
-        render_sprt(tim, 32, 32, 128, 128, 128);
+        render_sprt(tim, 32, 32, 256, 64, 0, 0, 128, 128, 128);
         render_text(112, 120, 0, "START GAME");
         render_text(112, 140, 0, "CONTINUE");
         render_text(112, 160, 0, "SETTINGS");
