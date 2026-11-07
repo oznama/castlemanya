@@ -20,37 +20,29 @@ DB db[2];
 uint8_t db_active;
 char *db_nextpri;
 
-static void *new_primitive(int z, size_t size) {
-	DB *buffer = &(db[db_active]);
-	char *primitive = db_nextpri;
-
-	addPrim(&(buffer->ot[z]), primitive);
-	db_nextpri += size;
-	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
-
-	return primitive;
-}
-
 void graphic_init() {
 
-    ResetGraph( 0 );
-    FntLoad(960, 0);
+	ResetGraph( 0 );
+	FntLoad(960, 0);
 
 	SetDefDispEnv( &db[0].disp, 0, 0, SCREEN_XRES, SCREEN_YRES );
 	SetDefDrawEnv( &db[0].draw, SCREEN_XRES, 0, SCREEN_XRES, SCREEN_YRES );
+
+	// db[0].disp.isinter = 1; // Esto veo que lo aplica el imbecil, pero no le veo cambio
+
 	setRGB0( &db[0].draw, 0, 0, 0 );
 	db[0].draw.isbg = 1;
 	db[0].draw.dtd = 1;
-	
+
 	SetDefDispEnv( &db[1].disp, SCREEN_XRES, 0, SCREEN_XRES, SCREEN_YRES );
 	SetDefDrawEnv( &db[1].draw, 0, 0, SCREEN_XRES, SCREEN_YRES );
 	setRGB0( &db[1].draw, 0, 0, 0 );
 	db[1].draw.isbg = 1;
 	db[1].draw.dtd = 1;
-	
+
 	PutDrawEnv( &db[0].draw );
-	
-    ClearOTagR( db[0].ot, OT_LEN );
+
+	ClearOTagR( db[0].ot, OT_LEN );
 	ClearOTagR( db[1].ot, OT_LEN );
 
 	db_nextpri = db[0].p;
@@ -58,26 +50,33 @@ void graphic_init() {
 }
 
 void graphic_display() {
-
-    DrawSync( 0 );
+	DrawSync( 0 );
 	VSync( 0 );
-	
+
 	db_active ^= 1;
 	db_nextpri = db[db_active].p;
-	
+
 	ClearOTagR( db[db_active].ot, OT_LEN );
-	
+
 	PutDrawEnv( &db[db_active].draw );
 	PutDispEnv( &db[db_active].disp );
-	
+
 	SetDispMask( 1 );
-	
+
 	DrawOTag( db[1-db_active].ot+(OT_LEN-1) );
 }
 
-void render_rect(int x, int y, int width, int height, int r, int g, int b) {
-    TILE *tile = (TILE *) new_primitive(1, sizeof(TILE));
+static void *new_primitive(int z, size_t size) {
+	DB *buffer = &(db[db_active]);
+	char *primitive = db_nextpri;
+	addPrim(&(buffer->ot[z]), primitive);
+	db_nextpri += size;
+	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
+	return (void *) primitive;
+}
 
+void render_rect(int x, int y, int width, int height, int r, int g, int b) {
+	TILE *tile = (TILE *) new_primitive(1, sizeof(TILE));
 	setTile(tile);
 	setXY0(tile, x, y);
 	setWH(tile, width, height);
@@ -85,25 +84,38 @@ void render_rect(int x, int y, int width, int height, int r, int g, int b) {
 }
 
 void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
-    DB *buffer = &(db[db_active]);
+	DB *buffer = &(db[db_active]);
 	db_nextpri = (uint8_t *) FntSort(&(buffer->ot[z]), db_nextpri, x, y, text);
 	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
 }
 
-void render_tim(TIM_IMAGE tim, uint8_t x, uint8_t y) {
-    int depth = tim.mode & 3;
-    int pixels_per_word = (depth == 0) ? 4 : (depth == 1) ? 2 : 1;
-    int width = tim.prect->w * pixels_per_word;
-    int height = tim.prect->h;
+void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b) {
+	int depth = tim.mode & 3;
+	int pixels_per_word = (depth == 0) ? 4 : (depth == 1) ? 2 : 1;
+	int width = tim.prect->w * pixels_per_word;
+	int height = tim.prect->h;
+	int u = (tim.prect->x & 0x3f) * pixels_per_word;
+	int v = tim.prect->y & 0xff;
 
-    POLY_FT4 *quad = (POLY_FT4*)db_nextpri;
-    setPolyFT4(quad);
-    setXYWH(quad, x, y, width, height);
-    setRGB0(quad, 128, 128, 128);
+	const unsigned int max_size_allowed = 256;
 
-    quad->tpage = getTPage(tim.mode & 3, 0, tim.prect->x, tim.prect->y);
-    setUV4(quad, 0, 0, 255, 0, 0, 63, 255, 63);
-    addPrim(db[db_active].ot + (OT_LEN - 1), quad);
+	// Validaciones para garantizar que el sprite no sea mayor de 256x256
+	assert(width > 0 && width <= max_size_allowed);
+	assert(height > 0 && height <= max_size_allowed);
+	assert(u + width <= max_size_allowed);
+	assert(v + height <= max_size_allowed);
 
-    db_nextpri = (char *) (quad + 1);
+	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
+	setSprt(sprt);
+	setXY0(sprt, x, y);
+	setRGB0(sprt, r, g, b);
+	setUV0(sprt, u, v);
+	setWH(sprt, width, height);
+
+	if ( tim.mode & 0x8 ) {
+		setClut(sprt, tim.crect->x, tim.crect->y);
+	}
+
+	DR_TPAGE *tpri = (DR_TPAGE*)new_primitive(0, sizeof(DR_TPAGE));
+	setDrawTPage(tpri, 0, 0, getTPage(depth, 0, tim.prect->x, tim.prect->y));
 }
