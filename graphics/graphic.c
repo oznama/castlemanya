@@ -90,26 +90,19 @@ void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
 }
 
 void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t width, uint32_t height, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
-	int depth = tim.mode & 3;
-	int pixels_per_word = (depth == 0) ? 4 : (depth == 1) ? 2 : 1;
-	// int width = tim.prect->w * pixels_per_word;
-	// int height = tim.prect->h;
-	int uc = (tim.prect->x & 0x3f) * pixels_per_word;
-	int vc = tim.prect->y & 0xff;
-
 	const unsigned int max_size_allowed = 256;
 
 	// Validaciones para garantizar que el sprite no sea mayor de 256x256
 	assert(width > 0 && width <= max_size_allowed);
 	assert(height > 0 && height <= max_size_allowed);
-	assert(uc + width <= max_size_allowed);
-	assert(vc + height <= max_size_allowed);
+	assert(u + width <= max_size_allowed);
+	assert(v + height <= max_size_allowed);
 
 	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
 	setSprt(sprt);
 	setXY0(sprt, x, y); // Coordenadas en pantalla
 	setRGB0(sprt, r, g, b); // Colores RGB
-	setUV0(sprt, uc, vc); // Posicion en el sprite
+	setUV0(sprt, u, v); // Posicion en el sprite
 	setWH(sprt, width, height); // Ancho y alto tomado del sprite (porcion de la imagen)
 
 	if ( tim.mode & 0x8 ) {
@@ -117,5 +110,5 @@ void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t width, uint32_t h
 	}
 
 	DR_TPAGE *tpri = (DR_TPAGE*)new_primitive(0, sizeof(DR_TPAGE));
-	setDrawTPage(tpri, 0, 0, getTPage(depth, 0, tim.prect->x, tim.prect->y));
+	setDrawTPage(tpri, 0, 0, getTPage(tim.mode & 3, 0, tim.prect->x, tim.prect->y));
 }
