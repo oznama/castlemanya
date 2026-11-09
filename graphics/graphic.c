@@ -6,9 +6,6 @@
 #define OT_LEN			256
 #define PACKET_LEN		1024
 
-#define SCREEN_XRES		320
-#define SCREEN_YRES		240
-
 typedef struct {
 	DISPENV	disp;
 	DRAWENV	draw;
@@ -19,6 +16,8 @@ typedef struct {
 DB db[2];
 uint8_t db_active;
 char *db_nextpri;
+
+void valida_sprite_size(uint32_t w, uint32_t h, uint8_t u, uint8_t v);
 
 void graphic_init() {
 
@@ -75,11 +74,11 @@ static void *new_primitive(int z, size_t size) {
 	return (void *) primitive;
 }
 
-void render_rect(int x, int y, int width, int height, int r, int g, int b) {
+void render_rect(int x, int y, int w, int h, int r, int g, int b) {
 	TILE *tile = (TILE *) new_primitive(1, sizeof(TILE));
 	setTile(tile);
 	setXY0(tile, x, y);
-	setWH(tile, width, height);
+	setWH(tile, w, h);
 	setRGB0(tile, r, g, b);
 }
 
@@ -89,21 +88,15 @@ void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
 	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
 }
 
-void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t width, uint32_t height, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
-	const unsigned int max_size_allowed = 256;
-
-	// Validaciones para garantizar que el sprite no sea mayor de 256x256
-	assert(width > 0 && width <= max_size_allowed);
-	assert(height > 0 && height <= max_size_allowed);
-	assert(u + width <= max_size_allowed);
-	assert(v + height <= max_size_allowed);
+void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
+	valida_sprite_size(w, h, u, v);
 
 	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
 	setSprt(sprt);
 	setXY0(sprt, x, y); // Coordenadas en pantalla
 	setRGB0(sprt, r, g, b); // Colores RGB
 	setUV0(sprt, u, v); // Posicion en el sprite
-	setWH(sprt, width, height); // Ancho y alto tomado del sprite (porcion de la imagen)
+	setWH(sprt, w, h); // Ancho y alto tomado del sprite (porcion de la imagen)
 
 	if ( tim.mode & 0x8 ) {
 		setClut(sprt, tim.crect->x, tim.crect->y);
@@ -111,4 +104,34 @@ void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t width, uint32_t h
 
 	DR_TPAGE *tpri = (DR_TPAGE*)new_primitive(0, sizeof(DR_TPAGE));
 	setDrawTPage(tpri, 0, 0, getTPage(tim.mode & 3, 0, tim.prect->x, tim.prect->y));
+}
+
+void render_poly_ft4(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b, uint8_t rotateu, uint8_t rotatev) {
+	valida_sprite_size(w, h, u, v);
+
+	POLY_FT4 *quad = (POLY_FT4 *)new_primitive(0, sizeof(POLY_FT4));
+    setPolyFT4(quad);
+    setXYWH(quad, x, y, w, h);
+    setRGB0(quad, r, g, b);
+
+    quad->tpage = getTPage(tim.mode & 3, 0, tim.prect->x, tim.prect->y);
+
+	uint16_t u_end = (uint16_t)((uint16_t)u + w - 1u);
+	uint16_t v_end = (uint16_t)((uint16_t)v + h - 1u);
+	setUV4(quad,
+		rotateu ? (uint8_t)u_end : u, rotatev ? (uint8_t)v_end : v,
+		rotateu ? u : (uint8_t)u_end, rotatev ? (uint8_t)v_end : v,
+		rotateu ? (uint8_t)u_end : u, rotatev ? v : (uint8_t)v_end,
+		rotateu ? u : (uint8_t)u_end, rotatev ? v : (uint8_t)v_end
+	);
+}
+
+void valida_sprite_size(uint32_t w, uint32_t h, uint8_t u, uint8_t v) {
+	const unsigned int max_size_allowed = 256;
+
+	// Validaciones para garantizar que el sprite no sea mayor de 256x256
+	assert(w > 0 && w <= max_size_allowed);
+	assert(h > 0 && h <= max_size_allowed);
+	assert(u + w <= max_size_allowed);
+	assert(v + h <= max_size_allowed);
 }

@@ -15,6 +15,7 @@ psn00bsdk_add_executable(
 	castlemanya GPREL
 	main.c
 	engine/input.c
+	gameplay/many.c
 	graphics/graphic.c
 	helpers/collisions.c
 	helpers/utils.c
