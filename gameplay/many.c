@@ -31,7 +31,6 @@ typedef struct {
 } MANY_OBJECT;
 
 int32_t y_velocity;
-uint16_t many_current_frame;
 
 MANY_OBJECT many = {
 	.current_state = MANY_STATE_IDLE, // Estado base respirando
@@ -44,20 +43,15 @@ MANY_OBJECT many = {
 	.b = 128, // Color B
 	.anim = {
 		{64, 64, 0, 0},
-		{64, 64, 64, 0},
-		{64, 64, 128, 0},
 		{64, 64, 0, 64},
-		{64, 64, 64, 64},
-		{64, 64, 128, 64},
 		{64, 64, 0, 128},
-		{64, 64, 64, 128},
-		{64, 64, 128, 128},
 		{64, 64, 0, 192}
 	}
 };
 
 void many_move_hor(uint16_t held_buttons);
 void many_move_ver(uint16_t pressed_buttons);
+void many_mover_attack(uint16_t pressed_buttons);
 
 // TODO Replace static load by load from CD
 extern u_long many_sprites[];
@@ -78,6 +72,7 @@ void many_init(void) {
 void many_render(uint16_t held_buttons, uint16_t pressed_buttons) {
     many_move_hor(held_buttons);
     many_move_ver(pressed_buttons);
+    many_mover_attack(pressed_buttons);
 
     // Rendereando a many en modo sprite simple (sin rotacion)
     // render_sprt(many_tim,
@@ -90,8 +85,8 @@ void many_render(uint16_t held_buttons, uint16_t pressed_buttons) {
     // Rendereando a many como poligono de 4 vertices (con rotacion)
     render_poly_ft4(many_tim,
         many.x, (many.y >> FIXED_SHIFT),
-        many.anim[many_current_frame].w, many.anim[many_current_frame].h,
-        many.anim[many_current_frame].u, many.anim[many_current_frame].v,
+        many.anim[many.current_state].w, many.anim[many.current_state].h,
+        many.anim[many.current_state].u, many.anim[many.current_state].v,
         many.r, many.g, many.b,
         !many.direction, 0
     );
@@ -104,19 +99,16 @@ void many_move_hor(uint16_t held_buttons) {
         many.direction = 0;
         if (many.grouded) {
             many.current_state = MANY_STATE_RUN;
-            many_current_frame = 3;
         }
     } else if ((held_buttons & PAD_RIGHT)) {
         if ( many.x < (SCREEN_XRES - (MANY_SIZE + MANY_SIZE/2)) ) many.x += MOVE_SPEED;
         many.direction = 1;
         if (many.grouded) {
             many.current_state = MANY_STATE_RUN;
-            many_current_frame = 3;
         }
     } else {
         if ( many.grouded ) {
             many.current_state = MANY_STATE_IDLE;
-            many_current_frame = 0;
         }
     }
 }
@@ -128,7 +120,6 @@ void many_move_ver(uint16_t pressed_buttons) {
         y_velocity -= JUMP_SPEED;
         many.grouded = 0;
         many.current_state = MANY_STATE_JUMP;
-        many_current_frame = 9;
     }
     if (!many.grouded) {
         many.y += y_velocity;
@@ -139,5 +130,11 @@ void many_move_ver(uint16_t pressed_buttons) {
             y_velocity = 0;
             many.grouded = 1;
         }
+    }
+}
+
+void many_mover_attack(uint16_t pressed_buttons) {
+    if ((pressed_buttons & PAD_SQUARE)) {
+        many.current_state = MANY_STATE_ATTACK;
     }
 }
