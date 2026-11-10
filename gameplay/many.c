@@ -42,10 +42,10 @@ MANY_OBJECT many = {
 	.g = 128, // Color G
 	.b = 128, // Color B
 	.anim = {
-		{64, 64, 0, 0},
-		{64, 64, 0, 64},
-		{64, 64, 0, 128},
-		{64, 64, 0, 192}
+		{64, 64, 0, 0, 0, 3, 0, 20},
+		{64, 64, 0, 64, 0, 3, 0, 12},
+		{64, 64, 0, 128, 0, 3, 0, 6},
+		{64, 64, 0, 192, 0, 1, 0, 6}
 	}
 };
 
@@ -82,11 +82,13 @@ void many_render(uint16_t held_buttons, uint16_t pressed_buttons) {
     //     many.r, many.g, many.b
     // );
 
+    update_animation(&many.anim[many.current_state]);
     // Rendereando a many como poligono de 4 vertices (con rotacion)
     render_poly_ft4(many_tim,
         many.x, (many.y >> FIXED_SHIFT),
         many.anim[many.current_state].w, many.anim[many.current_state].h,
-        many.anim[many.current_state].u, many.anim[many.current_state].v,
+        many.anim[many.current_state].u + (many.anim[many.current_state].current_frame * many.anim[many.current_state].w)
+        , many.anim[many.current_state].v,
         many.r, many.g, many.b,
         !many.direction, 0
     );

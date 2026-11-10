@@ -89,7 +89,7 @@ void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
 }
 
 void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
-	valida_sprite_size(w, h, u, v);
+	// valida_sprite_size(w, h, u, v);
 
 	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
 	setSprt(sprt);
@@ -107,7 +107,7 @@ void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, ui
 }
 
 void render_poly_ft4(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b, uint8_t rotateu, uint8_t rotatev) {
-	valida_sprite_size(w, h, u, v);
+	// valida_sprite_size(w, h, u, v);
 
 	POLY_FT4 *quad = (POLY_FT4 *)new_primitive(0, sizeof(POLY_FT4));
     setPolyFT4(quad);
