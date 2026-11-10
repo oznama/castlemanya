@@ -44,11 +44,13 @@ MANY_OBJECT many = {
 	.anim = {
 		{64, 64, 0, 0, 0, 3, 0, 20},
 		{64, 64, 0, 64, 0, 3, 0, 12},
-		{64, 64, 0, 128, 0, 3, 0, 6},
+		{64, 64, 0, 128, 0, 4, 0, 20},
 		{64, 64, 0, 192, 0, 1, 0, 6}
 	}
 };
 
+void many_change_state(ManyState new_state);
+uint8_t many_is_state_locked(void);
 void many_move_hor(uint16_t held_buttons);
 void many_move_ver(uint16_t pressed_buttons);
 void many_mover_attack(uint16_t pressed_buttons);
@@ -70,9 +72,12 @@ void many_init(void) {
 }
 
 void many_render(uint16_t held_buttons, uint16_t pressed_buttons) {
-    many_move_hor(held_buttons);
-    many_move_ver(pressed_buttons);
-    many_mover_attack(pressed_buttons);
+    // 1. Si no esta bloqueado por una animacion prioritaria (ej. ataque), procesamos inputs
+    if (!many_is_state_locked()) {
+        many_move_hor(held_buttons);
+        many_move_ver(pressed_buttons);
+        many_mover_attack(pressed_buttons);
+    }
 
     // Rendereando a many en modo sprite simple (sin rotacion)
     // render_sprt(many_tim,
@@ -82,8 +87,16 @@ void many_render(uint16_t held_buttons, uint16_t pressed_buttons) {
     //     many.r, many.g, many.b
     // );
 
-    update_animation(&many.anim[many.current_state]);
-    // Rendereando a many como poligono de 4 vertices (con rotacion)
+    // 2. Actualizamos la animacion y verificamos si termino
+    uint8_t anim_finished = update_animation(&many.anim[many.current_state]);
+
+    // 3. Si termino una animacion que mantenia ocupado al personaje, volvemos a IDLE
+    if (anim_finished) {
+        if (many.current_state == MANY_STATE_ATTACK) {
+            many_change_state(many.grouded ? MANY_STATE_IDLE : MANY_STATE_JUMP);
+        }
+    }
+    // 4. Rendereando a many como poligono de 4 vertices (con rotacion)
     render_poly_ft4(many_tim,
         many.x, (many.y >> FIXED_SHIFT),
         many.anim[many.current_state].w, many.anim[many.current_state].h,
@@ -94,24 +107,39 @@ void many_render(uint16_t held_buttons, uint16_t pressed_buttons) {
     );
 }
 
+void many_change_state(ManyState new_state) {
+    if (many.current_state == new_state) {
+        return;
+    }
+
+    many.current_state = new_state;
+
+    // Reiniciar los valores de la animación que va a comenzar
+    many.anim[new_state].current_frame = 0;
+    many.anim[new_state].anim_timer = 0;
+    many.anim[new_state].anim_dir = 1;
+}
+
+uint8_t many_is_state_locked(void) {
+    // Si Many está atacando, no permitimos cambiar de estado
+    if (many.current_state == MANY_STATE_ATTACK) {
+        return 1;
+    }
+    return 0;
+}
+
 void many_move_hor(uint16_t held_buttons) {
     // Movimientos correr de many
     if ((held_buttons & PAD_LEFT )) {
         if ( many.x > 0 ) many.x -= MOVE_SPEED;
         many.direction = 0;
-        if (many.grouded) {
-            many.current_state = MANY_STATE_RUN;
-        }
+        if (many.grouded) many_change_state(MANY_STATE_RUN);
     } else if ((held_buttons & PAD_RIGHT)) {
         if ( many.x < (SCREEN_XRES - (MANY_SIZE + MANY_SIZE/2)) ) many.x += MOVE_SPEED;
         many.direction = 1;
-        if (many.grouded) {
-            many.current_state = MANY_STATE_RUN;
-        }
+        if (many.grouded) many_change_state(MANY_STATE_RUN);
     } else {
-        if ( many.grouded ) {
-            many.current_state = MANY_STATE_IDLE;
-        }
+        if ( many.grouded ) many_change_state(MANY_STATE_IDLE);
     }
 }
 
@@ -121,7 +149,7 @@ void many_move_ver(uint16_t pressed_buttons) {
     if ((pressed_buttons & PAD_CROSS) && many.grouded) {
         y_velocity -= JUMP_SPEED;
         many.grouded = 0;
-        many.current_state = MANY_STATE_JUMP;
+        many_change_state(MANY_STATE_JUMP);
     }
     if (!many.grouded) {
         many.y += y_velocity;
@@ -136,7 +164,5 @@ void many_move_ver(uint16_t pressed_buttons) {
 }
 
 void many_mover_attack(uint16_t pressed_buttons) {
-    if ((pressed_buttons & PAD_SQUARE)) {
-        many.current_state = MANY_STATE_ATTACK;
-    }
+    if ((pressed_buttons & PAD_SQUARE)) many_change_state(MANY_STATE_ATTACK);
 }
