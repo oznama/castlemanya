@@ -14,15 +14,13 @@ project(
 psn00bsdk_add_executable(
 	castlemanya GPREL
 	main.c
-	engine/game.c
 	engine/input.c
-	gameplay/demo/demo_game.c
-	gameplay/test/test_area.c
-	graphics/renderer.c
-	ui/main_menu.c
-	ui/settings.c
+	gameplay/many.c
+	graphics/graphic.c
 	helpers/collisions.c
 	helpers/utils.c
+	ui/menu/main_menu.c
+	ui/demo/demo.c
 )
 
 psn00bsdk_add_cd_image(
@@ -31,3 +29,7 @@ psn00bsdk_add_cd_image(
 	iso.xml  # Path to config file
 	DEPENDS castlemanya system.cnf
 )
+
+psn00bsdk_target_incbin(castlemanya PRIVATE castlemanya_logo "assets/Castlemanya-logo.tim")
+psn00bsdk_target_incbin(castlemanya PRIVATE many_sprites "assets/Many-sprite.tim")
+psn00bsdk_target_incbin(castlemanya PRIVATE zombie_sprites "assets/Zombie-sprite.tim")
