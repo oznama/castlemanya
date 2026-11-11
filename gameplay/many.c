@@ -1,11 +1,10 @@
 #include <sys/types.h>
-#include <stdlib.h> // Este solo esta incluido por el free
 #include <stdio.h>
 #include <psxgpu.h>
 #include <psxpad.h>
 
+#include "many.h"
 #include "../graphics/graphic.h"
-#include "../helpers/utils.h"
 
 #define MOVE_SPEED 2
 #define FIXED_SHIFT 8
@@ -13,27 +12,6 @@
 #define JUMP_SPEED (8 * FIXED_ONE)
 #define GRAVITY (FIXED_ONE / 2)
 #define MANY_SIZE 64
-
-typedef enum
-{
-    MANY_STATE_IDLE,
-    MANY_STATE_RUN,
-    MANY_STATE_ATTACK,
-    MANY_STATE_JUMP,
-    MANY_STATE_FALL
-} ManyState;
-
-typedef struct
-{
-    uint32_t x, y;
-    uint8_t direction;
-    uint8_t grouded;
-    uint8_t has_double_jump; // Si ya obtuvo el powerup
-    uint8_t can_double_jump; // Disponible para usarse en el aire actual
-    unsigned char r, g, b;
-    ManyState current_state;
-    SPRITE_OBJECT anim[10];
-} MANY_OBJECT;
 
 int32_t y_velocity;
 int32_t x_velocity;
@@ -44,7 +22,7 @@ MANY_OBJECT many = {
     .y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE, // Posicion en Y
     .direction = 1,                                           // Direccion derecha
     .grouded = 1,                                             // En el piso
-    .has_double_jump = 1,
+    .has_double_jump = 0,
     .can_double_jump = 0,
     .r = 128, // Color R
     .g = 128, // Color G
@@ -70,6 +48,12 @@ void many_init(void)
 {
     // Load logo image
     GetTimInfo(many_sprites, &many_tim);
+    printf("Rectangulo prect de many: (x: %d, y: %d, w: %d, h: %d)\n", 
+		many_tim.prect->x,
+		many_tim.prect->y,
+		many_tim.prect->w,
+		many_tim.prect->h
+	);
     LoadImage(many_tim.prect, many_tim.paddr);
     DrawSync(0);
     if (many_tim.mode & 0x8)
@@ -77,10 +61,9 @@ void many_init(void)
         LoadImage(many_tim.crect, many_tim.caddr);
         DrawSync(0);
     }
-    free(many_sprites);
 }
 
-void many_render(uint16_t held_buttons, uint16_t pressed_buttons)
+MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
 {
     // 1. Si no esta bloqueado por una animacion prioritaria (ej. ataque), procesamos inputs
     if (!many_is_state_locked())
@@ -121,6 +104,8 @@ void many_render(uint16_t held_buttons, uint16_t pressed_buttons)
                     many.anim[many.current_state].u + (many.anim[many.current_state].current_frame * many.anim[many.current_state].w), many.anim[many.current_state].v,
                     many.r, many.g, many.b,
                     !many.direction, 0);
+
+    return many;
 }
 
 void many_change_state(ManyState new_state)
