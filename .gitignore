@@ -58,3 +58,4 @@ build/
 .vscode/
 
 img2tim*
+*.png

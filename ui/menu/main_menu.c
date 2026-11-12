@@ -1,16 +1,12 @@
-#include <sys/types.h>
 #include <stdint.h>
-#include <stdlib.h> // Este solo esta incluido por el free
 #include <psxgpu.h>
 #include <psxpad.h>
 
 #include "main_menu.h"
+#include "../../engine/cd_image.h"
 #include "../../engine/input.h"
 #include "../../graphics/graphic.h"
 #include "../../helpers/utils.h"
-
-// TODO Replace static load by load from CD
-extern u_long	castlemanya_logo[];
 
 GameState main_menu_display() {
 
@@ -35,15 +31,8 @@ GameState main_menu_display() {
     int direction = 1;
 
     // Load logo image
-    TIM_IMAGE tim;
-    GetTimInfo(castlemanya_logo, &tim);
-    LoadImage(tim.prect, tim.paddr);
-	DrawSync(0);
-	if ( tim.mode & 0x8 ) {
-		LoadImage(tim.crect, tim.caddr);
-		DrawSync(0);
-	}
-    free(castlemanya_logo);
+    CD_TEXTURE texture;
+    cd_load_image("\\LOGO.TIM", &texture);
     
     // Main cycle
     while(menuActive) {
@@ -75,7 +64,7 @@ GameState main_menu_display() {
         }
 
         // Render menu
-        render_sprt(tim, 32, 32, 256, 64, 0, 0, 128, 128, 128);
+        render_sprt(texture, 32, 32, 256, 64, 0, 0, 128, 128, 128);
         render_text(112, 120, 0, "START GAME");
         render_text(112, 140, 0, "CONTINUE");
         render_text(112, 160, 0, "SETTINGS");
