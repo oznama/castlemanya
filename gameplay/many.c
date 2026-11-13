@@ -1,9 +1,8 @@
-#include <sys/types.h>
-#include <stdio.h>
 #include <psxgpu.h>
 #include <psxpad.h>
 
 #include "many.h"
+#include "../engine/cd_image.h"
 #include "../graphics/graphic.h"
 
 #define MOVE_SPEED 2
@@ -28,11 +27,7 @@ MANY_OBJECT many = {
     .g = 128, // Color G
     .b = 128, // Color B
     .anim = {
-        {64, 64, 0, 0, 0, 3, 0, 20},
-        {64, 64, 0, 64, 0, 3, 0, 12},
-        {64, 64, 0, 128, 0, 4, 0, 6},
-        {64, 64, 0, 192, 0, 1, 0, 6},
-        {64, 64, 64, 192, 0, 1, 0, 6}}};
+        {32, 64, 0, 0, 0, 4, 0, 20}}};
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
@@ -40,27 +35,12 @@ void many_move_hor(uint16_t held_buttons);
 void many_move_ver(uint16_t pressed_buttons, uint16_t held_buttons);
 void many_action_attack(uint16_t pressed_buttons);
 
-// TODO Replace static load by load from CD
-extern u_long many_sprites[];
-TIM_IMAGE many_tim;
+CD_TEXTURE many_tim;
 
 void many_init(void)
 {
     // Load logo image
-    GetTimInfo(many_sprites, &many_tim);
-    printf("Rectangulo prect de many: (x: %d, y: %d, w: %d, h: %d)\n", 
-		many_tim.prect->x,
-		many_tim.prect->y,
-		many_tim.prect->w,
-		many_tim.prect->h
-	);
-    LoadImage(many_tim.prect, many_tim.paddr);
-    DrawSync(0);
-    if (many_tim.mode & 0x8)
-    {
-        LoadImage(many_tim.crect, many_tim.caddr);
-        DrawSync(0);
-    }
+    cd_load_image("\\MANY.TIM", &many_tim);
 }
 
 MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
@@ -69,11 +49,11 @@ MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
     if (!many_is_state_locked())
     {
         many_move_hor(held_buttons);
-        many_action_attack(pressed_buttons);
+        // many_action_attack(pressed_buttons);
     }
 
     // Procesamos fisica y salto
-    many_move_ver(pressed_buttons, held_buttons);
+    // many_move_ver(pressed_buttons, held_buttons);
 
     // Rendereando a many en modo sprite simple (sin rotacion)
     // render_sprt(many_tim,
@@ -87,16 +67,16 @@ MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
     uint8_t anim_finished = update_animation(&many.anim[many.current_state]);
 
     // 3. Si termino una animacion que mantenia ocupado al personaje, volvemos a IDLE
-    if (anim_finished)
-    {
-        if (many.current_state == MANY_STATE_ATTACK)
-        {
-            if (many.grouded)
-                many_change_state(MANY_STATE_IDLE);
-            else
-                many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
-        }
-    }
+    // if (anim_finished)
+    // {
+    //     if (many.current_state == MANY_STATE_ATTACK)
+    //     {
+    //         if (many.grouded)
+    //             many_change_state(MANY_STATE_IDLE);
+    //         else
+    //             many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
+    //     }
+    // }
     // 4. Rendereando a many como poligono de 4 vertices (con rotacion)
     render_poly_ft4(many_tim,
                     many.x, (many.y >> FIXED_SHIFT),

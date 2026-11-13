@@ -15,6 +15,7 @@ psn00bsdk_add_executable(
 	castlemanya GPREL
 	main.c
 	engine/input.c
+	engine/cd_image.c
 	gameplay/many.c
 	graphics/graphic.c
 	helpers/collisions.c
@@ -29,7 +30,3 @@ psn00bsdk_add_cd_image(
 	iso.xml  # Path to config file
 	DEPENDS castlemanya system.cnf
 )
-
-psn00bsdk_target_incbin(castlemanya PRIVATE castlemanya_logo "assets/Castlemanya-logo.tim")
-psn00bsdk_target_incbin(castlemanya PRIVATE many_sprites "assets/Many-sprite.tim")
-psn00bsdk_target_incbin(castlemanya PRIVATE zombie_sprites "assets/Zombie-sprite.tim")

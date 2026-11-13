@@ -61,6 +61,10 @@
 		<directory_tree>
 			<file name="SYSTEM.CNF"		type="data" source="${PROJECT_SOURCE_DIR}/system.cnf" />
 			<file name="CASTLEMA.EXE"	type="data" source="castlemanya.exe" />
+			<file name="LOGO.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/Castlemanya-logo.tim" />
+			<file name="MANY.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-sprite.tim" />
+			<file name="ZOMBIE.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/zombie/Zombie-sprite.tim" />
+			<file name="MEDUSA.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/medusa/Medusa-sprite.tim" />
 			<!--
 				This file is only required if you are using dynamic linking
 				(see the system/dynlink example). It contains the executable's

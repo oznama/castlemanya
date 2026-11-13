@@ -88,7 +88,7 @@ void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
 	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
 }
 
-void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
+void render_sprt(CD_TEXTURE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
 	// valida_sprite_size(w, h, u, v);
 
 	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
@@ -99,14 +99,14 @@ void render_sprt(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, ui
 	setWH(sprt, w, h); // Ancho y alto tomado del sprite (porcion de la imagen)
 
 	if ( tim.mode & 0x8 ) {
-		setClut(sprt, tim.crect->x, tim.crect->y);
+		setClut(sprt, tim.clut_x, tim.clut_y);
 	}
 
 	DR_TPAGE *tpri = (DR_TPAGE*)new_primitive(0, sizeof(DR_TPAGE));
-	setDrawTPage(tpri, 0, 0, getTPage(tim.mode & 3, 0, tim.prect->x, tim.prect->y));
+	setDrawTPage(tpri, 0, 0, getTPage(tim.mode & 3, 0, tim.image_x, tim.image_y));
 }
 
-void render_poly_ft4(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b, uint8_t rotateu, uint8_t rotatev) {
+void render_poly_ft4(CD_TEXTURE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b, uint8_t rotateu, uint8_t rotatev) {
 	// valida_sprite_size(w, h, u, v);
 
 	POLY_FT4 *quad = (POLY_FT4 *)new_primitive(0, sizeof(POLY_FT4));
@@ -114,7 +114,11 @@ void render_poly_ft4(TIM_IMAGE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h
     setXYWH(quad, x, y, w, h);
     setRGB0(quad, r, g, b);
 
-    quad->tpage = getTPage(tim.mode & 3, 0, tim.prect->x, tim.prect->y);
+	if ( tim.mode & 0x8 ) {
+		setClut(quad, tim.clut_x, tim.clut_y);
+	}
+
+    quad->tpage = getTPage(tim.mode & 3, 0, tim.image_x, tim.image_y);
 
 	uint16_t u_end = (uint16_t)((uint16_t)u + w - 1u);
 	uint16_t v_end = (uint16_t)((uint16_t)v + h - 1u);
