@@ -6,7 +6,8 @@ typedef enum
     MANY_STATE_RUN,
     MANY_STATE_ATTACK,
     MANY_STATE_JUMP,
-    MANY_STATE_FALL
+    MANY_STATE_FALL,
+    MANY_STATE_CROUNCH
 } ManyState;
 
 typedef struct

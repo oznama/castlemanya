@@ -27,13 +27,21 @@ MANY_OBJECT many = {
     .g = 128, // Color G
     .b = 128, // Color B
     .anim = {
-        {32, 64, 0, 0, 0, 4, 0, 20}}};
+        {64, 64, 0, 0, 0, 4, 0, 20},
+        {64, 64, 0, 64, 0, 3, 0, 16},
+        {64, 64, 0, 128, 0, 4, 0, 8},
+        {64, 64, 0, 192, 0, 1, 0, 6},
+        {64, 64, 64, 192, 0, 1, 0, 6},
+        {64, 64, 128, 192, 0, 1, 0, 6}
+    }
+};
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
 void many_move_hor(uint16_t held_buttons);
 void many_move_ver(uint16_t pressed_buttons, uint16_t held_buttons);
 void many_action_attack(uint16_t pressed_buttons);
+void many_move_crouch(uint16_t held_buttons);
 
 CD_TEXTURE many_tim;
 
@@ -49,11 +57,12 @@ MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
     if (!many_is_state_locked())
     {
         many_move_hor(held_buttons);
-        // many_action_attack(pressed_buttons);
+        many_action_attack(pressed_buttons);
+        many_move_crouch(held_buttons);
     }
 
     // Procesamos fisica y salto
-    // many_move_ver(pressed_buttons, held_buttons);
+    many_move_ver(pressed_buttons, held_buttons);
 
     // Rendereando a many en modo sprite simple (sin rotacion)
     // render_sprt(many_tim,
@@ -67,16 +76,16 @@ MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
     uint8_t anim_finished = update_animation(&many.anim[many.current_state]);
 
     // 3. Si termino una animacion que mantenia ocupado al personaje, volvemos a IDLE
-    // if (anim_finished)
-    // {
-    //     if (many.current_state == MANY_STATE_ATTACK)
-    //     {
-    //         if (many.grouded)
-    //             many_change_state(MANY_STATE_IDLE);
-    //         else
-    //             many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
-    //     }
-    // }
+    if (anim_finished)
+    {
+        if (many.current_state == MANY_STATE_ATTACK)
+        {
+            if (many.grouded)
+                many_change_state(MANY_STATE_IDLE);
+            else
+                many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
+        }
+    }
     // 4. Rendereando a many como poligono de 4 vertices (con rotacion)
     render_poly_ft4(many_tim,
                     many.x, (many.y >> FIXED_SHIFT),
@@ -239,4 +248,10 @@ void many_action_attack(uint16_t pressed_buttons)
 {
     if ((pressed_buttons & PAD_SQUARE))
         many_change_state(MANY_STATE_ATTACK);
+}
+
+void many_move_crouch(uint16_t held_buttons)
+{
+    if ((held_buttons & PAD_DOWN))
+        many_change_state(MANY_STATE_CROUNCH);
 }
