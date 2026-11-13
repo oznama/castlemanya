@@ -82,13 +82,13 @@ void render_rect(int x, int y, int w, int h, int r, int g, int b) {
 	setRGB0(tile, r, g, b);
 }
 
-void render_text(uint8_t x, uint8_t y, uint8_t z, const char *text) {
+void render_text(int x, int y, int z, const char *text) {
 	DB *buffer = &(db[db_active]);
 	db_nextpri = (uint8_t *) FntSort(&(buffer->ot[z]), db_nextpri, x, y, text);
 	assert(db_nextpri <= &(buffer->p[PACKET_LEN]));
 }
 
-void render_sprt(CD_TEXTURE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b) {
+void render_sprt(CD_TEXTURE tim, int x, int y, int w, int h, int u, int v, int r, int g, int b) {
 	// valida_sprite_size(w, h, u, v);
 
 	SPRT *sprt = (SPRT *)new_primitive(0, sizeof(SPRT));
@@ -106,7 +106,7 @@ void render_sprt(CD_TEXTURE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, u
 	setDrawTPage(tpri, 0, 0, getTPage(tim.mode & 3, 0, tim.image_x, tim.image_y));
 }
 
-void render_poly_ft4(CD_TEXTURE tim, uint8_t x, uint8_t y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b, uint8_t rotateu, uint8_t rotatev) {
+void render_poly_ft4(CD_TEXTURE tim, int x, int y, int w, int h, int u, int v, int r, int g, int b, uint8_t rotateu, uint8_t rotatev) {
 	// valida_sprite_size(w, h, u, v);
 
 	POLY_FT4 *quad = (POLY_FT4 *)new_primitive(0, sizeof(POLY_FT4));

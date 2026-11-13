@@ -65,6 +65,7 @@
 			<file name="MANY.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-sprite.tim" />
 			<file name="ZOMBIE.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/zombie/Zombie-sprite.tim" />
 			<file name="MEDUSA.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/medusa/Medusa-sprite.tim" />
+			<file name="LEVEL1.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/background/level_1scrn.tim" />
 			<!--
 				This file is only required if you are using dynamic linking
 				(see the system/dynlink example). It contains the executable's

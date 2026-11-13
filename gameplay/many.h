@@ -12,7 +12,8 @@ typedef enum
 
 typedef struct
 {
-    uint32_t x, y;
+    int x, y;
+    int32_t x_velocity, y_velocity;
     uint8_t direction;
     uint8_t grouded;
     uint8_t has_double_jump; // Si ya obtuvo el powerup
@@ -23,4 +24,4 @@ typedef struct
 } MANY_OBJECT;
 
 void many_init(void);
-MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons);
+MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons, const short level_map[]);

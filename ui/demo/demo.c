@@ -7,10 +7,12 @@
 #include "../../gameplay/many.h"
 #include "../../graphics/graphic.h"
 #include "../../helpers/collisions.h"
+#include "../../ui/level01/level01.h"
 
 #define ZOMBIES_NUM 4
 #define MEDUSAS_NUM 3
 
+CD_TEXTURE level1_tim;
 // CD_TEXTURE zombie_tim, medusa_tim;
 
 // typedef struct {
@@ -24,6 +26,9 @@
 // ENEMY_OBJECT zombies[ZOMBIES_NUM];
 // ENEMY_OBJECT medusas[MEDUSAS_NUM];
 
+void load_level(void);
+void render_level();
+
 // void zombies_init(void);
 // void zombies_render(MANY_OBJECT many);
 
@@ -34,6 +39,7 @@ void demo_game_main(void) {
 
 	graphic_init();
 	input_init();
+	load_level();
 	many_init();
 	// zombies_init();
 	// medusas_init();
@@ -43,24 +49,26 @@ void demo_game_main(void) {
         uint16_t pressed_buttons;
         input_read(&held_buttons, &pressed_buttons);
 
-		MANY_OBJECT many = many_render(held_buttons, pressed_buttons);
+		MANY_OBJECT many = many_render(held_buttons, pressed_buttons, level_1_map);
 		// zombies_render(many);
 		// medusas_render(many);
 
-		// Dibuja piso
-		render_rect(
-			0,
-			SCREEN_YRES - FLOOR_LIMIT,
-			SCREEN_XRES,
-			FLOOR_LIMIT,
-			0,
-			255,
-			0
-		);
-
+		render_level();
 
 		graphic_display();
 	}
+}
+
+void load_level(void) {
+	cd_load_image("\\LEVEL1.TIM", &level1_tim);
+}
+
+void render_level() {
+	CD_TEXTURE right_part = level1_tim;
+    right_part.image_x += 64;
+
+    render_sprt(level1_tim, 0,   0, 256, 240, 0, 0, 128, 128, 128);
+    render_sprt(right_part, 256, 0,  64, 240, 0, 0, 128, 128, 128);
 }
 
 // void zombies_init(void) {
