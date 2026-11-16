@@ -255,3 +255,151 @@ void many_move_crouch(uint16_t held_buttons)
     if ((held_buttons & PAD_DOWN))
         many_change_state(MANY_STATE_CROUNCH);
 }
+MANY_OBJECT* many_get_instance(void)
+{
+    return &many;
+}
+
+void many_set_position(int32_t world_x, int32_t world_y)
+{
+    many.x = world_x;
+    many.y = world_y * FIXED_ONE;
+}
+
+void many_render_in_camera(int32_t cam_x, int32_t cam_y)
+{
+    int32_t screen_x = (int32_t)many.x - cam_x;
+    int32_t screen_y = (int32_t)(many.y >> FIXED_SHIFT) - cam_y;
+
+    render_poly_ft4(many_tim,
+                    screen_x, screen_y,
+                    many.anim[many.current_state].w, many.anim[many.current_state].h,
+                    many.anim[many.current_state].u + (many.anim[many.current_state].current_frame * many.anim[many.current_state].w), many.anim[many.current_state].v,
+                    many.r, many.g, many.b,
+                    !many.direction, 0);
+}
+
+#include "../helpers/level_generator.h"
+
+void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void *dynamic_level_ptr)
+{
+    DynamicLevel *level = (DynamicLevel*)dynamic_level_ptr;
+    if (!level) return;
+
+    // 1. Acciones de ataque y agacharse si no esta bloqueado
+    if (!many_is_state_locked())
+    {
+        many_action_attack(pressed_buttons);
+        many_move_crouch(held_buttons);
+    }
+
+    // 2. Movimiento horizontal
+    int32_t vx = 0;
+    if (!many_is_state_locked())
+    {
+        if (held_buttons & PAD_LEFT)
+        {
+            vx = -MOVE_SPEED;
+            many.direction = 0;
+            if (many.grouded && many.current_state != MANY_STATE_CROUNCH)
+                many_change_state(MANY_STATE_RUN);
+        }
+        else if (held_buttons & PAD_RIGHT)
+        {
+            vx = MOVE_SPEED;
+            many.direction = 1;
+            if (many.grouded && many.current_state != MANY_STATE_CROUNCH)
+                many_change_state(MANY_STATE_RUN);
+        }
+        else
+        {
+            if (many.grouded && many.current_state != MANY_STATE_CROUNCH && many.current_state != MANY_STATE_ATTACK)
+                many_change_state(MANY_STATE_IDLE);
+        }
+    }
+
+    // 3. Salto
+    if (!many_is_state_locked() && (pressed_buttons & PAD_CROSS))
+    {
+        if (many.grouded)
+        {
+            y_velocity = -JUMP_SPEED;
+            many.grouded = 0;
+            many.can_double_jump = many.has_double_jump;
+            many_change_state(MANY_STATE_JUMP);
+            x_velocity = vx;
+        }
+        else if (many.can_double_jump)
+        {
+            y_velocity = -JUMP_SPEED;
+            many.can_double_jump = 0;
+            many_change_state(MANY_STATE_JUMP);
+            if (vx != 0)
+                x_velocity = vx;
+        }
+    }
+
+    // Si esta en el aire, aplicar inercia horizontal y gravedad
+    if (!many.grouded)
+    {
+        if (vx != 0)
+            x_velocity = vx; // Permitir control aereo estilo SotN
+        vx = x_velocity;
+
+        y_velocity += GRAVITY;
+        if (y_velocity > 0 && many.current_state != MANY_STATE_ATTACK)
+            many_change_state(MANY_STATE_FALL);
+    }
+
+    int32_t vy = y_velocity >> FIXED_SHIFT;
+
+    // 4. Resolucion de colisiones con el nivel
+    int32_t current_x = (int32_t)many.x;
+    int32_t current_y = (int32_t)(many.y >> FIXED_SHIFT);
+    bool is_grounded = false;
+
+    /* Usamos un ancho de colision realista centrado en el sprite de 64x64 */
+    level_resolve_entity_collision(level,
+                                   &current_x, &current_y,
+                                   &vx, &vy,
+                                   48, 64,
+                                   &is_grounded);
+
+    many.x = current_x;
+    many.y = current_y * FIXED_ONE;
+
+    if (is_grounded)
+    {
+        y_velocity = 0;
+        x_velocity = 0;
+        many.grouded = 1;
+        many.can_double_jump = many.has_double_jump;
+
+        if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_CROUNCH)
+        {
+            if ((held_buttons & PAD_LEFT) || (held_buttons & PAD_RIGHT))
+                many_change_state(MANY_STATE_RUN);
+            else
+                many_change_state(MANY_STATE_IDLE);
+        }
+    }
+    else
+    {
+        many.grouded = 0;
+        if (vy == 0 && y_velocity < 0)
+        {
+            // Golpe contra techo
+            y_velocity = 0;
+        }
+    }
+
+    // 5. Animaciones
+    uint8_t anim_finished = update_animation(&many.anim[many.current_state]);
+    if (anim_finished && many.current_state == MANY_STATE_ATTACK)
+    {
+        if (many.grouded)
+            many_change_state(MANY_STATE_IDLE);
+        else
+            many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
+    }
+}

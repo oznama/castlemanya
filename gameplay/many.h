@@ -24,3 +24,9 @@ typedef struct
 
 void many_init(void);
 MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons);
+MANY_OBJECT* many_get_instance(void);
+void many_set_position(int32_t world_x, int32_t world_y);
+void many_render_in_camera(int32_t cam_x, int32_t cam_y);
+
+/* Actualiza y resuelve el movimiento y colisiones de Many en el nivel dinamico */
+void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void *dynamic_level_ptr);

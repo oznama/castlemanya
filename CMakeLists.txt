@@ -19,6 +19,7 @@ psn00bsdk_add_executable(
 	gameplay/many.c
 	graphics/graphic.c
 	helpers/collisions.c
+	helpers/level_generator.c
 	helpers/utils.c
 	ui/menu/main_menu.c
 	ui/demo/demo.c
