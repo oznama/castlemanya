@@ -11,7 +11,7 @@
 #define FIXED_ONE (1 << FIXED_SHIFT)
 #define JUMP_SPEED (8 * FIXED_ONE)
 #define GRAVITY (FIXED_ONE / 2)
-#define MANY_SIZE 64
+#define MANY_SIZE MANY_COLLISION_HEIGHT
 
 int32_t y_velocity;
 int32_t x_velocity;
@@ -22,16 +22,15 @@ MANY_OBJECT many = {
     .y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE, // Posicion en Y
     .direction = 1,                                           // Direccion derecha
     .grouded = 1,                                             // En el piso
-    .has_double_jump = 0,
+    .has_double_jump = 1,
     .can_double_jump = 0,
     .r = 128, // Color R
     .g = 128, // Color G
     .b = 128, // Color B
     .anim = {
-        [MANY_STATE_IDLE] = {
-            .w = 32, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 20, .anim_dir = 1},
+        [MANY_STATE_IDLE] = {.w = 32, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 20, .anim_dir = 1},
         [MANY_STATE_RUN] = {.w = 48, .h = 48, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
-        [MANY_STATE_ATTACK] = {.w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1},
+        [MANY_STATE_ATTACK] = {.w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1},
         [MANY_STATE_JUMP] = {.w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1},
         [MANY_STATE_FALL] = {.w = 32, .h = 64, .u = 32, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1},
         [MANY_STATE_CROUNCH] = {.w = 32, .h = 64, .u = 64, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1}}};
@@ -63,8 +62,8 @@ static CD_TEXTURE *many_texture_for_state(ManyState state)
 static void many_draw_sprite(int32_t x, int32_t y)
 {
     SPRITE_OBJECT *anim = &many.anim[many.current_state];
-    int32_t draw_x = x + (48 - (int32_t)anim->w) / 2;
-    int32_t draw_y = y + (64 - (int32_t)anim->h);
+    int32_t draw_x = x + (MANY_COLLISION_WIDTH - (int32_t)anim->w) / 2;
+    int32_t draw_y = y + (MANY_COLLISION_HEIGHT - (int32_t)anim->h);
 
     render_poly_ft4(*many_texture_for_state(many.current_state),
                     draw_x, draw_y,
@@ -162,7 +161,7 @@ void many_move_hor(uint16_t held_buttons)
     }
     else if ((held_buttons & PAD_RIGHT))
     {
-        if (many.x < (SCREEN_XRES - (MANY_SIZE + MANY_SIZE / 2)))
+        if (many.x < SCREEN_XRES - MANY_COLLISION_WIDTH)
             many.x += MOVE_SPEED;
         many.direction = 1;
         if (many.grouded)
@@ -230,9 +229,9 @@ void many_move_ver(uint16_t pressed_buttons, uint16_t held_buttons)
             many.x = 0;
             x_velocity = 0;
         }
-        else if (many.x > SCREEN_XRES - (MANY_SIZE + MANY_SIZE / 2))
+        else if (many.x > SCREEN_XRES - MANY_COLLISION_WIDTH)
         {
-            many.x = SCREEN_XRES - (MANY_SIZE + MANY_SIZE / 2);
+            many.x = SCREEN_XRES - MANY_COLLISION_WIDTH;
             x_velocity = 0;
         }
 
@@ -383,7 +382,8 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void 
     level_resolve_entity_collision(level,
                                    &current_x, &current_y,
                                    &vx, &vy,
-                                   48, 64,
+                                   MANY_COLLISION_WIDTH,
+                                   MANY_COLLISION_HEIGHT,
                                    &is_grounded);
 
     many.x = current_x;

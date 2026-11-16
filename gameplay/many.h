@@ -1,5 +1,8 @@
 #include "../helpers/utils.h"
 
+#define MANY_COLLISION_WIDTH 32
+#define MANY_COLLISION_HEIGHT 64
+
 typedef enum
 {
     MANY_STATE_IDLE,

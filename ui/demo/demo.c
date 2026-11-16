@@ -27,11 +27,11 @@ void demo_game_main(void) {
 	 * (0, 16): Brown rock / earth (Plataformas)
 	 */
 	LevelThemeTextures theme = {
-		.floor_tile    = { .u = 0,  .v = 0,  .collision = TILE_COLL_SOLID },
-		.wall_tile     = { .u = 32,  .v = 0,  .collision = TILE_COLL_SOLID },
-		.ceiling_tile  = { .u = 32, .v = 0,  .collision = TILE_COLL_SOLID },
-		.platform_tile = { .u = 32,  .v = 16, .collision = TILE_COLL_ONEWAY },
-		.bg_tile       = { .u = 16, .v = 16, .collision = TILE_COLL_NONE }
+		.floor_tile    = { .u = 16,  .v = 80,  .collision = TILE_COLL_SOLID },
+		.wall_tile     = { .u = 16,  .v = 80,  .collision = TILE_COLL_SOLID },
+		.ceiling_tile  = { .u = 16, .v = 80,  .collision = TILE_COLL_SOLID },
+		.platform_tile = { .u = 0,  .v = 96, .collision = TILE_COLL_ONEWAY },
+		.bg_tile       = { .u = 0, .v = 96, .collision = TILE_COLL_NONE }
 	};
 
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
@@ -39,7 +39,7 @@ void demo_game_main(void) {
 	level_generate_templated(&current_level, 40, 25, &tileset_tim, &theme);
 
 	/* Posicionar a Many al inicio del nivel sobre el piso */
-	many_set_position(64, (current_level.pixel_height - 64 - (3 * TILE_SIZE)));
+	many_set_position(64, (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE)));
 
 	for (;;) {
 		uint16_t held_buttons;
@@ -51,7 +51,7 @@ void demo_game_main(void) {
 		MANY_OBJECT *many_ptr = many_get_instance();
 
 		/* 2. Centrar y actualizar camara para que Many siempre este visible */
-		level_update_camera(&current_level, many_ptr->x, (many_ptr->y >> 8), 64, 64);
+		level_update_camera(&current_level, many_ptr->x, (many_ptr->y >> 8), MANY_COLLISION_WIDTH, MANY_COLLISION_HEIGHT);
 
 		/* 3. Renderizar el nivel con frustum culling */
 		level_render(&current_level);
