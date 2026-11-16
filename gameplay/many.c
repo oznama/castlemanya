@@ -29,31 +29,12 @@ MANY_OBJECT many = {
     .b = 128, // Color B
     .anim = {
         [MANY_STATE_IDLE] = {
-            .w = 64, .h = 64, .u = 0, .v = 0,
-            .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 20, .anim_dir = 1
-        },
-        [MANY_STATE_RUN] = {
-            .w = 64, .h = 64, .u = 0, .v = 64,
-            .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1
-        },
-        [MANY_STATE_ATTACK] = {
-            .w = 64, .h = 64, .u = 0, .v = 128,
-            .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1
-        },
-        [MANY_STATE_JUMP] = {
-            .w = 64, .h = 64, .u = 0, .v = 192,
-            .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1
-        },
-        [MANY_STATE_FALL] = {
-            .w = 64, .h = 64, .u = 64, .v = 192,
-            .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1
-        },
-        [MANY_STATE_CROUNCH] = {
-            .w = 64, .h = 64, .u = 128, .v = 192,
-            .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1
-        }
-    }
-};
+            .w = 32, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 20, .anim_dir = 1},
+        [MANY_STATE_RUN] = {.w = 48, .h = 48, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
+        [MANY_STATE_ATTACK] = {.w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1},
+        [MANY_STATE_JUMP] = {.w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1},
+        [MANY_STATE_FALL] = {.w = 32, .h = 64, .u = 32, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1},
+        [MANY_STATE_CROUNCH] = {.w = 32, .h = 64, .u = 64, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1}}};
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
@@ -62,12 +43,43 @@ void many_move_ver(uint16_t pressed_buttons, uint16_t held_buttons);
 void many_action_attack(uint16_t pressed_buttons);
 void many_move_crouch(uint16_t held_buttons);
 
-CD_TEXTURE many_tim;
+CD_TEXTURE many_base_tim;
+CD_TEXTURE many_action_tim;
+CD_TEXTURE many_attack_tim;
+
+static CD_TEXTURE *many_texture_for_state(ManyState state)
+{
+    switch (state)
+    {
+    case MANY_STATE_RUN:
+        return &many_action_tim;
+    case MANY_STATE_ATTACK:
+        return &many_attack_tim;
+    default:
+        return &many_base_tim;
+    }
+}
+
+static void many_draw_sprite(int32_t x, int32_t y)
+{
+    SPRITE_OBJECT *anim = &many.anim[many.current_state];
+    int32_t draw_x = x + (48 - (int32_t)anim->w) / 2;
+    int32_t draw_y = y + (64 - (int32_t)anim->h);
+
+    render_poly_ft4(*many_texture_for_state(many.current_state),
+                    draw_x, draw_y,
+                    anim->w, anim->h,
+                    (uint8_t)(anim->u + anim->current_frame * anim->w),
+                    (uint8_t)anim->v,
+                    many.r, many.g, many.b,
+                    !many.direction, 0);
+}
 
 void many_init(void)
 {
-    // Load logo image
-    cd_load_image("\\MANY.TIM", &many_tim);
+    cd_load_image("\\MANYBAS.TIM", &many_base_tim);
+    cd_load_image("\\MANYACT.TIM", &many_action_tim);
+    cd_load_image("\\MANYATK.TIM", &many_attack_tim);
 }
 
 MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
@@ -106,12 +118,8 @@ MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons)
         }
     }
     // 4. Rendereando a many como poligono de 4 vertices (con rotacion)
-    render_poly_ft4(many_tim,
-                    many.x, (many.y >> FIXED_SHIFT),
-                    many.anim[many.current_state].w, many.anim[many.current_state].h,
-                    many.anim[many.current_state].u + (many.anim[many.current_state].current_frame * many.anim[many.current_state].w), many.anim[many.current_state].v,
-                    many.r, many.g, many.b,
-                    !many.direction, 0);
+    many_draw_sprite((int32_t)many.x,
+                     (int32_t)(many.y >> FIXED_SHIFT));
 
     return many;
 }
@@ -274,7 +282,7 @@ void many_move_crouch(uint16_t held_buttons)
     if ((held_buttons & PAD_DOWN))
         many_change_state(MANY_STATE_CROUNCH);
 }
-MANY_OBJECT* many_get_instance(void)
+MANY_OBJECT *many_get_instance(void)
 {
     return &many;
 }
@@ -290,18 +298,14 @@ void many_render_in_camera(int32_t cam_x, int32_t cam_y)
     int32_t screen_x = (int32_t)many.x - cam_x;
     int32_t screen_y = (int32_t)(many.y >> FIXED_SHIFT) - cam_y;
 
-    render_poly_ft4(many_tim,
-                    screen_x, screen_y,
-                    many.anim[many.current_state].w, many.anim[many.current_state].h,
-                    many.anim[many.current_state].u + (many.anim[many.current_state].current_frame * many.anim[many.current_state].w), many.anim[many.current_state].v,
-                    many.r, many.g, many.b,
-                    !many.direction, 0);
+    many_draw_sprite(screen_x, screen_y);
 }
 
 void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void *dynamic_level_ptr)
 {
-    DynamicLevel *level = (DynamicLevel*)dynamic_level_ptr;
-    if (!level) return;
+    DynamicLevel *level = (DynamicLevel *)dynamic_level_ptr;
+    if (!level)
+        return;
 
     // 1. Acciones de ataque y agacharse si no esta bloqueado
     if (!many_is_state_locked())

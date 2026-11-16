@@ -63,7 +63,9 @@
 			<file name="CASTLEMA.EXE"	type="data" source="castlemanya.exe" />
 			<file name="LOGO.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/Castlemanya-logo.tim" />
 			<file name="TILESET.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/tileset.tim" />
-			<file name="MANY.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-sprite.tim" />
+			<file name="MANYBAS.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
+			<file name="MANYACT.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
+			<file name="MANYATK.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
 			<file name="ZOMBIE.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/zombie/Zombie-sprite.tim" />
 			<file name="MEDUSA.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/medusa/Medusa-sprite.tim" />
 			<!--
