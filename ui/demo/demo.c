@@ -28,9 +28,9 @@ void demo_game_main(void) {
 	 */
 	LevelThemeTextures theme = {
 		.floor_tile    = { .u = 0,  .v = 0,  .collision = TILE_COLL_SOLID },
-		.wall_tile     = { .u = 0,  .v = 0,  .collision = TILE_COLL_SOLID },
-		.ceiling_tile  = { .u = 16, .v = 0,  .collision = TILE_COLL_SOLID },
-		.platform_tile = { .u = 0,  .v = 16, .collision = TILE_COLL_ONEWAY },
+		.wall_tile     = { .u = 32,  .v = 0,  .collision = TILE_COLL_SOLID },
+		.ceiling_tile  = { .u = 32, .v = 0,  .collision = TILE_COLL_SOLID },
+		.platform_tile = { .u = 32,  .v = 16, .collision = TILE_COLL_ONEWAY },
 		.bg_tile       = { .u = 16, .v = 16, .collision = TILE_COLL_NONE }
 	};
 

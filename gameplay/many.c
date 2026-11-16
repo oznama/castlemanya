@@ -4,6 +4,7 @@
 #include "many.h"
 #include "../engine/cd_image.h"
 #include "../graphics/graphic.h"
+#include "../helpers/level_generator.h"
 
 #define MOVE_SPEED 2
 #define FIXED_SHIFT 8
@@ -27,12 +28,30 @@ MANY_OBJECT many = {
     .g = 128, // Color G
     .b = 128, // Color B
     .anim = {
-        {64, 64, 0, 0, 0, 4, 0, 20},
-        {64, 64, 0, 64, 0, 3, 0, 16},
-        {64, 64, 0, 128, 0, 4, 0, 8},
-        {64, 64, 0, 192, 0, 1, 0, 6},
-        {64, 64, 64, 192, 0, 1, 0, 6},
-        {64, 64, 128, 192, 0, 1, 0, 6}
+        [MANY_STATE_IDLE] = {
+            .w = 64, .h = 64, .u = 0, .v = 0,
+            .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 20, .anim_dir = 1
+        },
+        [MANY_STATE_RUN] = {
+            .w = 64, .h = 64, .u = 0, .v = 64,
+            .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1
+        },
+        [MANY_STATE_ATTACK] = {
+            .w = 64, .h = 64, .u = 0, .v = 128,
+            .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1
+        },
+        [MANY_STATE_JUMP] = {
+            .w = 64, .h = 64, .u = 0, .v = 192,
+            .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1
+        },
+        [MANY_STATE_FALL] = {
+            .w = 64, .h = 64, .u = 64, .v = 192,
+            .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1
+        },
+        [MANY_STATE_CROUNCH] = {
+            .w = 64, .h = 64, .u = 128, .v = 192,
+            .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 6, .anim_dir = 1
+        }
     }
 };
 
@@ -278,8 +297,6 @@ void many_render_in_camera(int32_t cam_x, int32_t cam_y)
                     many.r, many.g, many.b,
                     !many.direction, 0);
 }
-
-#include "../helpers/level_generator.h"
 
 void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void *dynamic_level_ptr)
 {

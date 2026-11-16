@@ -409,17 +409,6 @@ void level_resolve_entity_collision(const DynamicLevel *level,
     int32_t max_x = (int32_t)level->pixel_width - w;
     int32_t max_y = (int32_t)level->pixel_height - h;
 
-    if (x < 0)
-    {
-        x = 0;
-        vx = 0;
-    }
-    else if (x > max_x)
-    {
-        x = max_x;
-        vx = 0;
-    }
-
     /* 2. Movimiento horizontal y resolucion contra paredes */
     int32_t new_x = x + vx;
     if (new_x < 0)
@@ -433,13 +422,16 @@ void level_resolve_entity_collision(const DynamicLevel *level,
         vx = 0;
     }
 
-    /* Verificamos si la nueva posicion X colisiona con solidos */
+    /* Verificamos si la nueva posicion X colisiona con solidos
+     * Dejamos 2 px de holgura en Y (cabeza y pies) para evitar falsos positivos con piso/techo */
     if (vx > 0)
     {
         /* Movimiento hacia la derecha */
         int32_t check_tx = (new_x + w - 1) / TILE_SIZE;
-        int32_t start_ty = y / TILE_SIZE;
-        int32_t end_ty = (y + h - 1) / TILE_SIZE;
+        int32_t start_ty = (y + 2) / TILE_SIZE;
+        int32_t end_ty = (y + h - 3) / TILE_SIZE;
+        if (end_ty < start_ty)
+            end_ty = start_ty;
         bool hit_wall = false;
 
         for (int32_t ty = start_ty; ty <= end_ty; ty++)
@@ -461,8 +453,10 @@ void level_resolve_entity_collision(const DynamicLevel *level,
     {
         /* Movimiento hacia la izquierda */
         int32_t check_tx = new_x / TILE_SIZE;
-        int32_t start_ty = y / TILE_SIZE;
-        int32_t end_ty = (y + h - 1) / TILE_SIZE;
+        int32_t start_ty = (y + 2) / TILE_SIZE;
+        int32_t end_ty = (y + h - 3) / TILE_SIZE;
+        if (end_ty < start_ty)
+            end_ty = start_ty;
         bool hit_wall = false;
 
         for (int32_t ty = start_ty; ty <= end_ty; ty++)
@@ -496,12 +490,16 @@ void level_resolve_entity_collision(const DynamicLevel *level,
         grounded = true;
     }
 
+    /* Margen en X para chequear colisiones verticales y no atorarse en esquinas de tiles */
+    int32_t start_tx = (x + 4) / TILE_SIZE;
+    int32_t end_tx = (x + w - 5) / TILE_SIZE;
+    if (end_tx < start_tx)
+        end_tx = start_tx;
+
     if (vy < 0)
     {
         /* Moviendose hacia arriba: colision contra techo */
         int32_t check_ty = new_y / TILE_SIZE;
-        int32_t start_tx = x / TILE_SIZE;
-        int32_t end_tx = (x + w - 1) / TILE_SIZE;
         bool hit_ceiling = false;
 
         for (int32_t tx = start_tx; tx <= end_tx; tx++)
@@ -519,14 +517,12 @@ void level_resolve_entity_collision(const DynamicLevel *level,
             vy = 0;
         }
     }
-    else if (vy >= 0)
+    else
     {
-        /* Cayendo o en el suelo: colision contra piso o plataforma one-way */
+        /* Cayendo o en el suelo (vy >= 0): colision contra piso o plataforma one-way */
         int32_t old_feet_y = y + h - 1;
         int32_t new_feet_y = new_y + h - 1;
         int32_t check_ty = new_feet_y / TILE_SIZE;
-        int32_t start_tx = x / TILE_SIZE;
-        int32_t end_tx = (x + w - 1) / TILE_SIZE;
         bool hit_floor = false;
 
         for (int32_t tx = start_tx; tx <= end_tx; tx++)
@@ -557,6 +553,29 @@ void level_resolve_entity_collision(const DynamicLevel *level,
             new_y = (check_ty * TILE_SIZE) - h;
             vy = 0;
             grounded = true;
+        }
+    }
+
+    if (!grounded && vy >= 0)
+    {
+        int32_t support_y = new_y + h;
+
+        /* Los pies deben estar justo sobre el borde superior de un tile. */
+        if ((support_y % TILE_SIZE) == 0)
+        {
+            int32_t support_ty = support_y / TILE_SIZE;
+
+            for (int32_t tx = start_tx; tx <= end_tx; tx++)
+            {
+                TileCollisionType coll =
+                    level_get_tile_collision(level, tx, support_ty);
+
+                if (coll == TILE_COLL_SOLID || coll == TILE_COLL_ONEWAY)
+                {
+                    grounded = true;
+                    break;
+                }
+            }
         }
     }
 
