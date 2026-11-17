@@ -72,6 +72,16 @@ void level_build_border(DynamicLevel *level,
     uint16_t w = level->width;
     uint16_t h = level->height;
 
+    /* Paredes laterales (izquierda y derecha) */
+    for (uint8_t t = 0; t < wall_thickness && t < w; t++)
+    {
+        for (uint16_t y = 0; y < h; y++)
+        {
+            level_set_tile(level, t, y, wall_tile);         /* Izquierda */
+            level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
+        }
+    }
+
     /* Techo */
     for (uint8_t t = 0; t < ceiling_thickness && t < h; t++)
     {
@@ -88,16 +98,6 @@ void level_build_border(DynamicLevel *level,
         for (uint16_t x = 0; x < w; x++)
         {
             level_set_tile(level, x, y, floor_tile);
-        }
-    }
-
-    /* Paredes laterales (izquierda y derecha) */
-    for (uint8_t t = 0; t < wall_thickness && t < w; t++)
-    {
-        for (uint16_t y = 0; y < h; y++)
-        {
-            level_set_tile(level, t, y, wall_tile);         /* Izquierda */
-            level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
         }
     }
 }
