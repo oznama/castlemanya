@@ -26,7 +26,10 @@ int32_t y_velocity;
 int32_t x_velocity;
 
 MANY_OBJECT many = {
+    .hp = 70,
+    .mp = 20,
     .current_state = MANY_STATE_IDLE,                         // Estado base respirando
+    .weapon = MANY_WEAPON_WHIP,                               // Many con latigo
     .x = 10,                                                  // Posicion en X
     .y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE, // Posicion en Y
     .direction = 1,                                           // Direccion derecha
@@ -45,7 +48,7 @@ MANY_OBJECT many = {
             .w = 48, .h = 48, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1
         },
         [MANY_STATE_ATTACK] = {
-            .w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1
+            .w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 5, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1
         },
         [MANY_STATE_JUMP] = {
             .w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
@@ -103,6 +106,19 @@ static void many_draw_sprite(int32_t x, int32_t y)
                     (uint8_t)anim->v,
                     many.r, many.g, many.b,
                     !many.direction, 0);
+}
+
+static void many_draw_whip(int32_t x, int32_t y)
+{
+    if (many.current_state != MANY_STATE_ATTACK || many.weapon != MANY_WEAPON_WHIP)
+        return;
+
+    if (many.anim[MANY_STATE_ATTACK].current_frame >= 2) {
+        int32_t facing = many.direction ? 1 : -1;
+        int32_t origin_x = x + MANY_COLLISION_WIDTH / 2 + facing * 8;
+        int32_t segment_x = facing > 0 ? origin_x : origin_x - 64;
+        render_rect(segment_x, y + 24, 64, 1, 205, 205, 205);
+    }
 }
 
 void many_init(void)
@@ -217,6 +233,7 @@ void many_render_in_camera(int32_t cam_x, int32_t cam_y)
     int32_t screen_x = (int32_t)many.x - cam_x;
     int32_t screen_y = (int32_t)(many.y >> FIXED_SHIFT) - cam_y;
 
+    many_draw_whip(screen_x, screen_y);
     many_draw_sprite(screen_x, screen_y);
 }
 

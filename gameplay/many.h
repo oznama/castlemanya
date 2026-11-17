@@ -16,8 +16,17 @@ typedef enum
     MANY_STATE_HIGHJUMP
 } ManyState;
 
+typedef enum
+{
+    MANY_WEAPON_WHIP,
+    MANY_WEAPON_SPEAR,
+    MANY_WEAPON_CROSS_AXE,
+    MANY_WEAPON_HOLY_WATER
+} ManyWeaponType;
+
 typedef struct
 {
+    int hp, mp;
     uint32_t x, y;
     uint8_t direction;
     uint8_t grouded;
@@ -26,6 +35,7 @@ typedef struct
     uint8_t has_high_jump; // Disponible si ya obtuvo dicha reliquia
     unsigned char r, g, b;
     ManyState current_state;
+    ManyWeaponType weapon;
     SPRITE_OBJECT anim[10];
 } MANY_OBJECT;
 

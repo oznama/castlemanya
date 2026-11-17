@@ -75,11 +75,11 @@ static void *new_primitive(int z, size_t size) {
 }
 
 void render_rect(int x, int y, int w, int h, int r, int g, int b) {
-	TILE *tile = (TILE *) new_primitive(1, sizeof(TILE));
-	setTile(tile);
-	setXY0(tile, x, y);
-	setWH(tile, w, h);
-	setRGB0(tile, r, g, b);
+    TILE *tile = (TILE *)new_primitive(1, sizeof(TILE));
+    setTile(tile);
+    setXY0(tile, x, y);
+    setWH(tile, w, h);
+    setRGB0(tile, r, g, b);
 }
 
 void render_text(int x, int y, uint8_t z, const char *text) {
