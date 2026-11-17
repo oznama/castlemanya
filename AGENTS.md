@@ -268,6 +268,19 @@ Texture memory is limited and must be managed explicitly.
 
 Do not assume modern GPU features such as shaders, texture filtering, or unlimited texture memory.
 
+### `tileset.png` Texture Definitions
+
+The attached tileset contains the following visible surface types:
+
+- **Blue-gray masonry:** Block-patterned stone in multiple visual variations; use for stone walls and architectural surfaces.
+- **Light stone:** Pale gray or cream stone; use as a contrasting masonry surface.
+- **Brown rock or earth:** Warm brown, rough-looking surface; suitable for natural or weathered areas.
+- **Orange-brown masonry:** Brick-like surface with rusty orange accents; suitable for distinct walls or interior surfaces.
+- **Dark surface:** Very dark rock or shadow-like texture; use sparingly where a dark surface is intended.
+- **Ochre accents:** Small yellow-gold details embedded in the tiles; preserve them as part of the authored texture.
+
+Do not infer tile dimensions, atlas coordinates, or texture format from visual appearance alone. Confirm them from the source image and asset-conversion settings before defining UV regions or VRAM allocations.
+
 ---
 
 ## 8. Memory Management
