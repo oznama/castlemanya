@@ -17,6 +17,7 @@
 #define HIGHJUMP_SPEED ((196 * FIXED_ONE) / 10)
 #define HIGHJUMP_INPUT_WINDOW 20
 
+static int32_t drop_through_row = -1;
 static int32_t backdash_remaining;
 static int8_t backdash_direction;
 static uint8_t highjump_input_timer;
@@ -176,6 +177,30 @@ void many_move_crouch(uint16_t held_buttons)
     }
 }
 
+// Para detectar si los pies de many estan sobre una plataforma
+static int32_t many_oneway_support_row(
+    const DynamicLevel *level,
+    int32_t x,
+    int32_t y)
+{
+    int32_t feet_y = y + MANY_COLLISION_HEIGHT;
+
+    if ((feet_y % TILE_SIZE) != 0)
+        return -1;
+
+    int32_t ty = feet_y / TILE_SIZE;
+    int32_t start_tx = x / TILE_SIZE;
+    int32_t end_tx = (x + MANY_COLLISION_WIDTH - 1) / TILE_SIZE;
+
+    for (int32_t tx = start_tx; tx <= end_tx; tx++)
+    {
+        if (level_get_tile_collision(level, tx, ty) == TILE_COLL_ONEWAY)
+            return ty;
+    }
+
+    return -1;
+}
+
 MANY_OBJECT *many_get_instance(void)
 {
     return &many;
@@ -200,6 +225,29 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
     DynamicLevel *level = (DynamicLevel *)dynamic_level_ptr;
     if (!level)
         return;
+
+    uint8_t drop_through_requested = 0;
+
+    // Accion para que many pueda bajar plataformas
+    if (!many_is_state_locked() &&
+        many.grouded &&
+        (held_buttons & PAD_DOWN) &&
+        (pressed_buttons & PAD_CROSS))
+    {
+        int32_t player_y = (int32_t)(many.y >> FIXED_SHIFT);
+        int32_t row = many_oneway_support_row(
+            level,
+            (int32_t)many.x,
+            player_y);
+
+        if (row >= 0)
+        {
+            drop_through_row = row;
+            drop_through_requested = 1;
+            many.grouded = 0;
+            y_velocity = 0;
+        }
+    }
 
     // 1. Acciones de ataque y agacharse si no esta bloqueado
     uint8_t highjump_requested = 0;
@@ -280,7 +328,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
     }
 
     // 3. Salto
-    if (!many_is_state_locked() && backdash_remaining == 0 && (pressed_buttons & PAD_CROSS))
+    if (!many_is_state_locked() && !drop_through_requested && backdash_remaining == 0 && (pressed_buttons & PAD_CROSS))
     {
         if (highjump_requested)
         {
@@ -336,7 +384,13 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
                                    &vx, &vy,
                                    MANY_COLLISION_WIDTH,
                                    MANY_COLLISION_HEIGHT,
+                                   drop_through_row,
                                    &is_grounded);
+
+    if (drop_through_row >= 0 && current_y + MANY_COLLISION_HEIGHT > drop_through_row * TILE_SIZE + 4)
+    {
+        drop_through_row = -1;
+    }
 
     if (backdash_remaining > 0)
     {

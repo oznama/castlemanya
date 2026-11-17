@@ -394,6 +394,7 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                                     int32_t *io_x, int32_t *io_y,
                                     int32_t *io_vx, int32_t *io_vy,
                                     int32_t w, int32_t h,
+                                    int32_t ignored_oneway_ty,
                                     bool *is_grounded)
 {
     if (!level || !io_x || !io_y || !io_vx || !io_vy)
@@ -534,7 +535,7 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                 hit_floor = true;
                 break;
             }
-            else if (coll == TILE_COLL_ONEWAY)
+            else if (coll == TILE_COLL_ONEWAY && check_ty != ignored_oneway_ty)
             {
                 /* Para plataformas semi-solidas (one-way), solo colisionamos si los pies
                  * del personaje estaban en o por encima del borde superior de la plataforma
@@ -570,7 +571,7 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                 TileCollisionType coll =
                     level_get_tile_collision(level, tx, support_ty);
 
-                if (coll == TILE_COLL_SOLID || coll == TILE_COLL_ONEWAY)
+                if (coll == TILE_COLL_SOLID || (coll == TILE_COLL_ONEWAY && support_ty != ignored_oneway_ty))
                 {
                     grounded = true;
                     break;

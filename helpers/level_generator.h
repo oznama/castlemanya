@@ -194,4 +194,5 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                                     int32_t *io_x, int32_t *io_y,
                                     int32_t *io_vx, int32_t *io_vy,
                                     int32_t w, int32_t h,
+                                    int32_t ignored_oneway_ty,
                                     bool *is_grounded);
