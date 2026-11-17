@@ -10,7 +10,10 @@ typedef enum
     MANY_STATE_ATTACK,
     MANY_STATE_JUMP,
     MANY_STATE_FALL,
-    MANY_STATE_CROUNCH
+    MANY_STATE_CROUNCH,
+    MANY_STATE_HURT,
+    MANY_STATE_BACKDASH,
+    MANY_STATE_HIGHJUMP
 } ManyState;
 
 typedef struct
@@ -20,13 +23,13 @@ typedef struct
     uint8_t grouded;
     uint8_t has_double_jump; // Si ya obtuvo el powerup
     uint8_t can_double_jump; // Disponible para usarse en el aire actual
+    uint8_t can_high_jump; // Disponible si ya obtuvo dicha reliquia
     unsigned char r, g, b;
     ManyState current_state;
     SPRITE_OBJECT anim[10];
 } MANY_OBJECT;
 
 void many_init(void);
-MANY_OBJECT many_render(uint16_t held_buttons, uint16_t pressed_buttons);
 MANY_OBJECT* many_get_instance(void);
 void many_set_position(int32_t world_x, int32_t world_y);
 void many_render_in_camera(int32_t cam_x, int32_t cam_y);

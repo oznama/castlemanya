@@ -20,18 +20,13 @@ void demo_game_main(void) {
 	cd_load_image("\\TILESET.TIM", &tileset_tim);
 	many_init();
 
-	/* Definicion del tema utilizando tiles de 16x16 de tileset.tim:
-	 * tileset.tim es 64x64 pixeles (4x4 tiles de 16x16)
-	 * (0, 0): Blue-gray masonry (Piso y paredes)
-	 * (16, 0): Light stone (Techo)
-	 * (0, 16): Brown rock / earth (Plataformas)
-	 */
+	// Texturas a utilizar en nivel
 	LevelThemeTextures theme = {
-		.floor_tile    = { .u = 16,  .v = 80,  .collision = TILE_COLL_SOLID },
-		.wall_tile     = { .u = 16,  .v = 80,  .collision = TILE_COLL_SOLID },
-		.ceiling_tile  = { .u = 16, .v = 80,  .collision = TILE_COLL_SOLID },
-		.platform_tile = { .u = 0,  .v = 96, .collision = TILE_COLL_ONEWAY },
-		.bg_tile       = { .u = 0, .v = 96, .collision = TILE_COLL_NONE }
+		.floor_tile    = { .u = 16,  .v = 32,  .collision = TILE_COLL_SOLID },
+		.wall_tile     = { .u = 16,  .v = 32,  .collision = TILE_COLL_SOLID },
+		.ceiling_tile  = { .u = 16, .v = 32,  .collision = TILE_COLL_SOLID },
+		.platform_tile = { .u = 0,  .v = 64, .collision = TILE_COLL_ONEWAY },
+		.bg_tile       = { .u = 0, .v = 16, .collision = TILE_COLL_NONE }
 	};
 
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
@@ -53,13 +48,14 @@ void demo_game_main(void) {
 		/* 2. Centrar y actualizar camara para que Many siempre este visible */
 		level_update_camera(&current_level, many_ptr->x, (many_ptr->y >> 8), MANY_COLLISION_WIDTH, MANY_COLLISION_HEIGHT);
 
-		/* 3. Renderizar el nivel con frustum culling */
-		level_render(&current_level);
-
-		/* 4. Renderizar a Many transformado a coordenadas de camara */
+		/* 3. Renderizar a Many transformado a coordenadas de camara */
 		int32_t cam_x, cam_y;
 		level_get_camera_pos(&current_level, &cam_x, &cam_y);
+
 		many_render_in_camera(cam_x, cam_y);
+
+		/* 4. Renderizar el nivel con frustum culling */
+		level_render(&current_level);
 
 		graphic_display();
 	}
