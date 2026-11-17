@@ -7,13 +7,13 @@
 #include "../helpers/level_generator.h"
 
 #define MOVE_SPEED 2
+#define RECOVERY_TIMER 6
 #define FIXED_SHIFT 8
 #define FIXED_ONE (1 << FIXED_SHIFT)
 #define JUMP_SPEED (8 * FIXED_ONE)
 #define GRAVITY (FIXED_ONE / 2)
 #define MANY_SIZE MANY_COLLISION_HEIGHT
 #define BACKDASH_DISTANCE (2 * MANY_COLLISION_WIDTH)
-#define BACKDASH_SPEED 6
 #define HIGHJUMP_SPEED ((196 * FIXED_ONE) / 10)
 #define HIGHJUMP_INPUT_WINDOW 20
 
@@ -21,6 +21,7 @@ static int32_t drop_through_row = -1;
 static int32_t backdash_remaining;
 static int8_t backdash_direction;
 static uint8_t highjump_input_timer;
+static uint8_t landing_timer;
 
 int32_t y_velocity;
 int32_t x_velocity;
@@ -42,34 +43,15 @@ MANY_OBJECT many = {
     .b = 128, // Color B
     .anim = {
         [MANY_STATE_IDLE] = {
-            .w = 32, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1
-        },
-        [MANY_STATE_RUN] = {
-            .w = 48, .h = 48, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1
-        },
-        [MANY_STATE_ATTACK] = {
-            .w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 5, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1
-        },
-        [MANY_STATE_JUMP] = {
-            .w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
-        },
-        [MANY_STATE_FALL] = {
-            .w = 32, .h = 64, .u = 32, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
-        },
-        [MANY_STATE_CROUNCH] = {
-            .w = 32, .h = 64, .u = 64, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
-        },
-        [MANY_STATE_HURT] = {
-            .w = 32, .h = 64, .u = 96, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
-        },
-        [MANY_STATE_BACKDASH] = {
-            .w = 32, .h = 64, .u = 0, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
-        },
-        [MANY_STATE_HIGHJUMP] = {
-            .w = 32, .h = 64, .u = 32, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1
-        }
-    }
-};
+            .w = 32, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
+        [MANY_STATE_RUN] = {.w = 48, .h = 48, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
+        [MANY_STATE_ATTACK] = {.w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 5, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1},
+        [MANY_STATE_JUMP] = {.w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
+        [MANY_STATE_FALL] = {.w = 32, .h = 64, .u = 32, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
+        [MANY_STATE_CROUNCH] = {.w = 32, .h = 64, .u = 64, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
+        [MANY_STATE_HURT] = {.w = 32, .h = 64, .u = 96, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
+        [MANY_STATE_BACKDASH] = {.w = 32, .h = 64, .u = 0, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
+        [MANY_STATE_HIGHJUMP] = {.w = 32, .h = 64, .u = 32, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1}}};
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
@@ -113,7 +95,8 @@ static void many_draw_whip(int32_t x, int32_t y)
     if (many.current_state != MANY_STATE_ATTACK || many.weapon != MANY_WEAPON_WHIP)
         return;
 
-    if (many.anim[MANY_STATE_ATTACK].current_frame >= 2) {
+    if (many.anim[MANY_STATE_ATTACK].current_frame >= 2)
+    {
         int32_t facing = many.direction ? 1 : -1;
         int32_t origin_x = x + MANY_COLLISION_WIDTH / 2 + facing * 8;
         int32_t segment_x = facing > 0 ? origin_x : origin_x - 64;
@@ -145,7 +128,10 @@ void many_change_state(ManyState new_state)
 
 uint8_t many_is_state_locked(void)
 {
-    if (many.current_state == MANY_STATE_ATTACK || many.current_state == MANY_STATE_HURT || many.current_state == MANY_STATE_BACKDASH)
+    if (landing_timer > 0 ||
+        many.current_state == MANY_STATE_ATTACK ||
+        many.current_state == MANY_STATE_HURT ||
+        many.current_state == MANY_STATE_BACKDASH)
     {
         return 1;
     }
@@ -171,7 +157,8 @@ void many_action_attack(uint16_t pressed_buttons, uint16_t buttons_history[10])
     )
         // TODO DARK SOU STILL DAIK SOUL DAY MEDAMORFOSIS!;
         // TODO Poder carta del tarok
-    else*/ if ((pressed_buttons & PAD_SQUARE))
+    else*/
+    if ((pressed_buttons & PAD_SQUARE))
         many_change_state(MANY_STATE_ATTACK);
 }
 
@@ -243,6 +230,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
     if (!level)
         return;
 
+    uint8_t was_grounded = many.grouded;
     uint8_t drop_through_requested = 0;
 
     // Accion para que many pueda bajar plataformas
@@ -294,6 +282,8 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         }
 
         if (!many_is_state_locked() &&
+            many.current_state != MANY_STATE_CROUNCH &&
+            many.grouded &&
             !highjump_requested &&
             backdash_remaining == 0 &&
             (pressed_buttons & PAD_TRIANGLE))
@@ -310,37 +300,38 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
 
     // 2. Movimiento horizontal
     int32_t vx = 0;
-    if (backdash_remaining > 0)
+
+    if (many.current_state == MANY_STATE_CROUNCH)
     {
-        int32_t dash_step = backdash_remaining < BACKDASH_SPEED
-            ? backdash_remaining
-            : BACKDASH_SPEED;
+        x_velocity = 0;
+    }
+    else if (backdash_remaining > 0)
+    {
+        int32_t dash_step = backdash_remaining < RECOVERY_TIMER
+                                ? backdash_remaining
+                                : RECOVERY_TIMER;
 
         vx = backdash_direction * dash_step;
     }
     else if (!many_is_state_locked())
     {
-        if (!many_is_state_locked())
+        if (held_buttons & PAD_LEFT)
         {
-            if (held_buttons & PAD_LEFT)
-            {
-                vx = -MOVE_SPEED;
-                many.direction = 0;
-                if (many.grouded && many.current_state != MANY_STATE_CROUNCH)
-                    many_change_state(MANY_STATE_RUN);
-            }
-            else if (held_buttons & PAD_RIGHT)
-            {
-                vx = MOVE_SPEED;
-                many.direction = 1;
-                if (many.grouded && many.current_state != MANY_STATE_CROUNCH)
-                    many_change_state(MANY_STATE_RUN);
-            }
-            else
-            {
-                if (many.grouded && many.current_state != MANY_STATE_CROUNCH && many.current_state != MANY_STATE_ATTACK)
-                    many_change_state(MANY_STATE_IDLE);
-            }
+            vx = -MOVE_SPEED;
+            many.direction = 0;
+            if (many.grouded)
+                many_change_state(MANY_STATE_RUN);
+        }
+        else if (held_buttons & PAD_RIGHT)
+        {
+            vx = MOVE_SPEED;
+            many.direction = 1;
+            if (many.grouded)
+                many_change_state(MANY_STATE_RUN);
+        }
+        else if (many.grouded && many.current_state != MANY_STATE_ATTACK)
+        {
+            many_change_state(MANY_STATE_IDLE);
         }
     }
 
@@ -372,7 +363,6 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
                 x_velocity = vx;
         }
     }
-    
 
     // Si esta en el aire, aplicar inercia horizontal y gravedad
     if (!many.grouded)
@@ -394,6 +384,8 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
     bool is_grounded = false;
 
     int32_t previous_x = current_x;
+
+    uint8_t landed_this_frame = 0;
 
     /* Usamos un ancho de colision realista centrado en el sprite de 64x64 */
     level_resolve_entity_collision(level,
@@ -433,6 +425,15 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         y_velocity = 0;
         x_velocity = 0;
         many.grouded = 1;
+
+        if (!was_grounded)
+        {
+            landing_timer = RECOVERY_TIMER;
+            landed_this_frame = 1;
+            backdash_remaining = 0;
+            many_change_state(MANY_STATE_CROUNCH);
+        }
+
         many.can_double_jump = many.has_double_jump;
 
         if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_CROUNCH && backdash_remaining == 0)
@@ -466,5 +467,10 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
             many_change_state(MANY_STATE_IDLE);
         else
             many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
+    }
+
+    if (!landed_this_frame && landing_timer > 0)
+    {
+        landing_timer--;
     }
 }
