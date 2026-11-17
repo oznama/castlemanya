@@ -17,16 +17,16 @@ void demo_game_main(void) {
 
 	graphic_init();
 	input_init();
-	cd_load_image("\\TILESET.TIM", &tileset_tim);
+	cd_load_image("\\TLSTCAS.TIM", &tileset_tim);
 	many_init();
 
 	// Texturas a utilizar en nivel
 	LevelThemeTextures theme = {
-		.floor_tile    = { .u = 16,  .v = 32,  .collision = TILE_COLL_SOLID },
-		.wall_tile     = { .u = 16,  .v = 32,  .collision = TILE_COLL_SOLID },
-		.ceiling_tile  = { .u = 16, .v = 32,  .collision = TILE_COLL_SOLID },
-		.platform_tile = { .u = 0,  .v = 64, .collision = TILE_COLL_ONEWAY },
-		.bg_tile       = { .u = 0, .v = 16, .collision = TILE_COLL_NONE }
+		.floor_tile    = { .u = 16,  .v = 0,  .collision = TILE_COLL_SOLID },
+		.wall_tile     = { .u = 32,  .v = 0,  .collision = TILE_COLL_SOLID },
+		.ceiling_tile  = { .u = 0, .v = 0,  .collision = TILE_COLL_SOLID },
+		.platform_tile = { .u = 0,  .v = 16, .collision = TILE_COLL_ONEWAY },
+		.bg_tile       = { .u = 0, .v = 0, .collision = TILE_COLL_NONE }
 	};
 
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
