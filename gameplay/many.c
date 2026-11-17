@@ -13,7 +13,7 @@
 #define GRAVITY (FIXED_ONE / 2)
 #define MANY_SIZE MANY_COLLISION_HEIGHT
 #define BACKDASH_DISTANCE (2 * MANY_COLLISION_WIDTH)
-#define BACKDASH_SPEED 8
+#define BACKDASH_SPEED 6
 #define HIGHJUMP_SPEED ((196 * FIXED_ONE) / 10)
 #define HIGHJUMP_INPUT_WINDOW 20
 
@@ -68,8 +68,6 @@ MANY_OBJECT many = {
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
-void many_move_hor(uint16_t held_buttons);
-void many_move_ver(uint16_t pressed_buttons, uint16_t held_buttons);
 void many_action_attack(uint16_t pressed_buttons);
 void many_move_crouch(uint16_t held_buttons);
 
@@ -135,130 +133,6 @@ uint8_t many_is_state_locked(void)
         return 1;
     }
     return 0;
-}
-
-void many_move_hor(uint16_t held_buttons)
-{
-    // Movimientos correr de many
-    if ((held_buttons & PAD_LEFT))
-    {
-        if (many.x > 0)
-            many.x -= MOVE_SPEED;
-        many.direction = 0;
-        if (many.grouded)
-            many_change_state(MANY_STATE_RUN);
-    }
-    else if ((held_buttons & PAD_RIGHT))
-    {
-        if (many.x < SCREEN_XRES - MANY_COLLISION_WIDTH)
-            many.x += MOVE_SPEED;
-        many.direction = 1;
-        if (many.grouded)
-            many_change_state(MANY_STATE_RUN);
-    }
-    else
-    {
-        if (many.grouded)
-            many_change_state(MANY_STATE_IDLE);
-    }
-}
-
-void many_move_ver(uint16_t pressed_buttons, uint16_t held_buttons)
-{
-    // Si presiona Cruz y no está atacando
-    if (!many_is_state_locked() && (pressed_buttons & PAD_CROSS))
-    {
-
-        // CASO A: Salto desde el piso
-        if (many.grouded)
-        {
-            y_velocity = -JUMP_SPEED;
-            many.grouded = 0;
-            many.can_double_jump = many.has_double_jump; // Habilita el doble salto en el aire
-            many_change_state(MANY_STATE_JUMP);
-
-            // Inercia inicial al despegar
-            if (held_buttons & PAD_LEFT)
-                x_velocity = -MOVE_SPEED;
-            else if (held_buttons & PAD_RIGHT)
-                x_velocity = MOVE_SPEED;
-            else
-                x_velocity = 0;
-        }
-        // CASO B: Doble salto en el aire (estilo SotN)
-        else if (many.can_double_jump)
-        {
-            y_velocity = -JUMP_SPEED;           // Impulso vertical completo
-            many.can_double_jump = 0;           // Se consume el salto
-            many_change_state(MANY_STATE_JUMP); // Reinicia animación de salto
-
-            // En SotN puedes redirigir la inercia en el aire con el doble salto:
-            if (held_buttons & PAD_LEFT)
-            {
-                x_velocity = -MOVE_SPEED;
-                many.direction = 0;
-            }
-            else if (held_buttons & PAD_RIGHT)
-            {
-                x_velocity = MOVE_SPEED;
-                many.direction = 1;
-            }
-            // Si no presiona flechas, conserva la inercia que traía
-        }
-    }
-
-    if (!many.grouded)
-    {
-        // Aplicar movimiento horizontal por inercia
-        many.x += x_velocity;
-
-        // Limites de pantalla horizontales
-        if ((int32_t)many.x < 0)
-        {
-            many.x = 0;
-            x_velocity = 0;
-        }
-        else if (many.x > SCREEN_XRES - MANY_COLLISION_WIDTH)
-        {
-            many.x = SCREEN_XRES - MANY_COLLISION_WIDTH;
-            x_velocity = 0;
-        }
-
-        // Movimiento vertical y gravedad
-        many.y += y_velocity;
-        y_velocity += GRAVITY;
-
-        // Transicion a caida si va hacia abajo y no esta atacando
-        if (y_velocity > 0 && many.current_state != MANY_STATE_ATTACK)
-        {
-            many_change_state(MANY_STATE_FALL);
-        }
-
-        // Aterrizaje en el suelo
-        if (many.y >= (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE)
-        {
-            many.y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE;
-            y_velocity = 0;
-            x_velocity = 0;
-            many.grouded = 1;
-            many.can_double_jump = many.has_double_jump; // Recargar al tocar tierra
-
-            // Al tocar el suelo, volver a IDLE o RUN si ya no está atacando
-            if (many.current_state != MANY_STATE_ATTACK &&
-                many.current_state != MANY_STATE_CROUNCH &&
-                backdash_remaining == 0)
-            {
-                if ((held_buttons & PAD_LEFT) || (held_buttons & PAD_RIGHT))
-                {
-                    many_change_state(MANY_STATE_RUN);
-                }
-                else
-                {
-                    many_change_state(MANY_STATE_IDLE);
-                }
-            }
-        }
-    }
 }
 
 void many_action_attack(uint16_t pressed_buttons)
