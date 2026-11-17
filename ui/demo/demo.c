@@ -36,13 +36,14 @@ void demo_game_main(void) {
 	/* Posicionar a Many al inicio del nivel sobre el piso */
 	many_set_position(64, (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE)));
 
+	uint16_t buttons_history[10] = {0};
 	for (;;) {
 		uint16_t held_buttons;
 		uint16_t pressed_buttons;
-		input_read(&held_buttons, &pressed_buttons);
+		input_read(&held_buttons, &pressed_buttons, buttons_history);
 
 		/* 1. Actualizar fisicas y colisiones de Many dentro del nivel dinamico */
-		many_update_in_level(held_buttons, pressed_buttons, &current_level);
+		many_update_in_level(held_buttons, pressed_buttons, buttons_history, &current_level);
 		MANY_OBJECT *many_ptr = many_get_instance();
 
 		/* 2. Centrar y actualizar camara para que Many siempre este visible */

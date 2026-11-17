@@ -34,11 +34,12 @@ GameState main_menu_display() {
     CD_TEXTURE texture;
     cd_load_image("\\LOGO.TIM", &texture);
     
+    uint16_t buttons_history[10] = {0};
     // Main cycle
     while(menuActive) {
         uint16_t held_buttons; // Not used in this page
         uint16_t pressed_buttons;
-        input_read(&held_buttons, &pressed_buttons);
+        input_read(&held_buttons, &pressed_buttons, buttons_history);
 
         // Rect selector
         selector_color = interpolateColor(SELECTOR_COLOR_1, SELECTOR_COLOR_2, factor);

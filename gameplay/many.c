@@ -30,8 +30,9 @@ MANY_OBJECT many = {
     .y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE, // Posicion en Y
     .direction = 1,                                           // Direccion derecha
     .grouded = 1,                                             // En el piso
-    .has_double_jump = 1,
+    .has_double_jump = 0,
     .can_double_jump = 0,
+    .has_high_jump = 0,
     .r = 128, // Color R
     .g = 128, // Color G
     .b = 128, // Color B
@@ -68,7 +69,7 @@ MANY_OBJECT many = {
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
-void many_action_attack(uint16_t pressed_buttons);
+void many_action_attack(uint16_t pressed_buttons, uint16_t buttons_history[10]);
 void many_move_crouch(uint16_t held_buttons);
 
 CD_TEXTURE many_base_tim;
@@ -127,17 +128,33 @@ void many_change_state(ManyState new_state)
 
 uint8_t many_is_state_locked(void)
 {
-    // Si Many está atacando, no permitimos cambiar de estado
-    if (many.current_state == MANY_STATE_ATTACK)
+    if (many.current_state == MANY_STATE_ATTACK || many.current_state == MANY_STATE_HURT || many.current_state == MANY_STATE_BACKDASH)
     {
         return 1;
     }
     return 0;
 }
 
-void many_action_attack(uint16_t pressed_buttons)
+void many_action_attack(uint16_t pressed_buttons, uint16_t buttons_history[10])
 {
-    if ((pressed_buttons & PAD_SQUARE))
+    /*
+    const PadButton PAD_BACK = many.direction ? PAD_LEFT : PAD_RIGHT;
+    const PadButton PAD_FORWARD = many.direction ? PAD_RIGHT : PAD_LEFT;
+    if (
+        (buttons_history[2] & PAD_DOWN) &&
+        (buttons_history[1] & PAD_FORWARD) &&
+        (pressed_buttons & PAD_SQUARE)
+    )
+        // TODO JADOOOOUKEEEEN!
+    else if (
+        (buttons_history[3] & PAD_BACK) &&
+        (buttons_history[2] & PAD_UP) &&
+        (buttons_history[1] & PAD_FORWARD) &&
+        (pressed_buttons & PAD_SQUARE)
+    )
+        // TODO DARK SOU STILL DAIK SOUL DAY MEDAMORFOSIS!;
+        // TODO Poder carta del tarok
+    else*/ if ((pressed_buttons & PAD_SQUARE))
         many_change_state(MANY_STATE_ATTACK);
 }
 
@@ -178,7 +195,7 @@ void many_render_in_camera(int32_t cam_x, int32_t cam_y)
     many_draw_sprite(screen_x, screen_y);
 }
 
-void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void *dynamic_level_ptr)
+void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint16_t buttons_history[10], void *dynamic_level_ptr)
 {
     DynamicLevel *level = (DynamicLevel *)dynamic_level_ptr;
     if (!level)
@@ -189,11 +206,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void 
 
     if (!many_is_state_locked())
     {
-        highjump_requested =
-            highjump_input_timer > 0 &&
-            (held_buttons & PAD_UP) &&
-            (pressed_buttons & PAD_CROSS) &&
-            many.grouded;
+        highjump_requested = many.has_high_jump && highjump_input_timer > 0 && (held_buttons & PAD_UP) && (pressed_buttons & PAD_CROSS) && many.grouded;
 
         if (highjump_requested || (pressed_buttons & PAD_CROSS))
         {
@@ -208,7 +221,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, void 
             highjump_input_timer--;
         }
 
-        many_action_attack(pressed_buttons);
+        many_action_attack(pressed_buttons, buttons_history);
 
         if (!many_is_state_locked())
         {
