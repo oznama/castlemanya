@@ -1,4 +1,4 @@
-#include "../helpers/utils.h"
+#include "../graphics/animation.h"
 
 #define MANY_COLLISION_WIDTH 32
 #define MANY_COLLISION_HEIGHT 64
