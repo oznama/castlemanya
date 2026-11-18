@@ -32,6 +32,7 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     level->pixel_width = (uint32_t)width_tiles * TILE_SIZE;
     level->pixel_height = (uint32_t)height_tiles * TILE_SIZE;
     level->tileset = tileset_tim;
+    level->background = NULL;
 
     level->camera.x = 0;
     level->camera.y = 0;
@@ -61,16 +62,35 @@ void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDe
     level->tiles[ty][tx].active = 1;
 }
 
+void level_set_background(DynamicLevel *level, CD_TEXTURE *background_tim)
+{
+    if (!level)
+        return;
+
+    level->background = background_tim;
+}
+
 void level_build_border(DynamicLevel *level,
                         TileTextureDef floor_tile, uint8_t floor_thickness,
                         TileTextureDef ceiling_tile, uint8_t ceiling_thickness,
-                        TileTextureDef wall_tile, uint8_t wall_thickness)
+                        TileTextureDef wall_tile, uint8_t wall_thickness,
+                        TileTextureDef filled_tile)
 {
     if (!level)
         return;
 
     uint16_t w = level->width;
     uint16_t h = level->height;
+
+    /* Paredes laterales (izquierda y derecha) */
+    for (uint8_t t = 0; t < wall_thickness && t < w; t++)
+    {
+        for (uint16_t y = 0; y < h; y++)
+        {
+            level_set_tile(level, t, y, wall_tile);         /* Izquierda */
+            level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
+        }
+    }
 
     /* Techo */
     for (uint8_t t = 0; t < ceiling_thickness && t < h; t++)
@@ -87,37 +107,32 @@ void level_build_border(DynamicLevel *level,
         uint16_t y = h - 1 - t;
         for (uint16_t x = 0; x < w; x++)
         {
-            level_set_tile(level, x, y, floor_tile);
-        }
-    }
-
-    /* Paredes laterales (izquierda y derecha) */
-    for (uint8_t t = 0; t < wall_thickness && t < w; t++)
-    {
-        for (uint16_t y = 0; y < h; y++)
-        {
-            level_set_tile(level, t, y, wall_tile);         /* Izquierda */
-            level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
+            level_set_tile(level, x, y, t == floor_thickness -1 ? floor_tile : filled_tile);
         }
     }
 }
 
 void level_add_platform(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t length_tiles,
-                        TileTextureDef platform_tile, bool is_oneway)
+                        TileTextureDef pltfrml_tile,
+                        TileTextureDef pltfrmf_tile,
+                        TileTextureDef pltfrmr_tile,
+                        bool is_oneway)
 {
     if (!level)
         return;
     if (ty >= level->height)
         return;
 
-    platform_tile.collision = is_oneway ? TILE_COLL_ONEWAY : TILE_COLL_SOLID;
+    pltfrml_tile.collision = is_oneway ? TILE_COLL_ONEWAY : TILE_COLL_SOLID;
+    pltfrmf_tile.collision = is_oneway ? TILE_COLL_ONEWAY : TILE_COLL_SOLID;
+    pltfrmr_tile.collision = is_oneway ? TILE_COLL_ONEWAY : TILE_COLL_SOLID;
 
     for (uint16_t i = 0; i < length_tiles; i++)
     {
         uint16_t x = tx + i;
         if (x >= level->width)
             break;
-        level_set_tile(level, x, ty, platform_tile);
+        level_set_tile(level, x, ty, i == 0 ? pltfrml_tile : i == length_tiles - 1 ? pltfrmr_tile : pltfrmf_tile);
     }
 }
 
@@ -175,7 +190,8 @@ void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_
     level_build_border(level,
                        theme->floor_tile, 3,
                        theme->ceiling_tile, 2,
-                       theme->wall_tile, 2);
+                       theme->wall_tile, 2,
+                       theme->filled_tile);
 
     /* 2. Crear plataformas intermedias distribuidas dinamicamente segun el tamano */
     uint16_t w = level->width;
@@ -188,7 +204,7 @@ void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_
         uint16_t y_low = h - 7;
         for (uint16_t x = 6; x + 8 < w; x += 16)
         {
-            level_add_platform(level, x, y_low, 6, theme->platform_tile, true);
+            level_add_platform(level, x, y_low, 6, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, true);
         }
 
         /* Nivel medio */
@@ -197,7 +213,7 @@ void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_
             uint16_t y_mid = h - 12;
             for (uint16_t x = 12; x + 8 < w; x += 18)
             {
-                level_add_platform(level, x, y_mid, 7, theme->platform_tile, true);
+                level_add_platform(level, x, y_mid, 7, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, true);
             }
         }
 
@@ -207,7 +223,7 @@ void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_
             uint16_t y_high = h - 18;
             for (uint16_t x = 8; x + 10 < w; x += 20)
             {
-                level_add_platform(level, x, y_high, 8, theme->platform_tile, false);
+                level_add_platform(level, x, y_high, 8, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, false);
             }
         }
 
@@ -274,37 +290,90 @@ void level_set_camera_pos(DynamicLevel *level, int32_t cam_x, int32_t cam_y)
 /* RENDERIZADO CON FRUSTUM CULLING                                           */
 /* ========================================================================= */
 
-void level_render(const DynamicLevel *level)
+void level_render(const DynamicLevel *level, const TileTextureDef *bg_tile)
 {
     if (!level || !level->tileset)
         return;
 
     int32_t cam_x = level->camera.x;
     int32_t cam_y = level->camera.y;
+    CD_TEXTURE tim = *(level->tileset);
 
-    /* Determinar rango de tiles visibles en el viewport */
+    /* 1. Imagen de fondo */
+    if (level->background)
+    {
+        CD_TEXTURE background = *(level->background);
+        const uint32_t image_width = 128;
+        const uint32_t image_height = 128;
+
+        for (int32_t x = 0;
+             x < level->camera.viewport_w;
+             x += (int32_t)image_width)
+        {
+            uint32_t draw_w = image_width;
+
+            if (x + (int32_t)draw_w > level->camera.viewport_w)
+                draw_w = (uint32_t)(level->camera.viewport_w - x);
+
+            render_poly_ft4_z(background,
+                              x, 0,
+                              draw_w, image_height,
+                              0, 0,
+                              128, 128, 128,
+                              0, 0, 2);
+        }
+    }
+
+    if (bg_tile) {
+        /* 2. Mosaico para rellenar el resto del fondo */
+        for (int32_t y = 0;
+            y < level->camera.viewport_h;
+            y += TILE_SIZE)
+        {
+            uint32_t draw_h = TILE_SIZE;
+
+            if (y + (int32_t)draw_h > level->camera.viewport_h)
+                draw_h = (uint32_t)(level->camera.viewport_h - y);
+
+            for (int32_t x = 0;
+                x < level->camera.viewport_w;
+                x += TILE_SIZE)
+            {
+                uint32_t draw_w = TILE_SIZE;
+
+                if (x + (int32_t)draw_w > level->camera.viewport_w)
+                    draw_w = (uint32_t)(level->camera.viewport_w - x);
+
+                render_poly_ft4_z(tim,
+                                x, y,
+                                draw_w, draw_h,
+                                bg_tile->u, bg_tile->v,
+                                128, 128, 128,
+                                0, 0, 2);
+            }
+        }
+    }
+
+    /* 3. Tiles visibles del nivel */
     int32_t start_col = cam_x / TILE_SIZE;
-    int32_t end_col = (cam_x + level->camera.viewport_w + (TILE_SIZE - 1)) / TILE_SIZE;
-
+    int32_t end_col =
+        (cam_x + level->camera.viewport_w + TILE_SIZE - 1) / TILE_SIZE;
     int32_t start_row = cam_y / TILE_SIZE;
-    int32_t end_row = (cam_y + level->camera.viewport_h + (TILE_SIZE - 1)) / TILE_SIZE;
+    int32_t end_row =
+        (cam_y + level->camera.viewport_h + TILE_SIZE - 1) / TILE_SIZE;
 
-    /* Clamp a las dimensiones del nivel */
     if (start_col < 0)
         start_col = 0;
     if (end_col >= level->width)
         end_col = level->width - 1;
-
     if (start_row < 0)
         start_row = 0;
     if (end_row >= level->height)
         end_row = level->height - 1;
 
-    CD_TEXTURE tim = *(level->tileset);
-
     for (int32_t ty = start_row; ty <= end_row; ty++)
     {
-        int32_t screen_y = (ty * TILE_SIZE) - cam_y;
+        int32_t screen_y = ty * TILE_SIZE - cam_y;
 
         for (int32_t tx = start_col; tx <= end_col; tx++)
         {
@@ -313,15 +382,14 @@ void level_render(const DynamicLevel *level)
             if (!tile->active)
                 continue;
 
-            int32_t screen_x = (tx * TILE_SIZE) - cam_x;
+            int32_t screen_x = tx * TILE_SIZE - cam_x;
 
-            /* Renderizamos el tile en pantalla usando render_poly_ft4 */
-            render_poly_ft4(tim,
-                            screen_x, screen_y,
-                            TILE_SIZE, TILE_SIZE,
-                            tile->u, tile->v,
-                            128, 128, 128,
-                            0, 0);
+            render_poly_ft4_z(tim,
+                              screen_x, screen_y,
+                              TILE_SIZE, TILE_SIZE,
+                              tile->u, tile->v,
+                              128, 128, 128,
+                              0, 0, 1);
         }
     }
 }
@@ -394,6 +462,7 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                                     int32_t *io_x, int32_t *io_y,
                                     int32_t *io_vx, int32_t *io_vy,
                                     int32_t w, int32_t h,
+                                    int32_t ignored_oneway_ty,
                                     bool *is_grounded)
 {
     if (!level || !io_x || !io_y || !io_vx || !io_vy)
@@ -534,7 +603,7 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                 hit_floor = true;
                 break;
             }
-            else if (coll == TILE_COLL_ONEWAY)
+            else if (coll == TILE_COLL_ONEWAY && check_ty != ignored_oneway_ty)
             {
                 /* Para plataformas semi-solidas (one-way), solo colisionamos si los pies
                  * del personaje estaban en o por encima del borde superior de la plataforma
@@ -570,7 +639,7 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                 TileCollisionType coll =
                     level_get_tile_collision(level, tx, support_ty);
 
-                if (coll == TILE_COLL_SOLID || coll == TILE_COLL_ONEWAY)
+                if (coll == TILE_COLL_SOLID || (coll == TILE_COLL_ONEWAY && support_ty != ignored_oneway_ty))
                 {
                     grounded = true;
                     break;

@@ -33,9 +33,12 @@ typedef struct
 typedef struct
 {
     TileTextureDef floor_tile;    /* Textura para pisos */
+    TileTextureDef filled_tile;   /* Textura para relleno */
     TileTextureDef wall_tile;     /* Textura para paredes laterales */
     TileTextureDef ceiling_tile;  /* Textura para techo */
-    TileTextureDef platform_tile; /* Textura para plataformas */
+    TileTextureDef pltfrml_tile; /* Textura para plataformas borde izquierdo */
+    TileTextureDef pltfrmf_tile; /* Textura para plataformas relleno */
+    TileTextureDef pltfrmr_tile; /* Textura para plataformas borde derecho */
     TileTextureDef bg_tile;       /* Textura opcional para fondo (o aire) */
 } LevelThemeTextures;
 
@@ -65,6 +68,7 @@ typedef struct
     uint32_t pixel_width;                               /* Ancho en pixeles (width * TILE_SIZE) */
     uint32_t pixel_height;                              /* Alto en pixeles (height * TILE_SIZE) */
     CD_TEXTURE *tileset;                                /* Puntero a la textura del tileset */
+    CD_TEXTURE *background;                             /* Puntero para el fondo */
     LevelCamera camera;                                 /* Camara asociada al nivel */
     LevelTile tiles[LEVEL_MAX_HEIGHT][LEVEL_MAX_WIDTH]; /* Celdas del nivel */
 } DynamicLevel;
@@ -89,6 +93,8 @@ void level_clear(DynamicLevel *level);
  */
 void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDef tile_def);
 
+void level_set_background(DynamicLevel *level, CD_TEXTURE *background_tim);
+
 /**
  * Genera el perimetro del nivel: piso, techo y paredes con sus respectivas texturas.
  * floor_thickness: grosor del piso en tiles (ej. 2 o 3)
@@ -98,14 +104,18 @@ void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDe
 void level_build_border(DynamicLevel *level,
                         TileTextureDef floor_tile, uint8_t floor_thickness,
                         TileTextureDef ceiling_tile, uint8_t ceiling_thickness,
-                        TileTextureDef wall_tile, uint8_t wall_thickness);
+                        TileTextureDef wall_tile, uint8_t wall_thickness,
+                        TileTextureDef filled_tile);
 
 /**
  * Crea una plataforma horizontal en coordenadas de tile (tx, ty) de longitud 'length_tiles'.
  * is_oneway: true si es atravesable desde abajo (semi-solida), false si es bloque solido.
  */
 void level_add_platform(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t length_tiles,
-                        TileTextureDef platform_tile, bool is_oneway);
+                        TileTextureDef pltfrml_tile,
+                        TileTextureDef pltfrmf_tile,
+                        TileTextureDef pltfrmr_tile,
+                        bool is_oneway);
 
 /**
  * Crea una pared vertical o columna en coordenadas de tile (tx, ty) de altura 'height_tiles'.
@@ -156,7 +166,7 @@ void level_set_camera_pos(DynamicLevel *level, int32_t cam_x, int32_t cam_y);
  * Renderiza unicamente los tiles visibles dentro del viewport de la camara,
  * transformando coordenadas de mundo a coordenadas de pantalla (world_x - cam_x).
  */
-void level_render(const DynamicLevel *level);
+void level_render(const DynamicLevel *level, const TileTextureDef *bg_tile);
 
 /* ========================================================================= */
 /* DETECCION Y RESOLUCION DE COLISIONES                                      */
@@ -194,4 +204,5 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                                     int32_t *io_x, int32_t *io_y,
                                     int32_t *io_vx, int32_t *io_vy,
                                     int32_t w, int32_t h,
+                                    int32_t ignored_oneway_ty,
                                     bool *is_grounded);

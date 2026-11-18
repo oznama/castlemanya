@@ -62,10 +62,17 @@
 			<file name="SYSTEM.CNF"		type="data" source="${PROJECT_SOURCE_DIR}/system.cnf" />
 			<file name="CASTLEMA.EXE"	type="data" source="castlemanya.exe" />
 			<file name="LOGO.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/Castlemanya-logo.tim" />
-			<file name="TILESET.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/tileset.tim" />
-			<file name="MANYBAS.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
-			<file name="MANYACT.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
-			<file name="MANYATK.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
+			<file name="TLSTCAS.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-castle.tim" />
+			<file name="TLSTCLD.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-cold.tim" />
+			<file name="TLSTEXT.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-exteriors.tim" />
+			<file name="TLSTGRN.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-ground.tim" />
+			<file name="BGCASTLE.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-castle.tim" />
+			<file name="BGCOLD.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-cold.tim" />
+			<file name="BGEXT.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-exteriors.tim" />
+			<file name="BGGROUND.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-ground.tim" />
+			<file name="MANYBAS.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
+			<file name="MANYACT.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
+			<file name="MANYATK.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
 			<file name="ZOMBIE.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/zombie/Zombie-sprite.tim" />
 			<file name="MEDUSA.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/medusa/Medusa-sprite.tim" />
 			<!--

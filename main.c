@@ -1,19 +1,22 @@
 #include <stdint.h>
+#include <stdio.h>
 
-#include "helpers/game_state.h"
-#include "ui/menu/main_menu.h"
+#include "ui/menu.h"
 
-#include "ui/demo/demo.h"
+#include "ui/gameplay.h"
 
 int main() {
 
 	uint8_t currentLevel = 1;
-	GameState currentState = main_menu_display();
+	GameState currentState = menu_display();
 	
-	if ( currentState == GAME_STATE_LOADING ) {
-		// load_level(currentLevel);
-		demo_game_main();
+	if (currentState == GAME_STATE_CONTINUE) {
+		// TODO Load data
+		printf("Loading memory card\n");
+		currentLevel = 2;
 	}
+
+	gameplay_main(currentLevel);
 
 	return 0;
 }

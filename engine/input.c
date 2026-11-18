@@ -17,7 +17,7 @@ void input_init(void) {
 	ExitCriticalSection();
 }
 
-void input_read(uint16_t *held_buttons, uint16_t *pressed_buttons) {
+void input_read(uint16_t *held_buttons, uint16_t *pressed_buttons, uint16_t buttons_history[10]) {
 	PADTYPE *pad = (PADTYPE *) pad_buffer[0];
 	uint16_t buttons = 0;
 
@@ -33,4 +33,12 @@ void input_read(uint16_t *held_buttons, uint16_t *pressed_buttons) {
 	*held_buttons = buttons;
 	*pressed_buttons = buttons & (uint16_t) ~previous_buttons;
 	previous_buttons = buttons;
+
+	if (*pressed_buttons != 0) {
+		// Guardando ultimos botones presionados
+		for(int i = 9; i > 0; i--) {
+			buttons_history[i] = buttons_history[i - 1];
+		}
+		buttons_history[0] = *pressed_buttons;
+	}
 }
