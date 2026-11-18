@@ -67,11 +67,12 @@
 			<file name="TLSTEXT.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-exteriors.tim" />
 			<file name="TLSTGRN.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-ground.tim" />
 			<file name="BGCASTLE.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-castle.tim" />
-			<file name="BGCOLD.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-cold.tim" />
+			<file name="BGCOLD.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-cold.tim" />
+			<file name="BGEXT.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-exteriors.tim" />
 			<file name="BGGROUND.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-ground.tim" />
-			<file name="MANYBAS.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
-			<file name="MANYACT.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
-			<file name="MANYATK.TIM" type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
+			<file name="MANYBAS.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
+			<file name="MANYACT.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
+			<file name="MANYATK.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
 			<file name="ZOMBIE.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/zombie/Zombie-sprite.tim" />
 			<file name="MEDUSA.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/medusa/Medusa-sprite.tim" />
 			<!--

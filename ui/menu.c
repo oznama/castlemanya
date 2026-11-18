@@ -2,13 +2,14 @@
 #include <psxgpu.h>
 #include <psxpad.h>
 
-#include "main_menu.h"
-#include "../../engine/cd_image.h"
-#include "../../engine/input.h"
-#include "../../graphics/graphic.h"
-#include "../../helpers/utils.h"
+#include "menu.h"
+#include "../engine/cd_image.h"
+#include "../engine/input.h"
+#include "../graphics/graphic.h"
+#include "../helpers/utils.h"
 
-GameState main_menu_display() {
+GameState menu_display()
+{
 
     GameState currentState = GAME_STATE_MENU;
 
@@ -23,8 +24,8 @@ GameState main_menu_display() {
     uint8_t selected_y;
     uint8_t selected_option;
     // Rect selector animation vars
-    RGBColor SELECTOR_COLOR_1 = { 255, 0, 0 };
-    RGBColor SELECTOR_COLOR_2 = { 68, 12, 8 };
+    RGBColor SELECTOR_COLOR_1 = {255, 0, 0};
+    RGBColor SELECTOR_COLOR_2 = {68, 12, 8};
     RGBColor selector_color = SELECTOR_COLOR_1;
     float factor = 0.0f;
     float velocity = 0.02f;
@@ -33,10 +34,11 @@ GameState main_menu_display() {
     // Load logo image
     CD_TEXTURE texture;
     cd_load_image("\\LOGO.TIM", &texture);
-    
+
     uint16_t buttons_history[10] = {0};
     // Main cycle
-    while(menuActive) {
+    while (menuActive)
+    {
         uint16_t held_buttons; // Not used in this page
         uint16_t pressed_buttons;
         input_read(&held_buttons, &pressed_buttons, buttons_history);
@@ -44,24 +46,30 @@ GameState main_menu_display() {
         // Rect selector
         selector_color = interpolateColor(SELECTOR_COLOR_1, SELECTOR_COLOR_2, factor);
         factor += velocity * direction;
-        if (factor >= 1.0f) {
+        if (factor >= 1.0f)
+        {
             factor = 1.0f;
             direction = -1;
-        } else if (factor <= 0.0f) {
+        }
+        else if (factor <= 0.0f)
+        {
             factor = 0.0f;
             direction = 1;
         }
 
         // Buttons functions
-        if (pressed_buttons & (PAD_UP | PAD_DOWN)) {
+        if (pressed_buttons & (PAD_UP | PAD_DOWN))
+        {
             if (pressed_buttons & PAD_UP && selected_option > 0)
                 selected_option--;
             else if (pressed_buttons & PAD_DOWN && selected_option < option_count - 1)
                 selected_option++;
         }
-        if (pressed_buttons & (PAD_CROSS | PAD_START)) {
+        if (pressed_buttons & (PAD_CROSS | PAD_START))
+        {
             menuActive = 0; // Break infinite while
-            currentState = selected_option ? GAME_STATE_CONTINUE : GAME_STATE_GAME;
+            currentState = selected_option == 2 ? GAME_STATE_SETTINGS : selected_option == 1 ? GAME_STATE_CONTINUE
+                                                                                             : GAME_STATE_GAME;
         }
 
         // Render menu
@@ -70,26 +78,26 @@ GameState main_menu_display() {
         render_text(112, 140, 0, "CONTINUE");
         render_text(112, 160, 0, "SETTINGS");
         // Selector
-        switch (selected_option) {
-            case 0:
-                selected_y = 115;
-                break;
-            case 1:
-                selected_y = 135;
-                break;
-            case 2:
-                selected_y = 155;
-                break;
-            default:
-                selected_y = 115;
-                break;
+        switch (selected_option)
+        {
+        case 0:
+            selected_y = 115;
+            break;
+        case 1:
+            selected_y = 135;
+            break;
+        case 2:
+            selected_y = 155;
+            break;
+        default:
+            selected_y = 115;
+            break;
         }
         render_rect(76, selected_y, 168, 20, selector_color.r, selector_color.g, selector_color.b); // Dibuja un rectángulo detrás de la opción seleccionada
-        render_text(92, selected_y + 4, 0, ">"); // Dibuja un símbolo de flecha delante de la opción seleccionada
-        
+        render_text(92, selected_y + 4, 0, ">");                                                    // Dibuja un símbolo de flecha delante de la opción seleccionada
+
         graphic_display();
     }
 
     return currentState;
-
 }

@@ -1,24 +1,28 @@
+#include <stdio.h>
 #include <psxgpu.h>
 
-#include "demo.h"
-#include "../../engine/cd_image.h"
-#include "../../engine/input.h"
-#include "../../gameplay/many.h"
-#include "../../graphics/graphic.h"
-#include "../../helpers/level_generator.h"
+#include "gameplay.h"
+#include "../engine/cd_image.h"
+#include "../engine/game_state.h"
+#include "../engine/input.h"
+#include "../gameplay/many.h"
+#include "../graphics/graphic.h"
+#include "../helpers/level_generator.h"
 
-#define ZOMBIES_NUM 4
-#define MEDUSAS_NUM 3
-
-CD_TEXTURE tileset_tim;
-DynamicLevel current_level;
-
-void demo_game_main(GameState currentState)
+void gameplay_main(uint8_t currentLevel)
 {
+
+	LEVEL_DATA level_info = LEVELS_INFO[currentLevel - 1];
+	GameState currentState = GAME_STATE_LOADING;
+
+	CD_TEXTURE tileset_tim;
+	DynamicLevel current_level;
 
 	graphic_init();
 	input_init();
-	cd_load_image(currentState == GAME_STATE_GAME ? "\\TLSTCAS.TIM" : "\\TLSTGRN.TIM", &tileset_tim);
+	char buffer[30];
+	sprintf(buffer, "\\%s.TIM", level_info.tilename);
+	cd_load_image(buffer, &tileset_tim);
 	many_init();
 
 	// Texturas a utilizar en nivel
@@ -30,7 +34,7 @@ void demo_game_main(GameState currentState)
 		.pltfrml_tile = {.u = 16, .v = 16, .collision = TILE_COLL_ONEWAY},
 		.pltfrmf_tile = {.u = 32, .v = 16, .collision = TILE_COLL_ONEWAY},
 		.pltfrmr_tile = {.u = 48, .v = 16, .collision = TILE_COLL_ONEWAY},
-		.bg_tile = {.u = 0, .v = 16, .collision = TILE_COLL_NONE}};
+		.bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE}};
 
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
 	 * Mas grande que la pantalla (320x240) para scroll horizontal y vertical */
@@ -38,7 +42,8 @@ void demo_game_main(GameState currentState)
 
 	CD_TEXTURE background_tim;
 	/* En demo_game_main, junto a la carga del tileset */
-	cd_load_image(currentState == GAME_STATE_GAME ? "\\BGCASTLE.TIM" : "\\BGGROUND.TIM", &background_tim);
+	sprintf(buffer, "\\%s.TIM", level_info.bgname);
+	cd_load_image(buffer, &background_tim);
 
 	/* Después de level_generate_templated(...) */
 	level_set_background(&current_level, &background_tim);
@@ -47,6 +52,8 @@ void demo_game_main(GameState currentState)
 	many_set_position(64, (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE)));
 
 	uint16_t buttons_history[10] = {0};
+
+	currentState = GAME_STATE_GAME;
 	for (;;)
 	{
 		uint16_t held_buttons;

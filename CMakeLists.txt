@@ -22,8 +22,8 @@ psn00bsdk_add_executable(
 	helpers/collisions.c
 	helpers/level_generator.c
 	helpers/utils.c
-	ui/menu/main_menu.c
-	ui/demo/demo.c
+	ui/menu.c
+	ui/gameplay.c
 )
 
 psn00bsdk_add_cd_image(
