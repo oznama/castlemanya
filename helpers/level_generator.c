@@ -32,7 +32,8 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     level->pixel_width = (uint32_t)width_tiles * TILE_SIZE;
     level->pixel_height = (uint32_t)height_tiles * TILE_SIZE;
     level->tileset = tileset_tim;
-    level->background = NULL;
+    memset(level->background, 0, sizeof(level->background));
+    level->background_count = 0;
 
     level->camera.x = 0;
     level->camera.y = 0;
@@ -62,12 +63,18 @@ void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDe
     level->tiles[ty][tx].active = 1;
 }
 
-void level_set_background(DynamicLevel *level, CD_TEXTURE *background_tim)
+void level_set_background(DynamicLevel *level,
+                          CD_TEXTURE background_tim[BACKGROUND_MAX],
+                          uint8_t count)
 {
-    if (!level)
+    if (!level || !background_tim)
         return;
 
-    level->background = background_tim;
+    if (count > BACKGROUND_MAX)
+        count = BACKGROUND_MAX;
+
+    memcpy(level->background, background_tim, sizeof(level->background));
+    level->background_count = count;
 }
 
 void level_build_border(DynamicLevel *level,
@@ -107,7 +114,7 @@ void level_build_border(DynamicLevel *level,
         uint16_t y = h - 1 - t;
         for (uint16_t x = 0; x < w; x++)
         {
-            level_set_tile(level, x, y, t == floor_thickness -1 ? floor_tile : filled_tile);
+            level_set_tile(level, x, y, t == floor_thickness - 1 ? floor_tile : filled_tile);
         }
     }
 }
@@ -132,7 +139,8 @@ void level_add_platform(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t 
         uint16_t x = tx + i;
         if (x >= level->width)
             break;
-        level_set_tile(level, x, ty, i == 0 ? pltfrml_tile : i == length_tiles - 1 ? pltfrmr_tile : pltfrmf_tile);
+        level_set_tile(level, x, ty, i == 0 ? pltfrml_tile : i == length_tiles - 1 ? pltfrmr_tile
+                                                                                   : pltfrmf_tile);
     }
 }
 
@@ -178,8 +186,8 @@ void level_fill_rect(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t w_t
     }
 }
 
-void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
-                              CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme)
+void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
+                         CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme)
 {
     if (!level || !theme)
         return;
@@ -192,52 +200,6 @@ void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_
                        theme->ceiling_tile, 2,
                        theme->wall_tile, 2,
                        theme->filled_tile);
-
-    /* 2. Crear plataformas intermedias distribuidas dinamicamente segun el tamano */
-    uint16_t w = level->width;
-    uint16_t h = level->height;
-
-    /* Plataformas a distintas alturas para permitir exploracion vertical y saltos */
-    if (h > 15)
-    {
-        /* Nivel bajo: piso elevado o repisas */
-        uint16_t y_low = h - 7;
-        for (uint16_t x = 6; x + 8 < w; x += 16)
-        {
-            level_add_platform(level, x, y_low, 6, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, true);
-        }
-
-        /* Nivel medio */
-        if (h > 20)
-        {
-            uint16_t y_mid = h - 12;
-            for (uint16_t x = 12; x + 8 < w; x += 18)
-            {
-                level_add_platform(level, x, y_mid, 7, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, true);
-            }
-        }
-
-        /* Nivel alto */
-        if (h > 28)
-        {
-            uint16_t y_high = h - 18;
-            for (uint16_t x = 8; x + 10 < w; x += 20)
-            {
-                level_add_platform(level, x, y_high, 8, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, false);
-            }
-        }
-
-        /* Columnas o paredes arquitectonicas internas cada cierto tramo */
-        if (w > 35)
-        {
-            for (uint16_t col_x = 24; col_x + 10 < w; col_x += 30)
-            {
-                /* Columna que desciende del techo o se eleva */
-                level_add_wall(level, col_x, h - 8, 5, theme->wall_tile);
-                level_add_wall(level, col_x + 1, h - 8, 5, theme->wall_tile);
-            }
-        }
-    }
 }
 
 /* ========================================================================= */
@@ -290,71 +252,101 @@ void level_set_camera_pos(DynamicLevel *level, int32_t cam_x, int32_t cam_y)
 /* RENDERIZADO CON FRUSTUM CULLING                                           */
 /* ========================================================================= */
 
-void level_render(const DynamicLevel *level, const TileTextureDef *bg_tile)
+static int background_uv_origin(
+    const CD_TEXTURE *texture,
+    uint8_t *u,
+    uint8_t *v)
+{
+    uint32_t pixels_per_word;
+
+    switch (texture->mode & 3)
+    {
+        case 0: pixels_per_word = 4; break;
+        case 1: pixels_per_word = 2; break;
+        case 2: pixels_per_word = 1; break;
+        default: return 0;
+    }
+
+    *u = (uint8_t)((texture->image_x & 63u) * pixels_per_word);
+    *v = (uint8_t)(texture->image_y & 255u);
+    return 1;
+}
+
+static void render_background_row(
+    const DynamicLevel *level,
+    uint8_t first_index,
+    int8_t alternate_index,
+    int32_t y)
+{
+    const int32_t image_width = 128;
+    const int32_t image_height = 128;
+    uint8_t texture_index = first_index;
+
+    for (int32_t x = 0; x < level->camera.viewport_w; x += image_width)
+    {
+        int32_t draw_width = image_width;
+
+        if (x + draw_width > level->camera.viewport_w)
+            draw_width = level->camera.viewport_w - x;
+
+        CD_TEXTURE texture = level->background[texture_index];
+        uint8_t u, v;
+
+        if (!background_uv_origin(&texture, &u, &v))
+            return;
+
+        render_poly_ft4_z(
+            texture,
+            x, y, (uint32_t)draw_width, (uint32_t)image_height,
+            u, v, 128, 128, 128,
+            0, 0, 2);
+
+        if (alternate_index >= 0)
+            texture_index = (texture_index == first_index)
+                ? (uint8_t)alternate_index
+                : first_index;
+    }
+}
+
+void level_render(const DynamicLevel *level)
 {
     if (!level || !level->tileset)
         return;
+
+    /* 1. Imagen de fondo */
+    if (level->background_count >= 1)
+    {
+        switch (level->background_count)
+        {
+            case 1:
+                render_background_row(level, 0, -1, 0);
+                break;
+
+            case 2:
+                render_background_row(level, 0, -1, 0);
+                render_background_row(level, 1, -1, 128);
+                break;
+
+            case 3:
+                render_background_row(level, 0,  1, 0);
+                render_background_row(level, 2, -1, 128);
+                break;
+
+            case 4:
+                render_background_row(level, 0,  2, 0);
+                render_background_row(level, 1,  3, 128);
+                break;
+
+            default:
+                break;
+        }
+    }
 
     int32_t cam_x = level->camera.x;
     int32_t cam_y = level->camera.y;
     CD_TEXTURE tim = *(level->tileset);
 
-    /* 1. Imagen de fondo */
-    if (level->background)
-    {
-        CD_TEXTURE background = *(level->background);
-        const uint32_t image_width = 128;
-        const uint32_t image_height = 128;
-
-        for (int32_t x = 0;
-             x < level->camera.viewport_w;
-             x += (int32_t)image_width)
-        {
-            uint32_t draw_w = image_width;
-
-            if (x + (int32_t)draw_w > level->camera.viewport_w)
-                draw_w = (uint32_t)(level->camera.viewport_w - x);
-
-            render_poly_ft4_z(background,
-                              x, 0,
-                              draw_w, image_height,
-                              0, 0,
-                              128, 128, 128,
-                              0, 0, 2);
-        }
-    }
-
-    if (bg_tile) {
-        /* 2. Mosaico para rellenar el resto del fondo */
-        for (int32_t y = 0;
-            y < level->camera.viewport_h;
-            y += TILE_SIZE)
-        {
-            uint32_t draw_h = TILE_SIZE;
-
-            if (y + (int32_t)draw_h > level->camera.viewport_h)
-                draw_h = (uint32_t)(level->camera.viewport_h - y);
-
-            for (int32_t x = 0;
-                x < level->camera.viewport_w;
-                x += TILE_SIZE)
-            {
-                uint32_t draw_w = TILE_SIZE;
-
-                if (x + (int32_t)draw_w > level->camera.viewport_w)
-                    draw_w = (uint32_t)(level->camera.viewport_w - x);
-
-                render_poly_ft4_z(tim,
-                                x, y,
-                                draw_w, draw_h,
-                                bg_tile->u, bg_tile->v,
-                                128, 128, 128,
-                                0, 0, 2);
-            }
-        }
-    }
-
-    /* 3. Tiles visibles del nivel */
+    /* 2. Tiles visibles del nivel */
     int32_t start_col = cam_x / TILE_SIZE;
     int32_t end_col =
         (cam_x + level->camera.viewport_w + TILE_SIZE - 1) / TILE_SIZE;

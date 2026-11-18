@@ -13,6 +13,8 @@
 #define LEVEL_MAX_WIDTH 128
 #define LEVEL_MAX_HEIGHT 64
 
+#define BACKGROUND_MAX 4
+
 /* Tipos de colision y comportamiento de cada celda del tilemap */
 typedef enum
 {
@@ -32,14 +34,14 @@ typedef struct
 /* Estructura para configurar texturas del generador */
 typedef struct
 {
-    TileTextureDef floor_tile;    /* Textura para pisos */
-    TileTextureDef filled_tile;   /* Textura para relleno */
-    TileTextureDef wall_tile;     /* Textura para paredes laterales */
-    TileTextureDef ceiling_tile;  /* Textura para techo */
+    TileTextureDef floor_tile;   /* Textura para pisos */
+    TileTextureDef filled_tile;  /* Textura para relleno */
+    TileTextureDef wall_tile;    /* Textura para paredes laterales */
+    TileTextureDef ceiling_tile; /* Textura para techo */
     TileTextureDef pltfrml_tile; /* Textura para plataformas borde izquierdo */
     TileTextureDef pltfrmf_tile; /* Textura para plataformas relleno */
     TileTextureDef pltfrmr_tile; /* Textura para plataformas borde derecho */
-    TileTextureDef bg_tile;       /* Textura opcional para fondo (o aire) */
+    TileTextureDef bg_tile;      /* Textura opcional para fondo (o aire) */
 } LevelThemeTextures;
 
 /* Datos de cada celda del nivel */
@@ -63,12 +65,13 @@ typedef struct
 /* Estructura principal del nivel dinamico */
 typedef struct
 {
-    uint16_t width;                                     /* Ancho del nivel en tiles */
-    uint16_t height;                                    /* Alto del nivel en tiles */
-    uint32_t pixel_width;                               /* Ancho en pixeles (width * TILE_SIZE) */
-    uint32_t pixel_height;                              /* Alto en pixeles (height * TILE_SIZE) */
-    CD_TEXTURE *tileset;                                /* Puntero a la textura del tileset */
-    CD_TEXTURE *background;                             /* Puntero para el fondo */
+    uint16_t width;                        /* Ancho del nivel en tiles */
+    uint16_t height;                       /* Alto del nivel en tiles */
+    uint32_t pixel_width;                  /* Ancho en pixeles (width * TILE_SIZE) */
+    uint32_t pixel_height;                 /* Alto en pixeles (height * TILE_SIZE) */
+    CD_TEXTURE *tileset;                   /* Puntero a la textura del tileset */
+    CD_TEXTURE background[BACKGROUND_MAX]; /* Texturas para fondos */
+    uint8_t background_count;
     LevelCamera camera;                                 /* Camara asociada al nivel */
     LevelTile tiles[LEVEL_MAX_HEIGHT][LEVEL_MAX_WIDTH]; /* Celdas del nivel */
 } DynamicLevel;
@@ -93,7 +96,9 @@ void level_clear(DynamicLevel *level);
  */
 void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDef tile_def);
 
-void level_set_background(DynamicLevel *level, CD_TEXTURE *background_tim);
+void level_set_background(DynamicLevel *level,
+                          CD_TEXTURE background_tim[BACKGROUND_MAX],
+                          uint8_t count);
 
 /**
  * Genera el perimetro del nivel: piso, techo y paredes con sus respectivas texturas.
@@ -130,11 +135,10 @@ void level_fill_rect(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t w_t
                      TileTextureDef tile_def);
 
 /**
- * Generador procedural/estilo plantilla: crea un nivel completo con limites, pisos,
- * paredes, techo y plataformas escalonadas utilizando el tema especificado.
+ * Generador procedural/estilo plantilla: genera la base del nivel.
  */
-void level_generate_templated(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
-                              CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme);
+void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
+                         CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme);
 
 /* ========================================================================= */
 /* FUNCIONES DE CAMARA Y SCROLL                                              */
@@ -166,7 +170,7 @@ void level_set_camera_pos(DynamicLevel *level, int32_t cam_x, int32_t cam_y);
  * Renderiza unicamente los tiles visibles dentro del viewport de la camara,
  * transformando coordenadas de mundo a coordenadas de pantalla (world_x - cam_x).
  */
-void level_render(const DynamicLevel *level, const TileTextureDef *bg_tile);
+void level_render(const DynamicLevel *level);
 
 /* ========================================================================= */
 /* DETECCION Y RESOLUCION DE COLISIONES                                      */

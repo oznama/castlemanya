@@ -7,7 +7,6 @@
 #include "../engine/input.h"
 #include "../gameplay/many.h"
 #include "../graphics/graphic.h"
-#include "../helpers/level_generator.h"
 
 void gameplay_main(uint8_t currentLevel)
 {
@@ -38,15 +37,33 @@ void gameplay_main(uint8_t currentLevel)
 
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
 	 * Mas grande que la pantalla (320x240) para scroll horizontal y vertical */
-	level_generate_templated(&current_level, 40, 25, &tileset_tim, &theme);
+	level_generate_base(&current_level, level_info.width_tiles, level_info.height_tiles, &tileset_tim, &theme);
 
-	CD_TEXTURE background_tim;
-	/* En demo_game_main, junto a la carga del tileset */
-	sprintf(buffer, "\\%s.TIM", level_info.bgname);
-	cd_load_image(buffer, &background_tim);
+	uint8_t background_count = 0;
+	CD_TEXTURE background_tim[BACKGROUND_MAX] = {};
+
+	for (int i = 0; i < BACKGROUND_MAX; i++)
+	{
+		if (level_info.bgname[i][0] == '\0')
+			continue;
+
+		sprintf(buffer, "\\%s.TIM", level_info.bgname[i]);
+
+		int result = cd_load_image(
+			buffer,
+			&background_tim[background_count]);
+
+		if (result != 0)
+		{
+			printf("Error al cargar %s (codigo %d)\n", buffer, result);
+			return;
+		}
+
+		background_count++;
+	}
 
 	/* Después de level_generate_templated(...) */
-	level_set_background(&current_level, &background_tim);
+	level_set_background(&current_level, background_tim, background_count);
 
 	/* Posicionar a Many al inicio del nivel sobre el piso */
 	many_set_position(64, (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE)));
@@ -72,7 +89,7 @@ void gameplay_main(uint8_t currentLevel)
 		level_get_camera_pos(&current_level, &cam_x, &cam_y);
 
 		/* 4. Renderizar primero el nivel */
-		level_render(&current_level, &theme.bg_tile);
+		level_render(&current_level);
 
 		/* 5. Renderizar Many encima del nivel */
 		many_render_in_camera(cam_x, cam_y);

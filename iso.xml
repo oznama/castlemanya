@@ -62,10 +62,15 @@
 			<file name="SYSTEM.CNF"		type="data" source="${PROJECT_SOURCE_DIR}/system.cnf" />
 			<file name="CASTLEMA.EXE"	type="data" source="castlemanya.exe" />
 			<file name="LOGO.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/Castlemanya-logo.tim" />
+			<file name="TLSTCSHW.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-castle-hw.tim" />
 			<file name="TLSTCAS.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-castle.tim" />
 			<file name="TLSTCLD.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-cold.tim" />
 			<file name="TLSTEXT.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-exteriors.tim" />
 			<file name="TLSTGRN.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-ground.tim" />
+			<file name="BGCSTHW1.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-1.tim" />
+			<file name="BGCSTHW2.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-2.tim" />
+			<file name="BGCSTHW3.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-3.tim" />
+			<file name="BGCSTHW4.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-4.tim" />
 			<file name="BGCASTLE.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-castle.tim" />
 			<file name="BGCOLD.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-cold.tim" />
 			<file name="BGEXT.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-exteriors.tim" />
