@@ -106,28 +106,37 @@ void render_sprt(CD_TEXTURE tim, int x, int y, uint32_t w, uint32_t h, uint8_t u
 	setDrawTPage(tpri, 0, 0, getTPage(tim.mode & 3, 0, tim.image_x, tim.image_y));
 }
 
-void render_poly_ft4(CD_TEXTURE tim, int x, int y, uint32_t w, uint32_t h, uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b, uint8_t rotateu, uint8_t rotatev) {
-	// valida_sprite_size(w, h, u, v);
+void render_poly_ft4(CD_TEXTURE tim, int x, int y, uint32_t w, uint32_t h,
+                     uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b,
+                     uint8_t rotateu, uint8_t rotatev)
+{
+    render_poly_ft4_z(tim, x, y, w, h, u, v,
+                      r, g, b, rotateu, rotatev, 0);
+}
 
-	POLY_FT4 *quad = (POLY_FT4 *)new_primitive(0, sizeof(POLY_FT4));
+void render_poly_ft4_z(CD_TEXTURE tim, int x, int y, uint32_t w, uint32_t h,
+                       uint8_t u, uint8_t v, uint8_t r, uint8_t g, uint8_t b,
+                       uint8_t rotateu, uint8_t rotatev, uint32_t z)
+{
+    POLY_FT4 *quad = (POLY_FT4 *)new_primitive(z, sizeof(POLY_FT4));
+
     setPolyFT4(quad);
     setXYWH(quad, x, y, w, h);
     setRGB0(quad, r, g, b);
 
-	if ( tim.mode & 0x8 ) {
-		setClut(quad, tim.clut_x, tim.clut_y);
-	}
+    if (tim.mode & 0x8)
+        setClut(quad, tim.clut_x, tim.clut_y);
 
     quad->tpage = getTPage(tim.mode & 3, 0, tim.image_x, tim.image_y);
 
-	uint16_t u_end = (uint16_t)((uint16_t)u + w - 1u);
-	uint16_t v_end = (uint16_t)((uint16_t)v + h - 1u);
-	setUV4(quad,
-		rotateu ? (uint8_t)u_end : u, rotatev ? (uint8_t)v_end : v,
-		rotateu ? u : (uint8_t)u_end, rotatev ? (uint8_t)v_end : v,
-		rotateu ? (uint8_t)u_end : u, rotatev ? v : (uint8_t)v_end,
-		rotateu ? u : (uint8_t)u_end, rotatev ? v : (uint8_t)v_end
-	);
+    uint16_t u_end = (uint16_t)((uint16_t)u + w - 1u);
+    uint16_t v_end = (uint16_t)((uint16_t)v + h - 1u);
+
+    setUV4(quad,
+           rotateu ? (uint8_t)u_end : u, rotatev ? (uint8_t)v_end : v,
+           rotateu ? u : (uint8_t)u_end, rotatev ? (uint8_t)v_end : v,
+           rotateu ? (uint8_t)u_end : u, rotatev ? v : (uint8_t)v_end,
+           rotateu ? u : (uint8_t)u_end, rotatev ? v : (uint8_t)v_end);
 }
 
 void valida_sprite_size(uint32_t w, uint32_t h, uint8_t u, uint8_t v) {

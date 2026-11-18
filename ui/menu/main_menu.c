@@ -61,7 +61,7 @@ GameState main_menu_display() {
         }
         if (pressed_buttons & (PAD_CROSS | PAD_START)) {
             menuActive = 0; // Break infinite while
-            currentState = GAME_STATE_LOADING;
+            currentState = selected_option ? GAME_STATE_CONTINUE : GAME_STATE_GAME;
         }
 
         // Render menu
