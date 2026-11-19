@@ -30,16 +30,35 @@ void door_init(void) {
 
 uint8_t current_frame, timer;
 
-void door_render_in_camera(uint32_t x, uint32_t y, uint32_t cam_x, uint32_t cam_y, uint8_t rotateu, uint8_t open) {
-    render_poly_ft4(
-        door_tim,
-        rotateu ? x - door_sprites[current_frame].w + DOOR_W_BASE - cam_x : x - cam_x, y - cam_y,
-        door_sprites[current_frame].w,
-        door_sprites[current_frame].h,
-        door_sprites[current_frame].u, 
-        door_sprites[current_frame].v,
-        128, 128, 128,
-        rotateu, 0);
+void door_render_in_camera(
+    int32_t x, int32_t y,
+    int32_t cam_x, int32_t cam_y,
+    uint8_t rotateu, uint8_t open)
+{
+    SPRITE_OBJECT *frame = &door_sprites[current_frame];
+    int32_t frame_w = (int32_t)frame->w;
+    int32_t frame_h = (int32_t)frame->h;
+
+    int32_t screen_x = rotateu
+        ? x - frame_w + DOOR_W_BASE - cam_x
+        : x - cam_x;
+    int32_t screen_y = y - cam_y;
+
+    if (screen_x < SCREEN_XRES &&
+        screen_x + frame_w > 0 &&
+        screen_y < SCREEN_YRES &&
+        screen_y + frame_h > 0)
+    {
+        render_poly_ft4(
+            door_tim,
+            screen_x, screen_y,
+            frame->w, frame->h,
+            (uint8_t)frame->u,
+            (uint8_t)frame->v,
+            128, 128, 128,
+            rotateu, 0);
+    }
+
     if (open && timer == 8 && current_frame < DOOR_SPRITES - 1) {
         current_frame++;
         timer = 0;
@@ -47,5 +66,6 @@ void door_render_in_camera(uint32_t x, uint32_t y, uint32_t cam_x, uint32_t cam_
         current_frame--;
         timer = 0;
     }
+
     timer++;
 }
