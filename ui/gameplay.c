@@ -5,6 +5,7 @@
 #include "../engine/cd_image.h"
 #include "../engine/game_state.h"
 #include "../engine/input.h"
+#include "../engine/loader.h"
 #include "../gameplay/many.h"
 #include "../graphics/door.h"
 #include "../graphics/graphic.h"
@@ -29,8 +30,9 @@ void gameplay_main(uint8_t currentLevel)
 	while (currentLevel >= 1 && currentLevel <= LEVELS_COUNT)
 	{
 		LEVEL_DATA level_info = LEVELS_INFO[currentLevel - 1];
-		GameState currentState = GAME_STATE_LOADING;
 
+		loader_show();
+		
 		CD_TEXTURE tileset_tim;
 		DynamicLevel current_level;
 
@@ -119,7 +121,7 @@ void gameplay_main(uint8_t currentLevel)
 		}
 
 		uint16_t buttons_history[10] = {0};
-		currentState = GAME_STATE_GAME;
+		GameState currentState = GAME_STATE_GAME;
 
 		DoorTransitionType transition = TRANSITION_NONE;
 

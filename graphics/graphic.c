@@ -44,25 +44,30 @@ void graphic_init() {
 	ClearOTagR( db[0].ot, OT_LEN );
 	ClearOTagR( db[1].ot, OT_LEN );
 
+	db_active = 0;
 	db_nextpri = db[0].p;
 
 }
 
-void graphic_display() {
-	DrawSync( 0 );
-	VSync( 0 );
+void graphic_display(void)
+{
+    uint8_t submitted = db_active;
+    uint8_t next = submitted ^ 1u;
 
-	db_active ^= 1;
-	db_nextpri = db[db_active].p;
+    DrawSync(0);
+    VSync(0);
 
-	ClearOTagR( db[db_active].ot, OT_LEN );
+    /* El entorno de dibujo y el de pantalla deben apuntar
+       a la misma mitad de VRAM. */
+    PutDrawEnv(&db[submitted].draw);
+    PutDispEnv(&db[next].disp);
+    SetDispMask(1);
 
-	PutDrawEnv( &db[db_active].draw );
-	PutDispEnv( &db[db_active].disp );
+    DrawOTag(db[submitted].ot + (OT_LEN - 1));
 
-	SetDispMask( 1 );
-
-	DrawOTag( db[1-db_active].ot+(OT_LEN-1) );
+    db_active = next;
+    db_nextpri = db[db_active].p;
+    ClearOTagR(db[db_active].ot, OT_LEN);
 }
 
 static void *new_primitive(int z, size_t size) {

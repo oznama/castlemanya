@@ -16,6 +16,7 @@ psn00bsdk_add_executable(
 	main.c
 	engine/input.c
 	engine/cd_image.c
+	engine/loader.c
 	gameplay/many.c
 	graphics/animation.c
 	graphics/door.c
@@ -35,3 +36,5 @@ psn00bsdk_add_cd_image(
 	iso.xml  # Path to config file
 	DEPENDS castlemanya system.cnf
 )
+
+psn00bsdk_target_incbin(castlemanya PRIVATE loader_tim assets/images/Many-loading.tim)
