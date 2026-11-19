@@ -24,6 +24,8 @@ psn00bsdk_add_executable(
 	helpers/utils.c
 	ui/menu.c
 	ui/gameplay.c
+	world/level_manager.c
+	world/level01.c
 )
 
 psn00bsdk_add_cd_image(

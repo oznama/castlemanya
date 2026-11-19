@@ -7,6 +7,7 @@
 #include "../engine/input.h"
 #include "../gameplay/many.h"
 #include "../graphics/graphic.h"
+#include "../world/level_manager.h"
 
 void gameplay_main(uint8_t currentLevel)
 {
@@ -38,6 +39,8 @@ void gameplay_main(uint8_t currentLevel)
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
 	 * Mas grande que la pantalla (320x240) para scroll horizontal y vertical */
 	level_generate_base(&current_level, level_info.width_tiles, level_info.height_tiles, &tileset_tim, &theme);
+
+	level_draw(currentLevel, &current_level, &theme);
 
 	uint8_t background_count = 0;
 	CD_TEXTURE background_tim[BACKGROUND_MAX] = {};
