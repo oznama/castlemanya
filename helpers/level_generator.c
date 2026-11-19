@@ -422,23 +422,27 @@ void level_render(const DynamicLevel *level)
                               TILE_SIZE, TILE_SIZE,
                               tile->u, tile->v,
                               128, 128, 128,
-                              0, 0, 1);
+                              0, 0, !tile->collision_type == TILE_COLL_SOLID);
         }
     }
 
     /* 3. Renderizar puertas configuradas en el nivel */
     if (level->enter_door.active)
     {
-        door_render_in_camera(level->enter_door.x, level->enter_door.y,
-                              cam_x, cam_y,
-                              level->enter_door.rotateu, level->enter_door.open);
+        door_render_instance(level->enter_door.x, level->enter_door.y,
+                             cam_x, cam_y,
+                             level->enter_door.rotateu, level->enter_door.open,
+                             (uint8_t *)&level->enter_door.current_frame,
+                             (uint8_t *)&level->enter_door.timer);
     }
 
     if (level->exit_door.active)
     {
-        door_render_in_camera(level->exit_door.x, level->exit_door.y,
-                              cam_x, cam_y,
-                              level->exit_door.rotateu, level->exit_door.open);
+        door_render_instance(level->exit_door.x, level->exit_door.y,
+                             cam_x, cam_y,
+                             level->exit_door.rotateu, level->exit_door.open,
+                             (uint8_t *)&level->exit_door.current_frame,
+                             (uint8_t *)&level->exit_door.timer);
     }
 }
 

@@ -30,12 +30,19 @@ void door_init(void) {
 
 uint8_t current_frame, timer;
 
-void door_render_in_camera(
+void door_render_instance(
     int32_t x, int32_t y,
     int32_t cam_x, int32_t cam_y,
-    uint8_t rotateu, uint8_t open)
+    uint8_t rotateu, uint8_t open,
+    uint8_t *io_frame, uint8_t *io_timer)
 {
-    SPRITE_OBJECT *frame = &door_sprites[current_frame];
+    uint8_t frame_idx = io_frame ? *io_frame : current_frame;
+    uint8_t timer_val = io_timer ? *io_timer : timer;
+
+    if (frame_idx >= DOOR_SPRITES)
+        frame_idx = DOOR_SPRITES - 1;
+
+    SPRITE_OBJECT *frame = &door_sprites[frame_idx];
     int32_t frame_w = (int32_t)frame->w;
     int32_t frame_h = (int32_t)frame->h;
 
@@ -49,23 +56,33 @@ void door_render_in_camera(
         screen_y < SCREEN_YRES &&
         screen_y + frame_h > 0)
     {
-        render_poly_ft4(
+        render_poly_ft4_z(
             door_tim,
             screen_x, screen_y,
             frame->w, frame->h,
             (uint8_t)frame->u,
             (uint8_t)frame->v,
             128, 128, 128,
-            rotateu, 0);
+            rotateu, 0, 1);
     }
 
-    if (open && timer == 8 && current_frame < DOOR_SPRITES - 1) {
-        current_frame++;
-        timer = 0;
-    } else if (!open && timer == 8 && current_frame > 0) {
-        current_frame--;
-        timer = 0;
+    if (open && timer_val >= 8 && frame_idx < DOOR_SPRITES - 1) {
+        frame_idx++;
+        timer_val = 0;
+    } else if (!open && timer_val >= 8 && frame_idx > 0) {
+        frame_idx--;
+        timer_val = 0;
     }
 
-    timer++;
+    timer_val++;
+
+    if (io_frame)
+        *io_frame = frame_idx;
+    else
+        current_frame = frame_idx;
+
+    if (io_timer)
+        *io_timer = timer_val;
+    else
+        timer = timer_val;
 }

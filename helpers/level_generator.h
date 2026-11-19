@@ -65,11 +65,13 @@ typedef struct
 /* Estructura para configurar una puerta en el nivel */
 typedef struct
 {
-    int32_t x;       /* Posicion X en pixeles del mundo */
-    int32_t y;       /* Posicion Y en pixeles del mundo */
-    uint8_t rotateu; /* 0: orientacion normal, 1: volteada horizontalmente */
-    uint8_t open;    /* 0: cerrada, 1: abierta */
-    uint8_t active;  /* 1 si la puerta esta configurada/activa, 0 si no */
+    int32_t x;             /* Posicion X en pixeles del mundo */
+    int32_t y;             /* Posicion Y en pixeles del mundo */
+    uint8_t rotateu;       /* 0: orientacion normal, 1: volteada horizontalmente */
+    uint8_t open;          /* 0: cerrada, 1: abierta */
+    uint8_t active;        /* 1 si la puerta esta configurada/activa, 0 si no */
+    uint8_t current_frame; /* Frame actual de animacion de la puerta */
+    uint8_t timer;         /* Timer para avance de frame */
 } LevelDoor;
 
 /* Estructura principal del nivel dinamico */

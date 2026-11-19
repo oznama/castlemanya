@@ -474,3 +474,24 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         landing_timer--;
     }
 }
+
+void many_auto_walk_step(int8_t direction)
+{
+    if (direction < 0)
+    {
+        many.direction = 0;
+        many.x -= MOVE_SPEED;
+    }
+    else if (direction > 0)
+    {
+        many.direction = 1;
+        many.x += MOVE_SPEED;
+    }
+
+    if (many.current_state != MANY_STATE_RUN)
+    {
+        many_change_state(MANY_STATE_RUN);
+    }
+
+    update_animation(&many.anim[MANY_STATE_RUN]);
+}

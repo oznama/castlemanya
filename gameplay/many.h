@@ -43,6 +43,8 @@ void many_init(void);
 MANY_OBJECT* many_get_instance(void);
 void many_set_position(int32_t world_x, int32_t world_y);
 void many_render_in_camera(int32_t cam_x, int32_t cam_y);
+void many_change_state(ManyState new_state);
+void many_auto_walk_step(int8_t direction);
 
 /* Actualiza y resuelve el movimiento y colisiones de Many en el nivel dinamico */
 void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint16_t buttons_history[10], void *dynamic_level_ptr);
