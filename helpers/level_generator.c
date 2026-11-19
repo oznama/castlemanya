@@ -261,10 +261,17 @@ static int background_uv_origin(
 
     switch (texture->mode & 3)
     {
-        case 0: pixels_per_word = 4; break;
-        case 1: pixels_per_word = 2; break;
-        case 2: pixels_per_word = 1; break;
-        default: return 0;
+    case 0:
+        pixels_per_word = 4;
+        break;
+    case 1:
+        pixels_per_word = 2;
+        break;
+    case 2:
+        pixels_per_word = 1;
+        break;
+    default:
+        return 0;
     }
 
     *u = (uint8_t)((texture->image_x & 63u) * pixels_per_word);
@@ -276,16 +283,27 @@ static void render_background_row(
     const DynamicLevel *level,
     uint8_t first_index,
     int8_t alternate_index,
-    int32_t y)
+    int32_t y,
+    uint16_t parallax_x_q8)
 {
     const int32_t image_width = 128;
     const int32_t image_height = 128;
-    uint8_t texture_index = first_index;
 
-    for (int32_t x = 0; x < level->camera.viewport_w; x += image_width)
+    int32_t scroll_x =
+        (int32_t)(((int64_t)level->camera.x * parallax_x_q8) >> 8);
+    int32_t first_tile = scroll_x / image_width;
+    int32_t offset_x = scroll_x % image_width;
+
+    for (int32_t x = -offset_x, tile = 0;
+         x < level->camera.viewport_w;
+         x += image_width, tile++)
     {
-        int32_t draw_width = image_width;
+        uint8_t texture_index = first_index;
 
+        if (alternate_index >= 0 && ((first_tile + tile) & 1))
+            texture_index = (uint8_t)alternate_index;
+
+        int32_t draw_width = image_width;
         if (x + draw_width > level->camera.viewport_w)
             draw_width = level->camera.viewport_w - x;
 
@@ -300,11 +318,6 @@ static void render_background_row(
             x, y, (uint32_t)draw_width, (uint32_t)image_height,
             u, v, 128, 128, 128,
             0, 0, 2);
-
-        if (alternate_index >= 0)
-            texture_index = (texture_index == first_index)
-                ? (uint8_t)alternate_index
-                : first_index;
     }
 }
 
@@ -318,27 +331,27 @@ void level_render(const DynamicLevel *level)
     {
         switch (level->background_count)
         {
-            case 1:
-                render_background_row(level, 0, -1, 0);
-                break;
+        case 1:
+            render_background_row(level, 0, -1, 0, 64);
+            break;
 
-            case 2:
-                render_background_row(level, 0, -1, 0);
-                render_background_row(level, 1, -1, 128);
-                break;
+        case 2:
+            render_background_row(level, 0, -1, 0, 64);
+            render_background_row(level, 1, -1, 128, 128);
+            break;
 
-            case 3:
-                render_background_row(level, 0,  1, 0);
-                render_background_row(level, 2, -1, 128);
-                break;
+        case 3:
+            render_background_row(level, 0, 1, 0, 64);
+            render_background_row(level, 2, -1, 128, 128);
+            break;
 
-            case 4:
-                render_background_row(level, 0,  2, 0);
-                render_background_row(level, 1,  3, 128);
-                break;
+        case 4:
+            render_background_row(level, 0, 2, 0, 128);
+            render_background_row(level, 1, 3, 128, 128);
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
 

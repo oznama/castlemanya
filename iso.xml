@@ -62,11 +62,16 @@
 			<file name="SYSTEM.CNF"		type="data" source="${PROJECT_SOURCE_DIR}/system.cnf" />
 			<file name="CASTLEMA.EXE"	type="data" source="castlemanya.exe" />
 			<file name="LOGO.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/Castlemanya-logo.tim" />
+			<file name="TLSTENT.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-entrance.tim" />
 			<file name="TLSTCSHW.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-castle-hw.tim" />
 			<file name="TLSTCAS.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-castle.tim" />
 			<file name="TLSTCLD.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-cold.tim" />
 			<file name="TLSTEXT.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-exteriors.tim" />
 			<file name="TLSTGRN.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/tileset-ground.tim" />
+			<file name="BGENT1.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-entrance-1.tim" />
+			<file name="BGENT2.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-entrance-2.tim" />
+			<file name="BGENT3.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-entrance-3.tim" />
+			<file name="BGENT4.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-entrance-4.tim" />
 			<file name="BGCSTHW1.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-1.tim" />
 			<file name="BGCSTHW2.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-2.tim" />
 			<file name="BGCSTHW3.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-hallway-3.tim" />
@@ -75,6 +80,7 @@
 			<file name="BGCOLD.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-cold.tim" />
 			<file name="BGEXT.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-exteriors.tim" />
 			<file name="BGGROUND.TIM"	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/bg-ground.tim" />
+			<file name="DOOR.TIM" 		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/textures/door.tim" />
 			<file name="MANYBAS.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
 			<file name="MANYACT.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
 			<file name="MANYATK.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
