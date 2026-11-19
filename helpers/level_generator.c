@@ -1,5 +1,6 @@
 #include "level_generator.h"
 #include "../graphics/graphic.h"
+#include "../graphics/door.h"
 #include <string.h>
 
 /* Helper clamp */
@@ -40,6 +41,9 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     level->camera.viewport_w = SCREEN_XRES;
     level->camera.viewport_h = SCREEN_YRES;
 
+    memset(&level->enter_door, 0, sizeof(LevelDoor));
+    memset(&level->exit_door, 0, sizeof(LevelDoor));
+
     level_clear(level);
 }
 
@@ -75,6 +79,30 @@ void level_set_background(DynamicLevel *level,
 
     memcpy(level->background, background_tim, sizeof(level->background));
     level->background_count = count;
+}
+
+void level_set_enter_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open)
+{
+    if (!level)
+        return;
+
+    level->enter_door.x = x;
+    level->enter_door.y = y;
+    level->enter_door.rotateu = rotateu;
+    level->enter_door.open = open;
+    level->enter_door.active = 1;
+}
+
+void level_set_exit_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open)
+{
+    if (!level)
+        return;
+
+    level->exit_door.x = x;
+    level->exit_door.y = y;
+    level->exit_door.rotateu = rotateu;
+    level->exit_door.open = open;
+    level->exit_door.active = 1;
 }
 
 void level_build_border(DynamicLevel *level,
@@ -396,6 +424,21 @@ void level_render(const DynamicLevel *level)
                               128, 128, 128,
                               0, 0, 1);
         }
+    }
+
+    /* 3. Renderizar puertas configuradas en el nivel */
+    if (level->enter_door.active)
+    {
+        door_render_in_camera(level->enter_door.x, level->enter_door.y,
+                              cam_x, cam_y,
+                              level->enter_door.rotateu, level->enter_door.open);
+    }
+
+    if (level->exit_door.active)
+    {
+        door_render_in_camera(level->exit_door.x, level->exit_door.y,
+                              cam_x, cam_y,
+                              level->exit_door.rotateu, level->exit_door.open);
     }
 }
 

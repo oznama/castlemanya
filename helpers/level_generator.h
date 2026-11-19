@@ -62,6 +62,16 @@ typedef struct
     int32_t viewport_h; /* Alto de pantalla (240) */
 } LevelCamera;
 
+/* Estructura para configurar una puerta en el nivel */
+typedef struct
+{
+    int32_t x;       /* Posicion X en pixeles del mundo */
+    int32_t y;       /* Posicion Y en pixeles del mundo */
+    uint8_t rotateu; /* 0: orientacion normal, 1: volteada horizontalmente */
+    uint8_t open;    /* 0: cerrada, 1: abierta */
+    uint8_t active;  /* 1 si la puerta esta configurada/activa, 0 si no */
+} LevelDoor;
+
 /* Estructura principal del nivel dinamico */
 typedef struct
 {
@@ -74,6 +84,8 @@ typedef struct
     uint8_t background_count;
     LevelCamera camera;                                 /* Camara asociada al nivel */
     LevelTile tiles[LEVEL_MAX_HEIGHT][LEVEL_MAX_WIDTH]; /* Celdas del nivel */
+    LevelDoor enter_door;                               /* Puerta de entrada */
+    LevelDoor exit_door;                                /* Puerta de salida */
 } DynamicLevel;
 
 /* ========================================================================= */
@@ -99,6 +111,16 @@ void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDe
 void level_set_background(DynamicLevel *level,
                           CD_TEXTURE background_tim[BACKGROUND_MAX],
                           uint8_t count);
+
+/**
+ * Configura la posicion y propiedades de la puerta de entrada.
+ */
+void level_set_enter_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open);
+
+/**
+ * Configura la posicion y propiedades de la puerta de salida.
+ */
+void level_set_exit_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open);
 
 /**
  * Genera el perimetro del nivel: piso, techo y paredes con sus respectivas texturas.

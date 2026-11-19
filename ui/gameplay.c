@@ -6,6 +6,7 @@
 #include "../engine/game_state.h"
 #include "../engine/input.h"
 #include "../gameplay/many.h"
+#include "../graphics/door.h"
 #include "../graphics/graphic.h"
 #include "../world/level_manager.h"
 
@@ -14,6 +15,8 @@ void gameplay_main(uint8_t currentLevel)
 
 	LEVEL_DATA level_info = LEVELS_INFO[currentLevel - 1];
 	GameState currentState = GAME_STATE_LOADING;
+
+	door_init();
 
 	CD_TEXTURE tileset_tim;
 	DynamicLevel current_level;
@@ -68,12 +71,31 @@ void gameplay_main(uint8_t currentLevel)
 	/* Después de level_generate_templated(...) */
 	level_set_background(&current_level, background_tim, background_count);
 
+	/* Configurar puertas de entrada y salida desde level_info */
+	if (level_info.enter_door.active)
+	{
+		level_set_enter_door(&current_level,
+		                     level_info.enter_door.x,
+		                     level_info.enter_door.y,
+		                     level_info.enter_door.rotateu,
+		                     level_info.enter_door.open);
+	}
+	if (level_info.exit_door.active)
+	{
+		level_set_exit_door(&current_level,
+		                    level_info.exit_door.x,
+		                    level_info.exit_door.y,
+		                    level_info.exit_door.rotateu,
+		                    level_info.exit_door.open);
+	}
+
 	/* Posicionar a Many al inicio del nivel sobre el piso */
 	many_set_position(64, (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE)));
 
 	uint16_t buttons_history[10] = {0};
 
 	currentState = GAME_STATE_GAME;
+
 	for (;;)
 	{
 		uint16_t held_buttons;
@@ -91,7 +113,7 @@ void gameplay_main(uint8_t currentLevel)
 		int32_t cam_x, cam_y;
 		level_get_camera_pos(&current_level, &cam_x, &cam_y);
 
-		/* 4. Renderizar primero el nivel */
+		/* 4. Renderizar primero el nivel (incluye las puertas configuradas) */
 		level_render(&current_level);
 
 		/* 5. Renderizar Many encima del nivel */
