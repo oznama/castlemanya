@@ -15,7 +15,6 @@ void gameplay_main(uint8_t currentLevel)
 	GameState currentState = GAME_STATE_LOADING;
 
 	CD_TEXTURE tileset_tim;
-	CD_TEXTURE door_tim;
 	DynamicLevel current_level;
 
 	graphic_init();
@@ -23,7 +22,6 @@ void gameplay_main(uint8_t currentLevel)
 	char buffer[30];
 	sprintf(buffer, "\\%s.TIM", level_info.tilename);
 	cd_load_image(buffer, &tileset_tim);
-	cd_load_image("\\DOOR.TIM", &door_tim);
 	many_init();
 
 	// Texturas a utilizar en nivel
@@ -39,7 +37,7 @@ void gameplay_main(uint8_t currentLevel)
 
 	/* Generar nivel dinamico de 40 x 25 tiles (640 x 400 pixeles):
 	 * Mas grande que la pantalla (320x240) para scroll horizontal y vertical */
-	level_generate_base(&current_level, level_info.width_tiles, level_info.height_tiles, &tileset_tim, &door_tim, &theme);
+	level_generate_base(&current_level, level_info.width_tiles, level_info.height_tiles, &tileset_tim, &theme);
 
 	uint8_t background_count = 0;
 	CD_TEXTURE background_tim[BACKGROUND_MAX] = {};
