@@ -1,4 +1,4 @@
-#include "../engine/cd_image.h"
+#include "../engine/cd_loader.h"
 #include "../graphics/graphic.h"
 #include "../graphics/sprite.h"
 

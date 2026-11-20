@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../engine/cd_image.h"
+#include "../../engine/cd_loader.h"
 
 #define TILE_SIZE 16
 

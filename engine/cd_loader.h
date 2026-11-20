@@ -1,4 +1,5 @@
 #pragma once
+
 #include <psxgpu.h>
 
 typedef struct {

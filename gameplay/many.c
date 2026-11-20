@@ -2,9 +2,9 @@
 #include <psxpad.h>
 
 #include "many.h"
-#include "../engine/cd_image.h"
+#include "../engine/cd_loader.h"
 #include "../graphics/graphic.h"
-#include "../helpers/level_generator.h"
+#include "../helpers/level/level_generator.h"
 
 #define MOVE_SPEED 2
 #define RECOVERY_TIMER 6

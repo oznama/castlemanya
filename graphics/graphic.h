@@ -1,7 +1,7 @@
 #pragma once
 
 #include <psxgpu.h>
-#include "../engine/cd_image.h"
+#include "../engine/cd_loader.h"
 
 #define SCREEN_XRES		320
 #define SCREEN_YRES		240

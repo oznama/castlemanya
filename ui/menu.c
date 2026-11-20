@@ -3,7 +3,7 @@
 #include <psxpad.h>
 
 #include "menu.h"
-#include "../engine/cd_image.h"
+#include "../engine/cd_loader.h"
 #include "../engine/input.h"
 #include "../graphics/graphic.h"
 #include "../helpers/utils.h"

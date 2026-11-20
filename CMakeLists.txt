@@ -15,18 +15,18 @@ psn00bsdk_add_executable(
 	castlemanya GPREL
 	main.c
 	engine/input.c
-	engine/cd_image.c
+	engine/cd_loader.c
 	engine/loader.c
 	gameplay/many.c
 	graphics/animation.c
 	graphics/door.c
 	graphics/graphic.c
 	helpers/collisions.c
-	helpers/level_generator.c
+	helpers/level/level_generator.c
+	helpers/level/level_manager.c
 	helpers/utils.c
 	ui/menu.c
 	ui/gameplay.c
-	world/level_manager.c
 	world/level01.c
 	world/level06.c
 )

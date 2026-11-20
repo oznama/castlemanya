@@ -3,7 +3,7 @@
 #include <psxcd.h>
 #include <psxgpu.h>
 
-#include "cd_image.h"
+#include "cd_loader.h"
 
 #define CD_IMAGE_SECTOR_SIZE 2048
 #define CD_IMAGE_BUFFER_SIZE 163840

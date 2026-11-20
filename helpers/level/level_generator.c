@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "level_generator.h"
-#include "../graphics/graphic.h"
-#include "../graphics/door.h"
 #include <string.h>
+#include "level_generator.h"
+#include "../../graphics/graphic.h"
+#include "../../graphics/door.h"
 
 /* Helper clamp */
 static inline int32_t clamp_i32(int32_t val, int32_t min, int32_t max)

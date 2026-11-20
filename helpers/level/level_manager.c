@@ -1,9 +1,10 @@
 #include "level_manager.h"
 
-#include "level01.h"
-#include "level06.h"
+#include "../../world/level01.h"
+#include "../../world/level06.h"
 
 void level_draw(uint8_t currentLevel, DynamicLevel *level, const LevelThemeTextures *theme) {
+    
     switch (currentLevel)
     {
     case 1:
