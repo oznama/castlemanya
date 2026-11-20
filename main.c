@@ -7,16 +7,17 @@
 
 int main() {
 
-	uint8_t currentLevel = 1;
+	uint8_t currentLevel = 1, currentRoom = 1;
 	GameState currentState = menu_display();
 	
 	if (currentState == GAME_STATE_CONTINUE) {
 		// TODO Load data
 		printf("Loading memory card\n");
 		currentLevel = 6;
+		currentRoom = 1;
 	}
 
-	gameplay_main(currentLevel);
+	gameplay_main(currentLevel, currentRoom);
 
 	return 0;
 }

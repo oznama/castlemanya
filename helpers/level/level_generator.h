@@ -15,6 +15,12 @@
 
 #define BACKGROUND_MAX 4
 
+typedef enum
+{
+    LEVEL_VERTICAL,
+    LEVEL_HORIZONTAL
+} LEVEL_ORIENTATION;
+
 /* Tipos de colision y comportamiento de cada celda del tilemap */
 typedef enum
 {
@@ -109,7 +115,7 @@ typedef struct
  * Inicializa un nivel dinamico con ancho y alto en tiles y la textura del tileset.
  * Si width o height exceden LEVEL_MAX_WIDTH/HEIGHT, se acotan al maximo seguro.
  */
-void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, CD_TEXTURE *tileset_tim);
+void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, LEVEL_ORIENTATION level_orientation, CD_TEXTURE *tileset_tim);
 
 /**
  * Limpia todo el nivel dejandolo vacio (aire / sin colision).
@@ -173,7 +179,7 @@ void level_fill_rect(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t w_t
 /**
  * Generador procedural/estilo plantilla: genera la base del nivel.
  */
-void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
+void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, LEVEL_ORIENTATION level_orientation,
                          CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme, LevelSkipBorder skip_border);
 
 /* ========================================================================= */

@@ -14,7 +14,7 @@ static inline int32_t clamp_i32(int32_t val, int32_t min, int32_t max)
     return val;
 }
 
-void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, CD_TEXTURE *tileset_tim)
+void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, LEVEL_ORIENTATION level_orientation, CD_TEXTURE *tileset_tim)
 {
     if (!level)
         return;
@@ -24,10 +24,10 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     if (height_tiles == 0)
         height_tiles = 1;
 
-    if (width_tiles > LEVEL_MAX_WIDTH)
-        width_tiles = LEVEL_MAX_WIDTH;
-    if (height_tiles > LEVEL_MAX_HEIGHT)
-        height_tiles = LEVEL_MAX_HEIGHT;
+    if (level_orientation == LEVEL_VERTICAL ? width_tiles > LEVEL_MAX_HEIGHT : width_tiles > LEVEL_MAX_WIDTH)
+        width_tiles = level_orientation == LEVEL_VERTICAL ? LEVEL_MAX_HEIGHT : LEVEL_MAX_WIDTH;
+    if (level_orientation == LEVEL_VERTICAL ? height_tiles > LEVEL_MAX_WIDTH : height_tiles > LEVEL_MAX_HEIGHT)
+        height_tiles = level_orientation == LEVEL_VERTICAL ? LEVEL_MAX_WIDTH : LEVEL_MAX_HEIGHT;
 
     level->width = width_tiles;
     level->height = height_tiles;
@@ -225,14 +225,14 @@ void level_fill_rect(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t w_t
     }
 }
 
-void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
+void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, LEVEL_ORIENTATION level_orientation,
                          CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme,
                          LevelSkipBorder skip_border)
 {
     if (!level || !theme)
         return;
 
-    level_init(level, width_tiles, height_tiles, tileset_tim);
+    level_init(level, width_tiles, height_tiles, level_orientation, tileset_tim);
 
     level->bg_tile = theme->bg_tile;
     level->use_bg_tile = theme->use_bg_tile;

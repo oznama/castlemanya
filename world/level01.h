@@ -1,3 +1,5 @@
 #include "../helpers/level/level_generator.h"
 
-void level_01_builder(DynamicLevel *level, const LevelThemeTextures *theme);
+#define LEVEL_01_ROOMS 3
+
+void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelThemeTextures *theme);
