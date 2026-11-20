@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "level_generator.h"
 #include "../graphics/graphic.h"
 #include "../graphics/door.h"
@@ -33,6 +34,8 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     level->pixel_width = (uint32_t)width_tiles * TILE_SIZE;
     level->pixel_height = (uint32_t)height_tiles * TILE_SIZE;
     level->tileset = tileset_tim;
+    level->use_bg_tile = 0;
+    memset(&level->bg_tile, 0, sizeof(level->bg_tile));
     memset(level->background, 0, sizeof(level->background));
     level->background_count = 0;
 
@@ -109,7 +112,8 @@ void level_build_border(DynamicLevel *level,
                         TileTextureDef floor_tile, uint8_t floor_thickness,
                         TileTextureDef ceiling_tile, uint8_t ceiling_thickness,
                         TileTextureDef wall_tile, uint8_t wall_thickness,
-                        TileTextureDef filled_tile)
+                        TileTextureDef filled_tile,
+                        LevelSkipBorder skip_border)
 {
     if (!level)
         return;
@@ -117,32 +121,38 @@ void level_build_border(DynamicLevel *level,
     uint16_t w = level->width;
     uint16_t h = level->height;
 
-    /* Paredes laterales (izquierda y derecha) */
-    for (uint8_t t = 0; t < wall_thickness && t < w; t++)
-    {
-        for (uint16_t y = 0; y < h; y++)
+    if (!skip_border.skip_wall_left || !skip_border.skip_wall_rigth) {
+        /* Paredes laterales (izquierda y derecha) */
+        for (uint8_t t = 0; t < wall_thickness && t < w; t++)
         {
-            level_set_tile(level, t, y, wall_tile);         /* Izquierda */
-            level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
+            for (uint16_t y = 0; y < h; y++)
+            {
+                if (!skip_border.skip_wall_left) level_set_tile(level, t, y, wall_tile);         /* Izquierda */
+                if (!skip_border.skip_wall_rigth) level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
+            }
         }
     }
 
-    /* Techo */
-    for (uint8_t t = 0; t < ceiling_thickness && t < h; t++)
-    {
-        for (uint16_t x = 0; x < w; x++)
+    if (!skip_border.skip_ceiling) {
+        /* Techo */
+        for (uint8_t t = 0; t < ceiling_thickness && t < h; t++)
         {
-            level_set_tile(level, x, t, ceiling_tile);
+            for (uint16_t x = 0; x < w; x++)
+            {
+                level_set_tile(level, x, t, ceiling_tile);
+            }
         }
     }
 
-    /* Piso */
-    for (uint8_t t = 0; t < floor_thickness && t < h; t++)
-    {
-        uint16_t y = h - 1 - t;
-        for (uint16_t x = 0; x < w; x++)
+    if (!skip_border.skip_floor) {
+        /* Piso */
+        for (uint8_t t = 0; t < floor_thickness && t < h; t++)
         {
-            level_set_tile(level, x, y, t == floor_thickness - 1 ? floor_tile : filled_tile);
+            uint16_t y = h - 1 - t;
+            for (uint16_t x = 0; x < w; x++)
+            {
+                level_set_tile(level, x, y, t == floor_thickness - 1 ? floor_tile : filled_tile);
+            }
         }
     }
 }
@@ -175,6 +185,7 @@ void level_add_platform(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t 
 void level_add_wall(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t height_tiles,
                     TileTextureDef wall_tile)
 {
+    printf("Dibujando pared de tx: %d, ty: %d por tantos tiles de alto: %d\n", tx, ty, height_tiles);
     if (!level)
         return;
     if (tx >= level->width)
@@ -215,19 +226,24 @@ void level_fill_rect(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t w_t
 }
 
 void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
-                         CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme)
+                         CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme,
+                         LevelSkipBorder skip_border)
 {
     if (!level || !theme)
         return;
 
     level_init(level, width_tiles, height_tiles, tileset_tim);
 
+    level->bg_tile = theme->bg_tile;
+    level->use_bg_tile = theme->use_bg_tile;
+
     /* 1. Construir perimetro seguro: piso de 3 tiles, techo de 2 tiles, paredes de 2 tiles */
     level_build_border(level,
                        theme->floor_tile, 3,
                        theme->ceiling_tile, 2,
                        theme->wall_tile, 2,
-                       theme->filled_tile);
+                       theme->filled_tile,
+                       skip_border);
 }
 
 /* ========================================================================= */
@@ -349,10 +365,49 @@ static void render_background_row(
     }
 }
 
+static void render_background_tile_fill(const DynamicLevel *level, int32_t start_y)
+{
+    CD_TEXTURE tileset = *level->tileset;
+
+    for (int32_t y = start_y; y < level->camera.viewport_h; y += TILE_SIZE)
+    {
+        int32_t draw_h = level->camera.viewport_h - y;
+        if (draw_h > TILE_SIZE)
+            draw_h = TILE_SIZE;
+
+        for (int32_t x = 0; x < level->camera.viewport_w; x += TILE_SIZE)
+        {
+            int32_t draw_w = level->camera.viewport_w - x;
+            if (draw_w > TILE_SIZE)
+                draw_w = TILE_SIZE;
+
+            render_poly_ft4_z(
+                tileset,
+                x, y, (uint32_t)draw_w, (uint32_t)draw_h,
+                level->bg_tile.u, level->bg_tile.v,
+                128, 128, 128,
+                0, 0, 3);
+        }
+    }
+}
+
 void level_render(const DynamicLevel *level)
 {
     if (!level || !level->tileset)
         return;
+
+    if (level->use_bg_tile)
+    {
+        if (level->background_count == 0)
+        {
+            render_background_tile_fill(level, 0);
+        }
+        else if (level->background_count == 1 ||
+                level->background_count == 2)
+        {
+            render_background_tile_fill(level, 128);
+        }
+    }
 
     /* 1. Imagen de fondo */
     if (level->background_count >= 1)

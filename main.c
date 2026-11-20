@@ -13,7 +13,7 @@ int main() {
 	if (currentState == GAME_STATE_CONTINUE) {
 		// TODO Load data
 		printf("Loading memory card\n");
-		currentLevel = 2;
+		currentLevel = 6;
 	}
 
 	gameplay_main(currentLevel);

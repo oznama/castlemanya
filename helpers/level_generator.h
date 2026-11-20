@@ -42,6 +42,7 @@ typedef struct
     TileTextureDef pltfrmf_tile; /* Textura para plataformas relleno */
     TileTextureDef pltfrmr_tile; /* Textura para plataformas borde derecho */
     TileTextureDef bg_tile;      /* Textura opcional para fondo (o aire) */
+    uint8_t use_bg_tile; /* 1 para rellenar el fondo con bg_tile */
 } LevelThemeTextures;
 
 /* Datos de cada celda del nivel */
@@ -61,6 +62,14 @@ typedef struct
     int32_t viewport_w; /* Ancho de pantalla (320) */
     int32_t viewport_h; /* Alto de pantalla (240) */
 } LevelCamera;
+
+typedef struct
+{
+    uint8_t skip_floor;
+    uint8_t skip_ceiling;
+    uint8_t skip_wall_left;
+    uint8_t skip_wall_rigth;
+} LevelSkipBorder;
 
 /* Estructura para configurar una puerta en el nivel */
 typedef struct
@@ -84,6 +93,8 @@ typedef struct
     CD_TEXTURE *tileset;                   /* Puntero a la textura del tileset */
     CD_TEXTURE background[BACKGROUND_MAX]; /* Texturas para fondos */
     uint8_t background_count;
+    TileTextureDef bg_tile;
+    uint8_t use_bg_tile;
     LevelCamera camera;                                 /* Camara asociada al nivel */
     LevelTile tiles[LEVEL_MAX_HEIGHT][LEVEL_MAX_WIDTH]; /* Celdas del nivel */
     LevelDoor enter_door;                               /* Puerta de entrada */
@@ -134,7 +145,8 @@ void level_build_border(DynamicLevel *level,
                         TileTextureDef floor_tile, uint8_t floor_thickness,
                         TileTextureDef ceiling_tile, uint8_t ceiling_thickness,
                         TileTextureDef wall_tile, uint8_t wall_thickness,
-                        TileTextureDef filled_tile);
+                        TileTextureDef filled_tile,
+                        LevelSkipBorder skip_border);
 
 /**
  * Crea una plataforma horizontal en coordenadas de tile (tx, ty) de longitud 'length_tiles'.
@@ -162,7 +174,7 @@ void level_fill_rect(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t w_t
  * Generador procedural/estilo plantilla: genera la base del nivel.
  */
 void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles,
-                         CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme);
+                         CD_TEXTURE *tileset_tim, const LevelThemeTextures *theme, LevelSkipBorder skip_border);
 
 /* ========================================================================= */
 /* FUNCIONES DE CAMARA Y SCROLL                                              */

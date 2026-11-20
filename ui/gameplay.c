@@ -32,7 +32,7 @@ void gameplay_main(uint8_t currentLevel)
 		LEVEL_DATA level_info = LEVELS_INFO[currentLevel - 1];
 
 		loader_show();
-		
+
 		CD_TEXTURE tileset_tim;
 		DynamicLevel current_level;
 
@@ -50,10 +50,12 @@ void gameplay_main(uint8_t currentLevel)
 			.pltfrml_tile = {.u = 16, .v = 16, .collision = TILE_COLL_ONEWAY},
 			.pltfrmf_tile = {.u = 32, .v = 16, .collision = TILE_COLL_ONEWAY},
 			.pltfrmr_tile = {.u = 48, .v = 16, .collision = TILE_COLL_ONEWAY},
-			.bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE}};
+			.bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE},
+			.use_bg_tile = 1
+		};
 
 		/* Generar nivel dinamico: */
-		level_generate_base(&current_level, level_info.width_tiles, level_info.height_tiles, &tileset_tim, &theme);
+		level_generate_base(&current_level, level_info.width_tiles, level_info.height_tiles, &tileset_tim, &theme, level_info.skip_border);
 
 		level_draw(currentLevel, &current_level, &theme);
 
@@ -103,15 +105,15 @@ void gameplay_main(uint8_t currentLevel)
 
 		/* Posicionar a Many segun de donde viene (inicio o nivel anterior/siguiente) */
 		int32_t default_spawn_y = (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE));
-		if (spawn_at_exit && current_level.exit_door.active)
+		if (spawn_at_exit /*&& current_level.exit_door.active*/)
 		{
-			many_set_position(current_level.exit_door.x - MANY_COLLISION_WIDTH - 8, default_spawn_y);
+			many_set_position((current_level.exit_door.active ? current_level.exit_door.x : ((level_info.width_tiles * TILE_SIZE) - 32)) - MANY_COLLISION_WIDTH - 8, default_spawn_y);
 			MANY_OBJECT *m = many_get_instance();
 			m->direction = 0; // Mirando a la izquierda al entrar desde la salida
 		}
-		else if (!spawn_at_exit && current_level.enter_door.active)
+		else if (!spawn_at_exit /*&& current_level.enter_door.active*/)
 		{
-			many_set_position(current_level.enter_door.x + DOOR_W_BASE + 8, default_spawn_y);
+			many_set_position(current_level.enter_door.active ? (current_level.enter_door.x + DOOR_W_BASE + 8) : 64, default_spawn_y);
 			MANY_OBJECT *m = many_get_instance();
 			m->direction = 1; // Mirando a la derecha al entrar desde la entrada
 		}
@@ -136,44 +138,57 @@ void gameplay_main(uint8_t currentLevel)
 			many_update_in_level(held_buttons, pressed_buttons, buttons_history, &current_level);
 			MANY_OBJECT *many_ptr = many_get_instance();
 
-			/* 2. Deteccion de colision de Many con las puertas (solo en la base / pies) */
-			RectangleCollisioner many_feet_box = {
-				.x = (float)many_ptr->x,
-				.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
-				.width = (float)MANY_COLLISION_WIDTH,
-				.height = 16.0f
-			};
-
-			if (current_level.exit_door.active && currentLevel < LEVELS_COUNT)
-			{
-				RectangleCollisioner exit_door_box = {
-					.x = (float)current_level.exit_door.x,
-					.y = (float)(current_level.exit_door.y + DOOR_H - 16),
-					.width = (float)DOOR_W_BASE + 16.0f,
+			if (level_info.exit_door.active || level_info.enter_door.active) {
+				/* 2. Deteccion de colision de Many con las puertas (solo en la base / pies) */
+				RectangleCollisioner many_feet_box = {
+					.x = (float)many_ptr->x,
+					.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
+					.width = (float)MANY_COLLISION_WIDTH,
 					.height = 16.0f
 				};
 
-				if (check_collision_AABB(many_feet_box, exit_door_box))
+				if (current_level.exit_door.active && currentLevel < LEVELS_COUNT)
 				{
-					current_level.exit_door.open = 1;
-					transition = TRANSITION_EXIT_DOOR;
+					RectangleCollisioner exit_door_box = {
+						.x = (float)current_level.exit_door.x,
+						.y = (float)(current_level.exit_door.y + DOOR_H - 16),
+						.width = (float)DOOR_W_BASE + 16.0f,
+						.height = 16.0f
+					};
+
+					if (check_collision_AABB(many_feet_box, exit_door_box))
+					{
+						current_level.exit_door.open = 1;
+						transition = TRANSITION_EXIT_DOOR;
+						break;
+					}
+				}
+
+				if (current_level.enter_door.active && currentLevel > 1)
+				{
+					RectangleCollisioner enter_door_box = {
+						.x = (float)(current_level.enter_door.x - 16),
+						.y = (float)(current_level.enter_door.y + DOOR_H - 16),
+						.width = (float)DOOR_W_BASE + 16.0f,
+						.height = 16.0f
+					};
+
+					if (check_collision_AABB(many_feet_box, enter_door_box))
+					{
+						current_level.enter_door.open = 1;
+						transition = TRANSITION_ENTER_DOOR;
+						break;
+					}
+				}	
+			} else {
+				if (many_ptr->x == 0 && currentLevel > 1) {
+					currentLevel--;
+					spawn_at_exit = 1;
 					break;
 				}
-			}
-
-			if (current_level.enter_door.active && currentLevel > 1)
-			{
-				RectangleCollisioner enter_door_box = {
-					.x = (float)(current_level.enter_door.x - 16),
-					.y = (float)(current_level.enter_door.y + DOOR_H - 16),
-					.width = (float)DOOR_W_BASE + 16.0f,
-					.height = 16.0f
-				};
-
-				if (check_collision_AABB(many_feet_box, enter_door_box))
-				{
-					current_level.enter_door.open = 1;
-					transition = TRANSITION_ENTER_DOOR;
+				if (many_ptr->x == ((level_info.width_tiles * TILE_SIZE) - 32) && currentLevel < LEVELS_COUNT) {
+					currentLevel++;
+					spawn_at_exit = 0;
 					break;
 				}
 			}

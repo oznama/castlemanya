@@ -28,6 +28,7 @@ psn00bsdk_add_executable(
 	ui/gameplay.c
 	world/level_manager.c
 	world/level01.c
+	world/level06.c
 )
 
 psn00bsdk_add_cd_image(
