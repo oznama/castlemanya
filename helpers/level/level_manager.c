@@ -9,8 +9,32 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
         .bgname = {"BGEXT"},
 		.level_data = {
 			{ .width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1}, },
-			{ .width_tiles = 40, .height_tiles = 50, .level_orientation = LEVEL_HORIZONTAL },
-			{ .width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1},  },
+			{
+				.width_tiles = 40, .height_tiles = 50, .level_orientation = LEVEL_HORIZONTAL,
+				.skip_border = {
+					.skip_ceiling = 1,
+					.wall_left_openings = {
+						{ .start = 0, .size = 5, .active = 1 }
+					},
+					.wall_left_openings_count = 1,
+					.wall_right_openings = {
+						{ .start = 0, .size = 5, .active = 1},
+						{ .start = 42, .size = 5, .active = 1}
+					},
+					.wall_right_openings_count = 2
+				}
+			},
+			{
+				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+				.skip_border = {
+					.skip_wall_left = 1,
+					.skip_ceiling = 1,
+					.wall_right_openings = {
+						{ .start = 7, .size = 5, .active = 1 }
+					},
+					.wall_right_openings_count = 1
+				},
+			},
 		},
 		.rooms = LEVEL_01_ROOMS
 	},

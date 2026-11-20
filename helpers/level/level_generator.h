@@ -14,6 +14,8 @@
 #define LEVEL_MAX_HEIGHT 64
 
 #define BACKGROUND_MAX 4
+#define LEVEL_MAX_DOORS 8
+#define LEVEL_MAX_OPENINGS 4
 
 typedef enum
 {
@@ -69,13 +71,47 @@ typedef struct
     int32_t viewport_h; /* Alto de pantalla (240) */
 } LevelCamera;
 
+/* Hueco / abertura configurable en un borde del nivel */
+typedef struct
+{
+    uint16_t start; /* Tile inicial del hueco (coordenada de tile en el eje correspondiente) */
+    uint16_t size;  /* Tamano del hueco en tiles */
+    uint8_t active; /* 1 si la abertura esta habilitada, 0 si no */
+} BorderOpening;
+
+/* Configuracion avanzada de bordes con soporte para omitir bordes completos
+ * o definir huecos/aberturas de tamano y posicion personalizada.
+ */
 typedef struct
 {
     uint8_t skip_floor;
     uint8_t skip_ceiling;
     uint8_t skip_wall_left;
-    uint8_t skip_wall_rigth;
+    uint8_t skip_wall_rigth; /* Se preserva el nombre original para compatibilidad */
+
+    /* Huecos / aberturas personalizadas en cada borde (tamano y posicion en tiles) */
+    BorderOpening floor_openings[LEVEL_MAX_OPENINGS];
+    uint8_t floor_openings_count;
+
+    BorderOpening ceiling_openings[LEVEL_MAX_OPENINGS];
+    uint8_t ceiling_openings_count;
+
+    BorderOpening wall_left_openings[LEVEL_MAX_OPENINGS];
+    uint8_t wall_left_openings_count;
+
+    BorderOpening wall_right_openings[LEVEL_MAX_OPENINGS];
+    uint8_t wall_right_openings_count;
 } LevelSkipBorder;
+
+typedef LevelSkipBorder LevelBorderConfig;
+
+/* Tipos de puertas en el nivel */
+typedef enum
+{
+    DOOR_TYPE_GENERIC = 0,
+    DOOR_TYPE_ENTER   = 1,
+    DOOR_TYPE_EXIT    = 2
+} LevelDoorType;
 
 /* Estructura para configurar una puerta en el nivel */
 typedef struct
@@ -87,6 +123,9 @@ typedef struct
     uint8_t active;        /* 1 si la puerta esta configurada/activa, 0 si no */
     uint8_t current_frame; /* Frame actual de animacion de la puerta */
     uint8_t timer;         /* Timer para avance de frame */
+    uint8_t type;          /* LevelDoorType (DOOR_TYPE_GENERIC, DOOR_TYPE_ENTER, DOOR_TYPE_EXIT) */
+    int16_t target_room;   /* Habitacion de destino (-1 para no configurada o segun logica global) */
+    int16_t target_level;  /* Nivel de destino (-1 para no configurado o segun logica global) */
 } LevelDoor;
 
 /* Estructura principal del nivel dinamico */
@@ -104,8 +143,10 @@ typedef struct
     uint8_t use_bg_tile;
     LevelCamera camera;                                 /* Camara asociada al nivel */
     LevelTile tiles[LEVEL_MAX_HEIGHT][LEVEL_MAX_WIDTH]; /* Celdas del nivel */
-    LevelDoor enter_door;                               /* Puerta de entrada */
-    LevelDoor exit_door;                                /* Puerta de salida */
+
+    /* Coleccion de puertas del nivel dinamico */
+    LevelDoor doors[LEVEL_MAX_DOORS];
+    uint8_t door_count;
 } DynamicLevel;
 
 /* ========================================================================= */
@@ -133,14 +174,50 @@ void level_set_background(DynamicLevel *level,
                           uint8_t count);
 
 /**
- * Configura la posicion y propiedades de la puerta de entrada.
+ * Limpia todas las puertas registradas en el nivel.
+ */
+void level_clear_doors(DynamicLevel *level);
+
+/**
+ * Agrega una puerta al array de puertas del nivel.
+ * Retorna el indice asignado o -1 si se alcanzo el maximo.
+ */
+int8_t level_add_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open, uint8_t type);
+
+/**
+ * Obtiene un puntero a una puerta por indice en el array.
+ */
+LevelDoor *level_get_door(DynamicLevel *level, uint8_t index);
+
+/**
+ * Obtiene la primera puerta que coincida con el tipo dado (ej. DOOR_TYPE_ENTER o DOOR_TYPE_EXIT).
+ * Retorna NULL si no se encuentra ninguna activa.
+ */
+LevelDoor *level_get_door_by_type(DynamicLevel *level, uint8_t type);
+
+/**
+ * Helpers de conveniencia para obtener la puerta de entrada y de salida.
+ */
+LevelDoor *level_get_enter_door(DynamicLevel *level);
+LevelDoor *level_get_exit_door(DynamicLevel *level);
+
+/**
+ * Configura la posicion y propiedades de la puerta de entrada (agrega o actualiza en el array).
  */
 void level_set_enter_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open);
 
 /**
- * Configura la posicion y propiedades de la puerta de salida.
+ * Configura la posicion y propiedades de la puerta de salida (agrega o actualiza en el array).
  */
 void level_set_exit_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open);
+
+/**
+ * Helpers para anadir huecos / aberturas personalizadas a los bordes.
+ */
+void level_border_add_floor_opening(LevelSkipBorder *border, uint16_t start_tx, uint16_t size_tx);
+void level_border_add_ceiling_opening(LevelSkipBorder *border, uint16_t start_tx, uint16_t size_tx);
+void level_border_add_wall_left_opening(LevelSkipBorder *border, uint16_t start_ty, uint16_t size_ty);
+void level_border_add_wall_right_opening(LevelSkipBorder *border, uint16_t start_ty, uint16_t size_ty);
 
 /**
  * Genera el perimetro del nivel: piso, techo y paredes con sus respectivas texturas.

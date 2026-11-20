@@ -60,8 +60,8 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     level->camera.viewport_w = SCREEN_XRES;
     level->camera.viewport_h = SCREEN_YRES;
 
-    memset(&level->enter_door, 0, sizeof(LevelDoor));
-    memset(&level->exit_door, 0, sizeof(LevelDoor));
+    memset(level->doors, 0, sizeof(level->doors));
+    level->door_count = 0;
 
     level_clear(level);
 }
@@ -101,16 +101,89 @@ void level_set_background(DynamicLevel *level,
     level->background_count = count;
 }
 
+void level_clear_doors(DynamicLevel *level)
+{
+    if (!level)
+        return;
+    memset(level->doors, 0, sizeof(level->doors));
+    level->door_count = 0;
+}
+
+int8_t level_add_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open, uint8_t type)
+{
+    if (!level)
+        return -1;
+
+    if (level->door_count >= LEVEL_MAX_DOORS)
+        return -1;
+
+    uint8_t idx = level->door_count;
+    level->doors[idx].x = x;
+    level->doors[idx].y = y;
+    level->doors[idx].rotateu = rotateu;
+    level->doors[idx].open = open;
+    level->doors[idx].active = 1;
+    level->doors[idx].current_frame = 0;
+    level->doors[idx].timer = 0;
+    level->doors[idx].type = type;
+    level->doors[idx].target_room = -1;
+    level->doors[idx].target_level = -1;
+
+    level->door_count++;
+    return (int8_t)idx;
+}
+
+LevelDoor *level_get_door(DynamicLevel *level, uint8_t index)
+{
+    if (!level || index >= level->door_count)
+        return NULL;
+    return &level->doors[index];
+}
+
+LevelDoor *level_get_door_by_type(DynamicLevel *level, uint8_t type)
+{
+    if (!level)
+        return NULL;
+
+    for (uint8_t i = 0; i < level->door_count; i++)
+    {
+        if (level->doors[i].active && level->doors[i].type == type)
+        {
+            return &level->doors[i];
+        }
+    }
+    return NULL;
+}
+
+LevelDoor *level_get_enter_door(DynamicLevel *level)
+{
+    return level_get_door_by_type(level, DOOR_TYPE_ENTER);
+}
+
+LevelDoor *level_get_exit_door(DynamicLevel *level)
+{
+    return level_get_door_by_type(level, DOOR_TYPE_EXIT);
+}
+
 void level_set_enter_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open)
 {
     if (!level)
         return;
 
-    level->enter_door.x = x;
-    level->enter_door.y = y;
-    level->enter_door.rotateu = rotateu;
-    level->enter_door.open = open;
-    level->enter_door.active = 1;
+    LevelDoor *door = level_get_enter_door(level);
+    if (!door)
+    {
+        level_add_door(level, x, y, rotateu, open, DOOR_TYPE_ENTER);
+    }
+    else
+    {
+        door->x = x;
+        door->y = y;
+        door->rotateu = rotateu;
+        door->open = open;
+        door->active = 1;
+        door->type = DOOR_TYPE_ENTER;
+    }
 }
 
 void level_set_exit_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rotateu, uint8_t open)
@@ -118,11 +191,80 @@ void level_set_exit_door(DynamicLevel *level, int32_t x, int32_t y, uint8_t rota
     if (!level)
         return;
 
-    level->exit_door.x = x;
-    level->exit_door.y = y;
-    level->exit_door.rotateu = rotateu;
-    level->exit_door.open = open;
-    level->exit_door.active = 1;
+    LevelDoor *door = level_get_exit_door(level);
+    if (!door)
+    {
+        level_add_door(level, x, y, rotateu, open, DOOR_TYPE_EXIT);
+    }
+    else
+    {
+        door->x = x;
+        door->y = y;
+        door->rotateu = rotateu;
+        door->open = open;
+        door->active = 1;
+        door->type = DOOR_TYPE_EXIT;
+    }
+}
+
+void level_border_add_floor_opening(LevelSkipBorder *border, uint16_t start_tx, uint16_t size_tx)
+{
+    if (!border || border->floor_openings_count >= LEVEL_MAX_OPENINGS)
+        return;
+
+    uint8_t idx = border->floor_openings_count;
+    border->floor_openings[idx].start = start_tx;
+    border->floor_openings[idx].size = size_tx;
+    border->floor_openings[idx].active = 1;
+    border->floor_openings_count++;
+}
+
+void level_border_add_ceiling_opening(LevelSkipBorder *border, uint16_t start_tx, uint16_t size_tx)
+{
+    if (!border || border->ceiling_openings_count >= LEVEL_MAX_OPENINGS)
+        return;
+
+    uint8_t idx = border->ceiling_openings_count;
+    border->ceiling_openings[idx].start = start_tx;
+    border->ceiling_openings[idx].size = size_tx;
+    border->ceiling_openings[idx].active = 1;
+    border->ceiling_openings_count++;
+}
+
+void level_border_add_wall_left_opening(LevelSkipBorder *border, uint16_t start_ty, uint16_t size_ty)
+{
+    if (!border || border->wall_left_openings_count >= LEVEL_MAX_OPENINGS)
+        return;
+
+    uint8_t idx = border->wall_left_openings_count;
+    border->wall_left_openings[idx].start = start_ty;
+    border->wall_left_openings[idx].size = size_ty;
+    border->wall_left_openings[idx].active = 1;
+    border->wall_left_openings_count++;
+}
+
+void level_border_add_wall_right_opening(LevelSkipBorder *border, uint16_t start_ty, uint16_t size_ty)
+{
+    if (!border || border->wall_right_openings_count >= LEVEL_MAX_OPENINGS)
+        return;
+
+    uint8_t idx = border->wall_right_openings_count;
+    border->wall_right_openings[idx].start = start_ty;
+    border->wall_right_openings[idx].size = size_ty;
+    border->wall_right_openings[idx].active = 1;
+    border->wall_right_openings_count++;
+}
+
+static inline bool is_in_opening(uint16_t pos, const BorderOpening *openings, uint8_t count)
+{
+    for (uint8_t i = 0; i < count; i++)
+    {
+        if (openings[i].active && pos >= openings[i].start && pos < (openings[i].start + openings[i].size))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void level_build_border(DynamicLevel *level,
@@ -138,37 +280,55 @@ void level_build_border(DynamicLevel *level,
     uint16_t w = level->width;
     uint16_t h = level->height;
 
+    /* Paredes laterales (izquierda y derecha) con soporte para huecos/aberturas */
     if (!skip_border.skip_wall_left || !skip_border.skip_wall_rigth) {
-        /* Paredes laterales (izquierda y derecha) */
         for (uint8_t t = 0; t < wall_thickness && t < w; t++)
         {
             for (uint16_t y = 0; y < h; y++)
             {
-                if (!skip_border.skip_wall_left) level_set_tile(level, t, y, wall_tile);         /* Izquierda */
-                if (!skip_border.skip_wall_rigth) level_set_tile(level, w - 1 - t, y, wall_tile); /* Derecha */
+                if (!skip_border.skip_wall_left)
+                {
+                    if (!is_in_opening(y, skip_border.wall_left_openings, skip_border.wall_left_openings_count))
+                    {
+                        level_set_tile(level, t, y, wall_tile);
+                    }
+                }
+                if (!skip_border.skip_wall_rigth)
+                {
+                    if (!is_in_opening(y, skip_border.wall_right_openings, skip_border.wall_right_openings_count))
+                    {
+                        level_set_tile(level, w - 1 - t, y, wall_tile);
+                    }
+                }
             }
         }
     }
 
+    /* Techo con soporte para huecos/aberturas */
     if (!skip_border.skip_ceiling) {
-        /* Techo */
         for (uint8_t t = 0; t < ceiling_thickness && t < h; t++)
         {
             for (uint16_t x = 0; x < w; x++)
             {
-                level_set_tile(level, x, t, ceiling_tile);
+                if (!is_in_opening(x, skip_border.ceiling_openings, skip_border.ceiling_openings_count))
+                {
+                    level_set_tile(level, x, t, ceiling_tile);
+                }
             }
         }
     }
 
+    /* Piso con soporte para huecos/aberturas */
     if (!skip_border.skip_floor) {
-        /* Piso */
         for (uint8_t t = 0; t < floor_thickness && t < h; t++)
         {
             uint16_t y = h - 1 - t;
             for (uint16_t x = 0; x < w; x++)
             {
-                level_set_tile(level, x, y, t == floor_thickness - 1 ? floor_tile : filled_tile);
+                if (!is_in_opening(x, skip_border.floor_openings, skip_border.floor_openings_count))
+                {
+                    level_set_tile(level, x, y, t == floor_thickness - 1 ? floor_tile : filled_tile);
+                }
             }
         }
     }
@@ -499,22 +659,16 @@ void level_render(const DynamicLevel *level)
     }
 
     /* 3. Renderizar puertas configuradas en el nivel */
-    if (level->enter_door.active)
+    for (uint8_t i = 0; i < level->door_count; i++)
     {
-        door_render_instance(level->enter_door.x, level->enter_door.y,
-                             cam_x, cam_y,
-                             level->enter_door.rotateu, level->enter_door.open,
-                             (uint8_t *)&level->enter_door.current_frame,
-                             (uint8_t *)&level->enter_door.timer);
-    }
-
-    if (level->exit_door.active)
-    {
-        door_render_instance(level->exit_door.x, level->exit_door.y,
-                             cam_x, cam_y,
-                             level->exit_door.rotateu, level->exit_door.open,
-                             (uint8_t *)&level->exit_door.current_frame,
-                             (uint8_t *)&level->exit_door.timer);
+        if (level->doors[i].active)
+        {
+            door_render_instance(level->doors[i].x, level->doors[i].y,
+                                 cam_x, cam_y,
+                                 level->doors[i].rotateu, level->doors[i].open,
+                                 (uint8_t *)&level->doors[i].current_frame,
+                                 (uint8_t *)&level->doors[i].timer);
+        }
     }
 }
 

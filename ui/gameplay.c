@@ -113,18 +113,21 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		MANY_OBJECT *many_ptr = many_get_instance();
 		/* Posicionar a Many segun de donde viene (inicio o nivel anterior/siguiente) */
 		int32_t default_spawn_y = (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE));
+		LevelDoor *exit_door = level_get_exit_door(&current_level);
+		LevelDoor *enter_door = level_get_enter_door(&current_level);
+
 		if (spawn_at_exit)
 		{
-			int32_t spawn_x = current_level.exit_door.active
-				? (current_level.exit_door.x - MANY_COLLISION_WIDTH - 8)
+			int32_t spawn_x = (exit_door && exit_door->active)
+				? (exit_door->x - MANY_COLLISION_WIDTH - 8)
 				: (int32_t)current_level.pixel_width - MANY_COLLISION_WIDTH - 1;
 			many_set_position(spawn_x, default_spawn_y);
 			many_ptr->direction = 0; // Mirando a la izquierda al entrar desde la salida
 		}
 		else
 		{
-			int32_t spawn_x = current_level.enter_door.active
-				? (current_level.enter_door.x + DOOR_W_BASE + 8)
+			int32_t spawn_x = (enter_door && enter_door->active)
+				? (enter_door->x + DOOR_W_BASE + 8)
 				: 1;
 			many_set_position(spawn_x, default_spawn_y);
 			many_ptr->direction = 1; // Mirando a la derecha al entrar desde la entrada
@@ -134,6 +137,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		GameState currentState = GAME_STATE_GAME;
 
 		DoorTransitionType transition = TRANSITION_NONE;
+		int8_t transition_door_idx = -1;
 
 		/* Bucle principal del nivel actual */
 		for (;;)
@@ -146,57 +150,66 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			many_update_in_level(held_buttons, pressed_buttons, buttons_history, &current_level);
 
 			/*
-			 * 2. Transicion por puertas en extremos del nivel
+			 * 2. Transicion por puertas en el nivel (recorriendo array de puertas)
 			*/
-			if (currentRoom == 1 && current_level.enter_door.active)
+			RectangleCollisioner many_feet_box = {
+				.x = (float)many_ptr->x,
+				.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
+				.width = (float)MANY_COLLISION_WIDTH,
+				.height = 16.0f
+			};
+
+			for (uint8_t d = 0; d < current_level.door_count; d++)
 			{
-				RectangleCollisioner many_feet_box = {
-					.x = (float)many_ptr->x,
-					.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
-					.width = (float)MANY_COLLISION_WIDTH,
-					.height = 16.0f
-				};
+				LevelDoor *door = &current_level.doors[d];
+				if (!door->active)
+					continue;
 
-				RectangleCollisioner enter_door_box = {
-					.x = (float)(current_level.enter_door.x - 16),
-					.y = (float)(current_level.enter_door.y + DOOR_H - 16),
-					.width = (float)DOOR_W_BASE + 16.0f,
-					.height = 16.0f
-				};
-
-				if (currentLevel > 1 && check_collision_AABB(many_feet_box, enter_door_box))
+				if (door->type == DOOR_TYPE_ENTER && currentRoom == 1 && currentLevel > 1)
 				{
-					current_level.enter_door.open = 1;
-					transition = TRANSITION_ENTER_DOOR;
-					break;
+					RectangleCollisioner enter_door_box = {
+						.x = (float)(door->x - 16),
+						.y = (float)(door->y + DOOR_H - 16),
+						.width = (float)DOOR_W_BASE + 16.0f,
+						.height = 16.0f
+					};
+
+					if (check_collision_AABB(many_feet_box, enter_door_box))
+					{
+						door->open = 1;
+						transition = TRANSITION_ENTER_DOOR;
+						transition_door_idx = (int8_t)d;
+						break;
+					}
+				}
+				else if (door->type == DOOR_TYPE_EXIT && currentRoom == level_info.rooms && currentLevel < LEVELS_COUNT)
+				{
+					RectangleCollisioner exit_door_box = {
+						.x = (float)door->x,
+						.y = (float)(door->y + DOOR_H - 16),
+						.width = (float)DOOR_W_BASE + 16.0f,
+						.height = 16.0f
+					};
+
+					if (check_collision_AABB(many_feet_box, exit_door_box))
+					{
+						door->open = 1;
+						transition = TRANSITION_EXIT_DOOR;
+						transition_door_idx = (int8_t)d;
+						break;
+					}
 				}
 			}
 
-			if (currentRoom == level_info.rooms && current_level.exit_door.active)
+			if (transition != TRANSITION_NONE)
 			{
-				RectangleCollisioner many_feet_box = {
-					.x = (float)many_ptr->x,
-					.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
-					.width = (float)MANY_COLLISION_WIDTH,
-					.height = 16.0f
-				};
-
-				RectangleCollisioner exit_door_box = {
-					.x = (float)current_level.exit_door.x,
-					.y = (float)(current_level.exit_door.y + DOOR_H - 16),
-					.width = (float)DOOR_W_BASE + 16.0f,
-					.height = 16.0f
-				};
-
-				if (currentLevel < LEVELS_COUNT && check_collision_AABB(many_feet_box, exit_door_box))
-				{
-					current_level.exit_door.open = 1;
-					transition = TRANSITION_EXIT_DOOR;
-					break;
-				}
+				break;
 			}
 
 			/* Transicion por bordes del cuarto (pantallas abiertas / sin puerta) */
+			LevelDoor *active_enter_door = level_get_enter_door(&current_level);
+			LevelDoor *active_exit_door = level_get_exit_door(&current_level);
+
 			if (many_ptr->x <= 0)
 			{
 				if (currentRoom > 1)
@@ -205,7 +218,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 					spawn_at_exit = 1;
 					break;
 				}
-				else if (currentLevel > 1 && !current_level.enter_door.active)
+				else if (currentLevel > 1 && (!active_enter_door || !active_enter_door->active))
 				{
 					currentLevel--;
 					currentRoom = LEVELS_INFO[currentLevel - 1].rooms;
@@ -223,7 +236,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 					spawn_at_exit = 0;
 					break;
 				}
-				else if (currentLevel < LEVELS_COUNT && !current_level.exit_door.active)
+				else if (currentLevel < LEVELS_COUNT && (!active_exit_door || !active_exit_door->active))
 				{
 					currentLevel++;
 					currentRoom = 1;
@@ -256,8 +269,10 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		/* Animacion automatica al cruzar la puerta: sin control del jugador */
 		if (transition == TRANSITION_EXIT_DOOR)
 		{
+			LevelDoor *door = (transition_door_idx >= 0) ? level_get_door(&current_level, (uint8_t)transition_door_idx) : level_get_exit_door(&current_level);
+
 			/* 1. Esperar a que la puerta de salida termine de abrirse */
-			while (current_level.exit_door.current_frame < DOOR_SPRITES - 1)
+			while (door && door->current_frame < DOOR_SPRITES - 1)
 			{
 				MANY_OBJECT *many_ptr = many_get_instance();
 				level_update_camera(&current_level, many_ptr->x, (many_ptr->y >> 8), MANY_COLLISION_WIDTH, MANY_COLLISION_HEIGHT);
@@ -271,7 +286,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			}
 
 			/* 2. Many corre hacia y cruza la puerta hacia la derecha */
-			int32_t target_x = current_level.exit_door.x + 32;
+			int32_t target_x = door ? (door->x + 32) : ((int32_t)current_level.pixel_width);
 			MANY_OBJECT *many_ptr = many_get_instance();
 			while ((int32_t)many_ptr->x < target_x)
 			{
@@ -296,8 +311,10 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		}
 		else if (transition == TRANSITION_ENTER_DOOR)
 		{
+			LevelDoor *door = (transition_door_idx >= 0) ? level_get_door(&current_level, (uint8_t)transition_door_idx) : level_get_enter_door(&current_level);
+
 			/* 1. Esperar a que la puerta de entrada termine de abrirse */
-			while (current_level.enter_door.current_frame < DOOR_SPRITES - 1)
+			while (door && door->current_frame < DOOR_SPRITES - 1)
 			{
 				MANY_OBJECT *many_ptr = many_get_instance();
 				level_update_camera(&current_level, many_ptr->x, (many_ptr->y >> 8), MANY_COLLISION_WIDTH, MANY_COLLISION_HEIGHT);
@@ -311,7 +328,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			}
 
 			/* 2. Many corre hacia y cruza la puerta hacia la izquierda */
-			int32_t target_x = current_level.enter_door.x - 32;
+			int32_t target_x = door ? (door->x - 32) : 0;
 			MANY_OBJECT *many_ptr = many_get_instance();
 			while ((int32_t)many_ptr->x > target_x)
 			{
