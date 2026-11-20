@@ -14,6 +14,21 @@ static inline int32_t clamp_i32(int32_t val, int32_t min, int32_t max)
     return val;
 }
 
+static LevelTile *level_tile_at(DynamicLevel *level, uint16_t tx, uint16_t ty)
+{
+    return level->level_orientation == LEVEL_VERTICAL
+        ? &level->tiles[tx][ty]
+        : &level->tiles[ty][tx];
+}
+
+static const LevelTile *level_tile_at_const(
+    const DynamicLevel *level, uint16_t tx, uint16_t ty)
+{
+    return level->level_orientation == LEVEL_VERTICAL
+        ? &level->tiles[tx][ty]
+        : &level->tiles[ty][tx];
+}
+
 void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles, LEVEL_ORIENTATION level_orientation, CD_TEXTURE *tileset_tim)
 {
     if (!level)
@@ -33,6 +48,7 @@ void level_init(DynamicLevel *level, uint16_t width_tiles, uint16_t height_tiles
     level->height = height_tiles;
     level->pixel_width = (uint32_t)width_tiles * TILE_SIZE;
     level->pixel_height = (uint32_t)height_tiles * TILE_SIZE;
+    level->level_orientation = level_orientation;
     level->tileset = tileset_tim;
     level->use_bg_tile = 0;
     memset(&level->bg_tile, 0, sizeof(level->bg_tile));
@@ -64,10 +80,11 @@ void level_set_tile(DynamicLevel *level, uint16_t tx, uint16_t ty, TileTextureDe
     if (tx >= level->width || ty >= level->height)
         return;
 
-    level->tiles[ty][tx].u = tile_def.u;
-    level->tiles[ty][tx].v = tile_def.v;
-    level->tiles[ty][tx].collision_type = (uint8_t)tile_def.collision;
-    level->tiles[ty][tx].active = 1;
+    LevelTile *tile = level_tile_at(level, tx, ty);
+    tile->u = tile_def.u;
+    tile->v = tile_def.v;
+    tile->collision_type = (uint8_t)tile_def.collision;
+    tile->active = 1;
 }
 
 void level_set_background(DynamicLevel *level,
@@ -465,7 +482,7 @@ void level_render(const DynamicLevel *level)
 
         for (int32_t tx = start_col; tx <= end_col; tx++)
         {
-            const LevelTile *tile = &level->tiles[ty][tx];
+            const LevelTile *tile = level_tile_at_const(level, (uint16_t)tx, (uint16_t)ty);
 
             if (!tile->active)
                 continue;
@@ -513,8 +530,9 @@ TileCollisionType level_get_tile_collision(const DynamicLevel *level, int32_t tx
     {
         return TILE_COLL_SOLID; /* Fuera de limites cuenta como solido */
     }
-
-    return (TileCollisionType)level->tiles[ty][tx].collision_type;
+    const LevelTile *tile =
+    level_tile_at_const(level, (uint16_t)tx, (uint16_t)ty);
+    return (TileCollisionType)tile->collision_type;
 }
 
 bool level_point_is_solid(const DynamicLevel *level, int32_t world_x, int32_t world_y)

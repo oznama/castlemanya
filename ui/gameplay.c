@@ -56,7 +56,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			level_info.level_data[currentRoom - 1].level_orientation,
 			&tileset_tim,
 			&theme,
-			level_info.skip_border
+			level_info.level_data[currentRoom - 1].skip_border
 		);
 
 		level_draw(

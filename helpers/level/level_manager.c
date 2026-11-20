@@ -7,11 +7,10 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
     {
 		.tilename = "TLSTEXT",
         .bgname = {"BGEXT"},
-        .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1},
 		.level_data = {
-			{ .width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL },
+			{ .width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1}, },
 			{ .width_tiles = 40, .height_tiles = 50, .level_orientation = LEVEL_HORIZONTAL },
-			{ .width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL  },
+			{ .width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1},  },
 		},
 		.rooms = LEVEL_01_ROOMS
 	},
@@ -48,19 +47,17 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
     {
 		.tilename = "TLSTCLD",
         .bgname = {"BGCOLD"},
-        .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1},
 		.level_data = {
-			{ .width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL }
+			{ .width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1} }
 		},
 		.rooms = 1
 	},
     {
 		.tilename = "TLSTGRN",
         .bgname = {"BGGROUND"},
-        .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1, .skip_floor = 1},
 		.level_data = {
-			{ .width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL },
-            { .width_tiles = 20, .height_tiles = LEVEL_MAX_WIDTH, .level_orientation = LEVEL_HORIZONTAL }
+			{ .width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1, .skip_floor = 1} },
+            { .width_tiles = 30, .height_tiles = LEVEL_MAX_WIDTH, .level_orientation = LEVEL_VERTICAL }
 		},
 		.rooms = LEVEL_06_ROOMS
 	},

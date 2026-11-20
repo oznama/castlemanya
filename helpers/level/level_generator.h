@@ -96,6 +96,7 @@ typedef struct
     uint16_t height;                       /* Alto del nivel en tiles */
     uint32_t pixel_width;                  /* Ancho en pixeles (width * TILE_SIZE) */
     uint32_t pixel_height;                 /* Alto en pixeles (height * TILE_SIZE) */
+    LEVEL_ORIENTATION level_orientation;
     CD_TEXTURE *tileset;                   /* Puntero a la textura del tileset */
     CD_TEXTURE background[BACKGROUND_MAX]; /* Texturas para fondos */
     uint8_t background_count;
