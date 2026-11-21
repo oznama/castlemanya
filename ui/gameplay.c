@@ -20,6 +20,8 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 	door_init();
 
 	uint8_t spawn_at_exit = 0;
+	int32_t custom_spawn_x = -1;
+	int32_t custom_spawn_y = -1;
 
 	while (currentLevel >= 1 && currentLevel <= LEVELS_COUNT)
 	{
@@ -111,12 +113,34 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		}
 
 		MANY_OBJECT *many_ptr = many_get_instance();
-		/* Posicionar a Many segun de donde viene (inicio o nivel anterior/siguiente) */
+		/* Posicionar a Many segun de donde viene (inicio, nivel anterior/siguiente o hueco personalizado) */
 		int32_t default_spawn_y = (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE));
 		LevelDoor *exit_door = level_get_exit_door(&current_level);
 		LevelDoor *enter_door = level_get_enter_door(&current_level);
 
-		if (spawn_at_exit)
+		if (custom_spawn_x >= 0 || custom_spawn_y >= 0)
+		{
+			int32_t spawn_x = (custom_spawn_x >= 0)
+				? custom_spawn_x
+				: (spawn_at_exit ? ((int32_t)current_level.pixel_width - MANY_COLLISION_WIDTH - 1) : 1);
+			int32_t spawn_y = (custom_spawn_y >= 0)
+				? custom_spawn_y
+				: default_spawn_y;
+
+			many_set_position(spawn_x, spawn_y);
+			if (spawn_at_exit)
+			{
+				many_ptr->direction = 0;
+			}
+			else
+			{
+				many_ptr->direction = 1;
+			}
+
+			custom_spawn_x = -1;
+			custom_spawn_y = -1;
+		}
+		else if (spawn_at_exit)
 		{
 			int32_t spawn_x = (exit_door && exit_door->active)
 				? (exit_door->x - MANY_COLLISION_WIDTH - 8)
@@ -206,13 +230,35 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				break;
 			}
 
-			/* Transicion por bordes del cuarto (pantallas abiertas / sin puerta) */
+			/* Transicion por bordes del cuarto (pantallas abiertas / huecos personalizados) */
 			LevelDoor *active_enter_door = level_get_enter_door(&current_level);
 			LevelDoor *active_exit_door = level_get_exit_door(&current_level);
+			const LevelSkipBorder *current_border = &level_info.level_data[currentRoom - 1].skip_border;
 
+			/* Borde Izquierdo */
 			if (many_ptr->x <= 0)
 			{
-				if (currentRoom > 1)
+				int32_t many_mid_y = (many_ptr->y >> 8) + (MANY_COLLISION_HEIGHT / 2);
+				uint16_t many_ty = (uint16_t)(many_mid_y / TILE_SIZE);
+				const BorderOpening *opening = level_border_find_opening_at(
+					current_border->wall_left_openings,
+					current_border->wall_left_openings_count,
+					many_ty
+				);
+
+				if (opening && opening->target_room > 0)
+				{
+					currentRoom = opening->target_room;
+					if (opening->target_level > 0)
+					{
+						currentLevel = opening->target_level;
+					}
+					spawn_at_exit = 1;
+					custom_spawn_x = (opening->target_x >= 0) ? opening->target_x : -1;
+					custom_spawn_y = (opening->target_y >= 0) ? opening->target_y : -1;
+					break;
+				}
+				else if (currentRoom > 1)
 				{
 					currentRoom--;
 					spawn_at_exit = 1;
@@ -227,10 +273,31 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				}
 			}
 
+			/* Borde Derecho */
 			int32_t room_max_x = (int32_t)current_level.pixel_width - MANY_COLLISION_WIDTH;
 			if ((int32_t)many_ptr->x >= room_max_x)
 			{
-				if (currentRoom < level_info.rooms)
+				int32_t many_mid_y = (many_ptr->y >> 8) + (MANY_COLLISION_HEIGHT / 2);
+				uint16_t many_ty = (uint16_t)(many_mid_y / TILE_SIZE);
+				const BorderOpening *opening = level_border_find_opening_at(
+					current_border->wall_right_openings,
+					current_border->wall_right_openings_count,
+					many_ty
+				);
+
+				if (opening && opening->target_room > 0)
+				{
+					currentRoom = opening->target_room;
+					if (opening->target_level > 0)
+					{
+						currentLevel = opening->target_level;
+					}
+					spawn_at_exit = 0;
+					custom_spawn_x = (opening->target_x >= 0) ? opening->target_x : -1;
+					custom_spawn_y = (opening->target_y >= 0) ? opening->target_y : -1;
+					break;
+				}
+				else if (currentRoom < level_info.rooms)
 				{
 					currentRoom++;
 					spawn_at_exit = 0;
@@ -241,6 +308,55 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 					currentLevel++;
 					currentRoom = 1;
 					spawn_at_exit = 0;
+					break;
+				}
+			}
+
+			/* Borde Superior (Techo) */
+			if ((many_ptr->y >> 8) <= 0)
+			{
+				int32_t many_mid_x = (int32_t)many_ptr->x + (MANY_COLLISION_WIDTH / 2);
+				uint16_t many_tx = (uint16_t)(many_mid_x / TILE_SIZE);
+				const BorderOpening *opening = level_border_find_opening_at(
+					current_border->ceiling_openings,
+					current_border->ceiling_openings_count,
+					many_tx
+				);
+
+				if (opening && opening->target_room > 0)
+				{
+					currentRoom = opening->target_room;
+					if (opening->target_level > 0)
+					{
+						currentLevel = opening->target_level;
+					}
+					custom_spawn_x = (opening->target_x >= 0) ? opening->target_x : many_ptr->x;
+					custom_spawn_y = (opening->target_y >= 0) ? opening->target_y : -1;
+					break;
+				}
+			}
+
+			/* Borde Inferior (Piso) */
+			int32_t room_max_y = (int32_t)current_level.pixel_height - MANY_COLLISION_HEIGHT;
+			if ((many_ptr->y >> 8) >= room_max_y)
+			{
+				int32_t many_mid_x = (int32_t)many_ptr->x + (MANY_COLLISION_WIDTH / 2);
+				uint16_t many_tx = (uint16_t)(many_mid_x / TILE_SIZE);
+				const BorderOpening *opening = level_border_find_opening_at(
+					current_border->floor_openings,
+					current_border->floor_openings_count,
+					many_tx
+				);
+
+				if (opening && opening->target_room > 0)
+				{
+					currentRoom = opening->target_room;
+					if (opening->target_level > 0)
+					{
+						currentLevel = opening->target_level;
+					}
+					custom_spawn_x = (opening->target_x >= 0) ? opening->target_x : many_ptr->x;
+					custom_spawn_y = (opening->target_y >= 0) ? opening->target_y : 1;
 					break;
 				}
 			}
@@ -259,9 +375,14 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			many_render_in_camera(cam_x, cam_y);
 
 			sprintf(buffer, "Mundo: %d", currentLevel);
-			render_text(10, 10, 0, buffer);
+			render_text(50, 50, 0, buffer);
 			sprintf(buffer, "Room: %d", currentRoom);
-			render_text(10, 30, 0, buffer);
+			render_text(50, 70, 0, buffer);
+
+			sprintf(buffer, "X: %d", many_ptr->x);
+			render_text(150, 50, 0, buffer);
+			sprintf(buffer, "Y: %d", many_ptr->y >> 8);
+			render_text(150, 70, 0, buffer);
 
 			graphic_display();
 		}

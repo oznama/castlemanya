@@ -255,16 +255,24 @@ void level_border_add_wall_right_opening(LevelSkipBorder *border, uint16_t start
     border->wall_right_openings_count++;
 }
 
-static inline bool is_in_opening(uint16_t pos, const BorderOpening *openings, uint8_t count)
+const BorderOpening *level_border_find_opening_at(const BorderOpening *openings, uint8_t count, uint16_t pos)
 {
+    if (!openings || count == 0)
+        return NULL;
+
     for (uint8_t i = 0; i < count; i++)
     {
         if (openings[i].active && pos >= openings[i].start && pos < (openings[i].start + openings[i].size))
         {
-            return true;
+            return &openings[i];
         }
     }
-    return false;
+    return NULL;
+}
+
+static inline bool is_in_opening(uint16_t pos, const BorderOpening *openings, uint8_t count)
+{
+    return level_border_find_opening_at(openings, count, pos) != NULL;
 }
 
 void level_build_border(DynamicLevel *level,

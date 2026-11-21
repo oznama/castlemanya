@@ -74,9 +74,13 @@ typedef struct
 /* Hueco / abertura configurable en un borde del nivel */
 typedef struct
 {
-    uint16_t start; /* Tile inicial del hueco (coordenada de tile en el eje correspondiente) */
-    uint16_t size;  /* Tamano del hueco en tiles */
-    uint8_t active; /* 1 si la abertura esta habilitada, 0 si no */
+    uint16_t start;       /* Tile inicial del hueco (coordenada de tile en el eje correspondiente) */
+    uint16_t size;        /* Tamano del hueco en tiles */
+    uint8_t active;       /* 1 si la abertura esta habilitada, 0 si no */
+    uint8_t target_room;  /* 0 = automatico (room -/+ 1), >0 = habitacion especifica (1-based) */
+    uint8_t target_level; /* 0 = mismo nivel, >0 = nivel especifico (1-based) */
+    int16_t target_x;     /* Posicion X en pixeles en destino (-1 = automatico segun direccion) */
+    int16_t target_y;     /* Posicion Y en pixeles en destino (-1 = automatico segun piso) */
 } BorderOpening;
 
 /* Configuracion avanzada de bordes con soporte para omitir bordes completos
@@ -218,6 +222,12 @@ void level_border_add_floor_opening(LevelSkipBorder *border, uint16_t start_tx, 
 void level_border_add_ceiling_opening(LevelSkipBorder *border, uint16_t start_tx, uint16_t size_tx);
 void level_border_add_wall_left_opening(LevelSkipBorder *border, uint16_t start_ty, uint16_t size_ty);
 void level_border_add_wall_right_opening(LevelSkipBorder *border, uint16_t start_ty, uint16_t size_ty);
+
+/**
+ * Busca una abertura activa en una lista que contenga la posicion dada en tiles.
+ * Retorna puntero a la abertura o NULL si ninguna coincide.
+ */
+const BorderOpening *level_border_find_opening_at(const BorderOpening *openings, uint8_t count, uint16_t pos);
 
 /**
  * Genera el perimetro del nivel: piso, techo y paredes con sus respectivas texturas.
