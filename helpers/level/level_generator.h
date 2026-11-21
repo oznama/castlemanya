@@ -23,6 +23,12 @@ typedef enum
     LEVEL_HORIZONTAL
 } LEVEL_ORIENTATION;
 
+typedef enum
+{
+    STAIRWAY_LEFT,
+    STAIRWAY_RIGHT
+} STAIRWAY_DIRECTION;
+
 /* Tipos de colision y comportamiento de cada celda del tilemap */
 typedef enum
 {
@@ -267,6 +273,17 @@ void level_add_wall(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t widt
                     TileTextureDef hill_tile,
                     uint8_t use_top_tile, TileTextureDef hill_top_tile,
                     uint8_t use_down_tile, TileTextureDef hill_down_tile);
+
+/**
+ * Agrega una escalera con plataforma baja, escalones y plataforma alta.
+ * direction: STAIRWAY_LEFT (sube hacia la izquierda) o STAIRWAY_RIGHT (sube hacia la derecha).
+ */
+void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
+                        uint16_t tx, uint16_t ty,
+                        uint16_t lower_w, uint16_t lower_h,
+                        uint8_t steps, uint16_t base_w,
+                        uint8_t with_base, uint8_t with_border,
+                        STAIRWAY_DIRECTION direction);
 
 /**
  * Rellena un area rectangular de tiles con una definicion de textura/colision.
