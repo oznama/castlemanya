@@ -10,7 +10,7 @@
 #define RECOVERY_TIMER 6
 #define FIXED_SHIFT 8
 #define FIXED_ONE (1 << FIXED_SHIFT)
-#define JUMP_SPEED (8 * FIXED_ONE)
+#define JUMP_SPEED (9 * FIXED_ONE)
 #define GRAVITY (FIXED_ONE / 2)
 #define MANY_SIZE MANY_COLLISION_HEIGHT
 #define BACKDASH_DISTANCE (2 * MANY_COLLISION_WIDTH)
@@ -35,9 +35,9 @@ MANY_OBJECT many = {
     .y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE, // Posicion en Y
     .direction = 1,                                           // Direccion derecha
     .grouded = 1,                                             // En el piso
-    .has_double_jump = 1,
+    .has_double_jump = 0,
     .can_double_jump = 0,
-    .has_high_jump = 1,
+    .has_high_jump = 0,
     .r = 128, // Color R
     .g = 128, // Color G
     .b = 128, // Color B
