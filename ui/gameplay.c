@@ -46,6 +46,14 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			.pltfrml_tile = {.u = 16, .v = 16, .collision = TILE_COLL_ONEWAY},
 			.pltfrmf_tile = {.u = 32, .v = 16, .collision = TILE_COLL_ONEWAY},
 			.pltfrmr_tile = {.u = 48, .v = 16, .collision = TILE_COLL_ONEWAY},
+			.hilll_tile = {.u = 48, .v = 32, .collision = TILE_COLL_SOLID},
+			.hillf_tile = {.u = 32, .v = 32, .collision = TILE_COLL_SOLID},
+			.hillb_tile = {.u = 32, .v = 48, .collision = TILE_COLL_SOLID},
+			.hillr_tile = {.u = 48, .v = 48, .collision = TILE_COLL_SOLID},
+			.stairwayl_tile = {.u = 0, .v = 32, .collision = TILE_COLL_SOLID},
+			.stairwaybl_tile = {.u = 0, .v = 48, .collision = TILE_COLL_SOLID},
+			.stairwayr_tile = {.u = 16, .v = 32, .collision = TILE_COLL_SOLID},
+			.stairwaybr_tile = {.u = 16, .v = 48, .collision = TILE_COLL_SOLID},
 			.bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE},
 			.use_bg_tile = 1
 		};

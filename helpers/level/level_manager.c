@@ -19,16 +19,17 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				},
 			},
 			[1] = {
-				.width_tiles = 40, .height_tiles = 50, .level_orientation = LEVEL_HORIZONTAL,
+				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_ceiling = 1,
+					.skip_floor = 1,
 					.wall_left_openings = {
 						{ .start = 0, .size = 5, .active = 1, .target_room = 1, .target_x = 600, .target_y = 128 }
 					},
 					.wall_left_openings_count = 1,
 					.wall_right_openings = {
 						{ .start = 0, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 128},
-						{ .start = 42, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 128 }
+						{ .start = 18, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 128 }
 					},
 					.wall_right_openings_count = 2
 				}

@@ -42,15 +42,23 @@ typedef struct
 /* Estructura para configurar texturas del generador */
 typedef struct
 {
-    TileTextureDef floor_tile;   /* Textura para pisos */
-    TileTextureDef filled_tile;  /* Textura para relleno */
-    TileTextureDef wall_tile;    /* Textura para paredes laterales */
-    TileTextureDef ceiling_tile; /* Textura para techo */
-    TileTextureDef pltfrml_tile; /* Textura para plataformas borde izquierdo */
-    TileTextureDef pltfrmf_tile; /* Textura para plataformas relleno */
-    TileTextureDef pltfrmr_tile; /* Textura para plataformas borde derecho */
-    TileTextureDef bg_tile;      /* Textura opcional para fondo (o aire) */
-    uint8_t use_bg_tile; /* 1 para rellenar el fondo con bg_tile */
+    TileTextureDef floor_tile;      /* Textura para pisos */
+    TileTextureDef filled_tile;     /* Textura para relleno */
+    TileTextureDef wall_tile;       /* Textura para paredes laterales */
+    TileTextureDef ceiling_tile;    /* Textura para techo */
+    TileTextureDef pltfrml_tile;    /* Textura para plataformas borde izquierdo */
+    TileTextureDef pltfrmf_tile;    /* Textura para plataformas relleno */
+    TileTextureDef pltfrmr_tile;    /* Textura para plataformas borde derecho */
+    TileTextureDef hilll_tile;      /* Textura para colinas borde izquierdo */
+    TileTextureDef hillf_tile;      /* Textura para colina relleno */
+    TileTextureDef hillb_tile;      /* Textura para colina base */
+    TileTextureDef hillr_tile;      /* Textura para colina borde derecho */
+    TileTextureDef stairwayl_tile;  /* Textura para escalon izquierdo */
+    TileTextureDef stairwaybl_tile; /* Textura para escalon izquierdo base */
+    TileTextureDef stairwayr_tile;  /* Textura para escalon derecho */
+    TileTextureDef stairwaybr_tile; /* Textura para escalon derecho base */
+    TileTextureDef bg_tile;         /* Textura opcional para fondo (o aire) */
+    uint8_t use_bg_tile;            /* 1 para rellenar el fondo con bg_tile */
 } LevelThemeTextures;
 
 /* Datos de cada celda del nivel */
@@ -255,8 +263,10 @@ void level_add_platform(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t 
 /**
  * Crea una pared vertical o columna en coordenadas de tile (tx, ty) de altura 'height_tiles'.
  */
-void level_add_wall(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t height_tiles,
-                    TileTextureDef wall_tile);
+void level_add_wall(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t width_tiles, uint16_t height_tiles,
+                    TileTextureDef hill_tile,
+                    uint8_t use_top_tile, TileTextureDef hill_top_tile,
+                    uint8_t use_down_tile, TileTextureDef hill_down_tile);
 
 /**
  * Rellena un area rectangular de tiles con una definicion de textura/colision.

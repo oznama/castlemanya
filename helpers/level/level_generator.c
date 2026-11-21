@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 #include "level_generator.h"
 #include "../../graphics/graphic.h"
@@ -367,23 +366,30 @@ void level_add_platform(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t 
     }
 }
 
-void level_add_wall(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t height_tiles,
-                    TileTextureDef wall_tile)
+void level_add_wall(DynamicLevel *level, uint16_t tx, uint16_t ty, uint16_t width_tiles, uint16_t height_tiles,
+                    TileTextureDef hill_tile,
+                    uint8_t use_top_tile, TileTextureDef hill_top_tile,
+                    uint8_t use_down_tile, TileTextureDef hill_down_tile)
 {
-    printf("Dibujando pared de tx: %d, ty: %d por tantos tiles de alto: %d\n", tx, ty, height_tiles);
     if (!level)
         return;
     if (tx >= level->width)
         return;
 
-    wall_tile.collision = TILE_COLL_SOLID;
+    // Estas propiedades ya se las asigno al iniciarlizar la textura
+    // hill_tile.collision = TILE_COLL_SOLID;
+    // hill_top_tile.collision = TILE_COLL_SOLID;
 
-    for (uint16_t i = 0; i < height_tiles; i++)
-    {
-        uint16_t y = ty + i;
-        if (y >= level->height)
-            break;
-        level_set_tile(level, tx, y, wall_tile);
+    for (uint16_t x=tx; x<tx+width_tiles; x++) {
+        for (uint16_t i = 0; i < height_tiles; i++)
+        {
+            uint16_t y = ty + i;
+            if (y >= level->height)
+                break;
+            if (use_top_tile && i == 0) level_set_tile(level, x, y, hill_top_tile);
+            else if (use_down_tile && i == height_tiles - 1) level_set_tile(level, x, y, hill_down_tile);
+            else level_set_tile(level, x, y, hill_tile);
+        }
     }
 }
 
