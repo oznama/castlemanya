@@ -29,7 +29,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 					.wall_left_openings_count = 1,
 					.wall_right_openings = {
 						{ .start = 0, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 128},
-						{ .start = 18, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 128 }
+						{ .start = 19, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 128 }
 					},
 					.wall_right_openings_count = 2
 				}
