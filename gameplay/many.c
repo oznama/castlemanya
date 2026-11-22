@@ -376,6 +376,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
             many_change_state(MANY_STATE_FALL);
     }
 
+    int32_t y_velocity_before = y_velocity;
     int32_t vy = y_velocity >> FIXED_SHIFT;
 
     // 4. Resolucion de colisiones con el nivel
@@ -417,6 +418,23 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
             x_velocity = 0;
     }
 
+    /* Si Many esta sobre escalera o pisando suelo */
+    int32_t current_foot_x = current_x + (MANY_COLLISION_WIDTH / 2);
+    int32_t resolved_feet_y = current_y + MANY_COLLISION_HEIGHT;
+    int32_t stair_snap_y = 0;
+
+    bool on_stair = level_get_stair_surface_y(level, current_foot_x, resolved_feet_y, &stair_snap_y);
+
+    if (on_stair && (is_grounded || many.grouded || y_velocity >= 0))
+    {
+        /* Si los pies están cerca de la superficie diagonal de la rampa, snap exacto */
+        if (resolved_feet_y >= stair_snap_y - 10 && resolved_feet_y <= stair_snap_y + 10)
+        {
+            current_y = stair_snap_y - MANY_COLLISION_HEIGHT;
+            is_grounded = true;
+        }
+    }
+
     many.x = current_x;
     many.y = current_y * FIXED_ONE;
 
@@ -426,7 +444,9 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         x_velocity = 0;
         many.grouded = 1;
 
-        if (!was_grounded)
+        /* Solo activar la animación de aterrizaje/agacharse si venía de una caída real en el aire
+         * (tiempo en el aire prolongado o velocidad de caída significativa), no por salir de una escalera */
+        if (!was_grounded && !on_stair && (y_velocity_before > (GRAVITY * 3)))
         {
             landing_timer = RECOVERY_TIMER;
             landed_this_frame = 1;

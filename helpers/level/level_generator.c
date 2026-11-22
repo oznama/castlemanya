@@ -408,6 +408,9 @@ void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
 
     if (direction == STAIRWAY_LEFT)
     {
+        TileTextureDef stair_def = theme->stairwayl_tile;
+        stair_def.collision = TILE_COLL_STAIR_LEFT;
+
         // Plataforma base inferior
         level_add_wall(level, tx, ty - 1, base_width, lower_h,
                        theme->filled_tile, 0, theme->filled_tile, with_base, theme->hillb_tile);
@@ -432,7 +435,7 @@ void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
             level_add_wall(level, tx + base_w + i, step_y--, 1, 1 + j,
                            theme->filled_tile, 1, theme->stairwaybl_tile, 0, theme->filled_tile);
             level_add_wall(level, tx + base_w + i, step_y, 1, 1,
-                           theme->stairwayl_tile, 1, theme->stairwayl_tile, 1, theme->filled_tile);
+                           stair_def, 1, stair_def, 1, theme->filled_tile);
         }
 
         // Final de plataforma (parte alta)
@@ -441,6 +444,9 @@ void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
     }
     else if (direction == STAIRWAY_RIGHT)
     {
+        TileTextureDef stair_def = theme->stairwayr_tile;
+        stair_def.collision = TILE_COLL_STAIR_RIGHT;
+
         // Plataforma base inferior
         uint16_t base_tx = tx - base_width;
         level_add_wall(level, base_tx, ty - 1, base_width, lower_h,
@@ -466,7 +472,7 @@ void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
             level_add_wall(level, aux_x + i, step_y--, 1, 1 + i,
                            theme->filled_tile, 1, theme->stairwaybr_tile, 0, theme->filled_tile);
             level_add_wall(level, aux_x + i, step_y, 1, 1,
-                           theme->stairwayr_tile, 1, theme->stairwayr_tile, 1, theme->filled_tile);
+                           stair_def, 1, stair_def, 1, theme->filled_tile);
         }
 
         // Final de plataforma (parte alta)
@@ -785,6 +791,46 @@ TileCollisionType level_get_tile_collision(const DynamicLevel *level, int32_t tx
     return (TileCollisionType)tile->collision_type;
 }
 
+bool level_get_stair_surface_y(const DynamicLevel *level, int32_t x, int32_t feet_y, int32_t *out_floor_y)
+{
+    if (!level || !out_floor_y)
+        return false;
+
+    if (x < 0 || x >= (int32_t)level->pixel_width)
+        return false;
+
+    int32_t tx = x / TILE_SIZE;
+    int32_t offset_x = x % TILE_SIZE;
+    if (offset_x < 0)
+        offset_x += TILE_SIZE;
+
+    int32_t center_ty = feet_y / TILE_SIZE;
+
+    /* Comprobar exclusivamente si el tile en tx es escalera */
+    for (int32_t dty = -2; dty <= 2; dty++)
+    {
+        int32_t ty = center_ty + dty;
+        if (ty < 0 || ty >= level->height)
+            continue;
+
+        TileCollisionType coll = level_get_tile_collision(level, tx, ty);
+        if (coll == TILE_COLL_STAIR_LEFT)
+        {
+            /* Sube hacia la izquierda: base baja a la derecha (offset_x=15 -> y=ty*16+15), alta a la izquierda (offset_x=0 -> y=ty*16) */
+            *out_floor_y = (ty * TILE_SIZE) + offset_x;
+            return true;
+        }
+        else if (coll == TILE_COLL_STAIR_RIGHT)
+        {
+            /* Sube hacia la derecha: base baja a la izquierda (offset_x=0 -> y=ty*16+15), alta a la derecha (offset_x=15 -> y=ty*16) */
+            *out_floor_y = (ty * TILE_SIZE) + (TILE_SIZE - 1 - offset_x);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool level_point_is_solid(const DynamicLevel *level, int32_t world_x, int32_t world_y)
 {
     if (!level)
@@ -867,20 +913,25 @@ void level_resolve_entity_collision(const DynamicLevel *level,
     }
 
     /* Verificamos si la nueva posicion X colisiona con solidos
-     * Dejamos 2 px de holgura en Y (cabeza y pies) para evitar falsos positivos con piso/techo */
+     * Dejamos margen en Y para evitar falsos positivos con piso/techo y escalones */
+    int32_t foot_center_x = x + (w / 2);
+    int32_t dummy_stair_y = 0;
+    bool on_stair = level_get_stair_surface_y(level, foot_center_x, y + h, &dummy_stair_y);
+
     if (vx > 0)
     {
         /* Movimiento hacia la derecha */
         int32_t check_tx = (new_x + w - 1) / TILE_SIZE;
         int32_t start_ty = (y + 2) / TILE_SIZE;
-        int32_t end_ty = (y + h - 3) / TILE_SIZE;
+        int32_t end_ty = (on_stair ? (y + h - 18) : (y + h - 6)) / TILE_SIZE;
         if (end_ty < start_ty)
             end_ty = start_ty;
         bool hit_wall = false;
 
         for (int32_t ty = start_ty; ty <= end_ty; ty++)
         {
-            if (level_get_tile_collision(level, check_tx, ty) == TILE_COLL_SOLID)
+            TileCollisionType coll = level_get_tile_collision(level, check_tx, ty);
+            if (coll == TILE_COLL_SOLID)
             {
                 hit_wall = true;
                 break;
@@ -898,14 +949,15 @@ void level_resolve_entity_collision(const DynamicLevel *level,
         /* Movimiento hacia la izquierda */
         int32_t check_tx = new_x / TILE_SIZE;
         int32_t start_ty = (y + 2) / TILE_SIZE;
-        int32_t end_ty = (y + h - 3) / TILE_SIZE;
+        int32_t end_ty = (on_stair ? (y + h - 18) : (y + h - 6)) / TILE_SIZE;
         if (end_ty < start_ty)
             end_ty = start_ty;
         bool hit_wall = false;
 
         for (int32_t ty = start_ty; ty <= end_ty; ty++)
         {
-            if (level_get_tile_collision(level, check_tx, ty) == TILE_COLL_SOLID)
+            TileCollisionType coll = level_get_tile_collision(level, check_tx, ty);
+            if (coll == TILE_COLL_SOLID)
             {
                 hit_wall = true;
                 break;
@@ -992,7 +1044,23 @@ void level_resolve_entity_collision(const DynamicLevel *level,
             }
         }
 
-        if (hit_floor)
+        /* Deteccion y aterrizaje en escaleras en 45 grados */
+        int32_t foot_center_x = x + (w / 2);
+        int32_t stair_y = 0;
+        if (level_get_stair_surface_y(level, foot_center_x, new_feet_y, &stair_y))
+        {
+            /* Si los pies cruzaron o estan sobre la superficie de la rampa */
+            if (new_feet_y >= stair_y - 4 && old_feet_y <= stair_y + 12)
+            {
+                new_y = stair_y - h;
+                vy = 0;
+                grounded = true;
+                hit_floor = true;
+            }
+        }
+
+        /* Si aterrizó en una escalera o venía de una rampa, NO colisionar con piso plano debajo */
+        if (!grounded && hit_floor)
         {
             new_y = (check_ty * TILE_SIZE) - h;
             vy = 0;
@@ -1018,6 +1086,43 @@ void level_resolve_entity_collision(const DynamicLevel *level,
                 {
                     grounded = true;
                     break;
+                }
+            }
+        }
+        else
+        {
+            /* Si los pies están dentro de 1 o 2 px por encima del piso plano (por ejemplo al salir
+             * de una rampa), ajustar suavemente al piso plano para no perder el suelo */
+            int32_t next_support_ty = (support_y + 2) / TILE_SIZE;
+            int32_t floor_top = next_support_ty * TILE_SIZE;
+            if (support_y >= floor_top - 2 && support_y < floor_top)
+            {
+                for (int32_t tx = start_tx; tx <= end_tx; tx++)
+                {
+                    TileCollisionType coll =
+                        level_get_tile_collision(level, tx, next_support_ty);
+
+                    if (coll == TILE_COLL_SOLID || (coll == TILE_COLL_ONEWAY && next_support_ty != ignored_oneway_ty))
+                    {
+                        grounded = true;
+                        new_y = floor_top - h;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /* Soporte si los pies estan directamente sobre una superficie de escalera */
+        if (!grounded)
+        {
+            int32_t foot_center_x = x + (w / 2);
+            int32_t stair_y = 0;
+            if (level_get_stair_surface_y(level, foot_center_x, support_y, &stair_y))
+            {
+                if (support_y >= stair_y - 6 && support_y <= stair_y + 6)
+                {
+                    grounded = true;
+                    new_y = stair_y - h;
                 }
             }
         }

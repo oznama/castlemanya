@@ -32,9 +32,11 @@ typedef enum
 /* Tipos de colision y comportamiento de cada celda del tilemap */
 typedef enum
 {
-    TILE_COLL_NONE = 0,  /* Espacio libre / fondo sin colision */
-    TILE_COLL_SOLID = 1, /* Solido completo: bloquea piso, pared y techo */
-    TILE_COLL_ONEWAY = 2 /* Plataforma atravesable desde abajo (semi-solida) */
+    TILE_COLL_NONE = 0,         /* Espacio libre / fondo sin colision */
+    TILE_COLL_SOLID = 1,        /* Solido completo: bloquea piso, pared y techo */
+    TILE_COLL_ONEWAY = 2,       /* Plataforma atravesable desde abajo (semi-solida) */
+    TILE_COLL_STAIR_LEFT = 3,   /* Escalon/rampa sube hacia la izquierda (\) */
+    TILE_COLL_STAIR_RIGHT = 4   /* Escalon/rampa sube hacia la derecha (/) */
 } TileCollisionType;
 
 /* Definicion de textura / coordenadas UV en el tileset.tim (16x16 cada tile) */
@@ -337,6 +339,13 @@ void level_render(const DynamicLevel *level);
  * Obtiene el tipo de colision en un tile especifico.
  */
 TileCollisionType level_get_tile_collision(const DynamicLevel *level, int32_t tx, int32_t ty);
+
+/**
+ * Obtiene la altura del piso en pixeles para una coordenada horizontal x (en pixeles del mundo).
+ * Si hay un escalon/rampa o solido cercano debajo de feet_y, calcula la altura exacta en 45 grados.
+ * Retorna true si se encontro una superficie de escalera/piso debajo y escribe en *out_floor_y.
+ */
+bool level_get_stair_surface_y(const DynamicLevel *level, int32_t x, int32_t feet_y, int32_t *out_floor_y);
 
 /**
  * Verifica si un punto en el mundo choca con un tile solido.
