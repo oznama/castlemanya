@@ -6,7 +6,7 @@
 
 #define DOOR_W_BASE 13
 #define DOOR_H 81
-#define DOOR_V 64
+#define DOOR_V 94
 #define DOOR_SPRITES 10
 
 CD_TEXTURE door_tim;

@@ -8,6 +8,7 @@ typedef enum
     MANY_STATE_IDLE,
     MANY_STATE_RUN,
     MANY_STATE_ATTACK,
+    MANY_STATE_ATTACK_CROUNCH,
     MANY_STATE_JUMP,
     MANY_STATE_FALL,
     MANY_STATE_CROUNCH,
@@ -16,13 +17,14 @@ typedef enum
     MANY_STATE_HIGHJUMP
 } ManyState;
 
-typedef enum
+typedef struct
 {
-    MANY_WEAPON_WHIP,
-    MANY_WEAPON_SPEAR,
-    MANY_WEAPON_CROSS_AXE,
-    MANY_WEAPON_HOLY_WATER
-} ManyWeaponType;
+    uint8_t has_vampire_killer;
+    uint8_t has_double_jump; // Si ya obtuvo el powerup
+    uint8_t has_cross;
+    uint8_t has_backdash;
+    uint8_t has_high_jump; // Disponible si ya obtuvo dicha reliquia
+} MANY_RELIQ;
 
 typedef struct
 {
@@ -30,12 +32,10 @@ typedef struct
     uint32_t x, y;
     uint8_t direction;
     uint8_t grouded;
-    uint8_t has_double_jump; // Si ya obtuvo el powerup
     uint8_t can_double_jump; // Disponible para usarse en el aire actual
-    uint8_t has_high_jump; // Disponible si ya obtuvo dicha reliquia
     unsigned char r, g, b;
     ManyState current_state;
-    ManyWeaponType weapon;
+    MANY_RELIQ reliq;
     SPRITE_OBJECT anim[10];
 } MANY_OBJECT;
 

@@ -412,8 +412,11 @@ void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
         stair_def.collision = TILE_COLL_STAIR_LEFT;
 
         // Plataforma base inferior
-        level_add_wall(level, tx, ty - 1, base_width, lower_h,
-                       theme->filled_tile, 0, theme->filled_tile, with_base, theme->hillb_tile);
+        if (with_base)
+        {
+            level_add_wall(level, tx, ty - 1, base_width, lower_h,
+                           theme->filled_tile, 0, theme->filled_tile, with_base, theme->hillb_tile);
+        }
 
         // Inicio de plataforma (parte baja)
         uint16_t lower_tx = tx + base_w + steps;
@@ -449,8 +452,11 @@ void level_add_stairway(DynamicLevel *level, const LevelThemeTextures *theme,
 
         // Plataforma base inferior
         uint16_t base_tx = tx - base_width;
-        level_add_wall(level, base_tx, ty - 1, base_width, lower_h,
-                       theme->filled_tile, 0, theme->filled_tile, with_base, theme->hillb_tile);
+        if (with_base)
+        {
+            level_add_wall(level, base_tx, ty - 1, base_width, lower_h,
+                           theme->filled_tile, 0, theme->filled_tile, with_base, theme->hillb_tile);
+        }
 
         // Inicio de plataforma (parte baja)
         if (with_border && lower_w > 0)

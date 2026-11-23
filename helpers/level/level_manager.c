@@ -1,10 +1,11 @@
 #include "level_manager.h"
 
 #include "../../world/level01.h"
+#include "../../world/level02.h"
 #include "../../world/level06.h"
 
 const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
-    {
+    [0] = {
 		.tilename = "TLSTEXT",
         .bgname = {"BGEXT"},
 		.level_data = {
@@ -61,7 +62,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = LEVEL_01_ROOMS
 	},
-    {
+    [1] = {
 		.tilename = "TLSTENT",
         .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
         .enter_door = {.x = 28, .y = 111, .rotateu = 0, .open = 0, .active = 1},
@@ -77,14 +78,23 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[1] = {
-				.width_tiles = 64, .height_tiles = 30, .level_orientation = LEVEL_HORIZONTAL,
-				.skip_border = { .skip_wall_left = 1, .skip_wall_rigth = 1 }
+				.width_tiles = 30, .height_tiles = 40, .level_orientation = LEVEL_HORIZONTAL,
+				.skip_border = {
+					.wall_left_openings = {
+						{ .start = 32, .size = 5, .active = 1}
+					},
+					.wall_left_openings_count = 1,
+					.wall_right_openings = {
+						{ .start = 1, .size = 5, .active = 1},
+					},
+					.wall_right_openings_count = 1
+				}
 			},
 			[2] = {
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_left_openings = {
-						{ .start = 7, .size = 5, .active = 1 }
+						{ .start = 7, .size = 5, .active = 1, .target_room = 2, .target_x = 450, .target_y = 48 }
 					},
 					.wall_left_openings_count = 1,
 				}
@@ -92,7 +102,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = 3
 	},
-    {
+    [2] = {
 		.tilename = "TLSTCSHW",
         .bgname = {"BGCSTHW1", "BGCSTHW2", "BGCSTHW3", "BGCSTHW4"},
         .enter_door = {.x = 28, .y = 111, .rotateu = 0, .open = 0,.active = 1},
@@ -102,7 +112,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = 1
 	},
-    {
+    [3] = {
 		.tilename = "TLSTCAS",
         .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
@@ -112,7 +122,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = 1
 	},
-    {
+    [4] = {
 		.tilename = "TLSTCLD",
         .bgname = {"BGCOLD"},
 		.level_data = {
@@ -122,7 +132,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = 1
 	},
-    {
+    [5] = {
 		.tilename = "TLSTGRN",
         .bgname = {"BGGROUND"},
 		.exit_door = {.x = 442, .y = 80, .rotateu = 1, .open = 0, .active = 1},
@@ -150,7 +160,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = LEVEL_06_ROOMS
 	},
-	{
+	[6] = {
 		.tilename = "TLSTCAS",
         .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
@@ -160,7 +170,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		},
 		.rooms = 1
 	},
-	{
+	[7] = {
 		.tilename = "TLSTCAS",
         .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
@@ -179,6 +189,9 @@ void level_draw(uint8_t currentLevel, uint8_t currentRoom, DynamicLevel *level, 
     case 1:
         level_01_builder(currentRoom, level, theme);
         break;
+	case 2:
+		level_02_builder(currentRoom, level, theme);
+		break;
     case 6:
         level_06_builder(currentRoom, level, theme);
         break;

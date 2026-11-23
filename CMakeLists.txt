@@ -28,6 +28,7 @@ psn00bsdk_add_executable(
 	ui/menu.c
 	ui/gameplay.c
 	world/level01.c
+	world/level02.c
 	world/level06.c
 )
 

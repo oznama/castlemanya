@@ -30,14 +30,11 @@ MANY_OBJECT many = {
     .hp = 70,
     .mp = 20,
     .current_state = MANY_STATE_IDLE,                         // Estado base respirando
-    .weapon = MANY_WEAPON_WHIP,                               // Many con latigo
     .x = 10,                                                  // Posicion en X
     .y = (SCREEN_YRES - MANY_SIZE - FLOOR_LIMIT) * FIXED_ONE, // Posicion en Y
     .direction = 1,                                           // Direccion derecha
     .grouded = 1,                                             // En el piso
-    .has_double_jump = 0,
     .can_double_jump = 0,
-    .has_high_jump = 0,
     .r = 128, // Color R
     .g = 128, // Color G
     .b = 128, // Color B
@@ -46,12 +43,18 @@ MANY_OBJECT many = {
             .w = 32, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 4, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
         [MANY_STATE_RUN] = {.w = 48, .h = 48, .u = 0, .v = 0, .current_frame = 0, .total_frames = 3, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
         [MANY_STATE_ATTACK] = {.w = 64, .h = 64, .u = 0, .v = 0, .current_frame = 0, .total_frames = 5, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1},
+        [MANY_STATE_ATTACK_CROUNCH] = {.w = 64, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 5, .anim_timer = 0, .anim_speed = 8, .anim_dir = 1},
         [MANY_STATE_JUMP] = {.w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_FALL] = {.w = 32, .h = 64, .u = 32, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_CROUNCH] = {.w = 32, .h = 64, .u = 64, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_HURT] = {.w = 32, .h = 64, .u = 96, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_BACKDASH] = {.w = 32, .h = 64, .u = 0, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
-        [MANY_STATE_HIGHJUMP] = {.w = 32, .h = 64, .u = 32, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1}}};
+        [MANY_STATE_HIGHJUMP] = {.w = 32, .h = 64, .u = 32, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1}
+    },
+    .reliq = {
+        .has_vampire_killer = 1
+    }
+};
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
@@ -92,15 +95,16 @@ static void many_draw_sprite(int32_t x, int32_t y)
 
 static void many_draw_whip(int32_t x, int32_t y)
 {
-    if (many.current_state != MANY_STATE_ATTACK || many.weapon != MANY_WEAPON_WHIP)
+    if (many.current_state != MANY_STATE_ATTACK)
         return;
 
     if (many.anim[MANY_STATE_ATTACK].current_frame >= 2)
     {
         int32_t facing = many.direction ? 1 : -1;
+        int8_t vk = many.reliq.has_vampire_killer;
         int32_t origin_x = x + MANY_COLLISION_WIDTH + facing * 8;
-        int32_t segment_x = facing > 0 ? origin_x + 16 : origin_x - 94;
-        render_rect(segment_x, y + 8, 64, 1, 205, 205, 205);
+        int32_t segment_x = facing > 0 ? origin_x + (vk ? 16 : 8) : origin_x - ( vk ? 94 : 74);
+        render_rect(segment_x, y + 8, vk ? 64 : 48, 2, vk ? 205 : 69, vk ? 205 : 40, vk ? 205 : 60);
     }
 }
 
@@ -266,7 +270,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
 
     if (!many_is_state_locked())
     {
-        highjump_requested = many.has_high_jump && highjump_input_timer > 0 && (held_buttons & PAD_UP) && (pressed_buttons & PAD_CROSS) && many.grouded;
+        highjump_requested = many.reliq.has_high_jump && highjump_input_timer > 0 && (held_buttons & PAD_UP) && (pressed_buttons & PAD_CROSS) && many.grouded;
 
         if (highjump_requested || (pressed_buttons & PAD_CROSS))
         {
@@ -288,7 +292,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
             many_move_crouch(held_buttons);
         }
 
-        if (!many_is_state_locked() &&
+        if (many.reliq.has_backdash && !many_is_state_locked() &&
             many.current_state != MANY_STATE_CROUNCH &&
             many.grouded &&
             !highjump_requested &&
@@ -349,7 +353,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         {
             y_velocity = -HIGHJUMP_SPEED;
             many.grouded = 0;
-            many.can_double_jump = many.has_double_jump;
+            many.can_double_jump = many.reliq.has_double_jump;
             many_change_state(MANY_STATE_HIGHJUMP);
             x_velocity = vx;
         }
@@ -357,7 +361,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         {
             y_velocity = -JUMP_SPEED;
             many.grouded = 0;
-            many.can_double_jump = many.has_double_jump;
+            many.can_double_jump = many.reliq.has_double_jump;
             many_change_state(MANY_STATE_JUMP);
             x_velocity = vx;
         }
@@ -461,7 +465,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
             many_change_state(MANY_STATE_CROUNCH);
         }
 
-        many.can_double_jump = many.has_double_jump;
+        many.can_double_jump = many.reliq.has_double_jump;
 
         if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_CROUNCH && backdash_remaining == 0)
         {
