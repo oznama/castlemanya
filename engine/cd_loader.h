@@ -11,3 +11,4 @@ typedef struct {
 } CD_TEXTURE;
 
 int cd_load_image(const char *path, CD_TEXTURE *texture);
+char* cd_read_txt(const char* path);
