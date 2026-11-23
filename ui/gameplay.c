@@ -55,8 +55,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			.stairwayr_tile = {.u = 16, .v = 32, .collision = TILE_COLL_STAIR_RIGHT},
 			.stairwaybr_tile = {.u = 16, .v = 48, .collision = TILE_COLL_SOLID},
 			.bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE},
-			.use_bg_tile = 1
-		};
+			.use_bg_tile = 1};
 
 		/* Generar nivel dinamico: */
 		level_generate_base(
@@ -66,15 +65,13 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			level_info.level_data[currentRoom - 1].level_orientation,
 			&tileset_tim,
 			&theme,
-			level_info.level_data[currentRoom - 1].skip_border
-		);
+			level_info.level_data[currentRoom - 1].skip_border);
 
 		level_draw(
 			currentLevel,
 			currentRoom,
 			&current_level,
-			&theme
-		);
+			&theme);
 
 		uint8_t background_count = 0;
 		CD_TEXTURE background_tim[BACKGROUND_MAX] = {};
@@ -106,34 +103,40 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		if (level_info.enter_door.active && currentRoom == 1)
 		{
 			level_set_enter_door(&current_level,
-			                     level_info.enter_door.x,
-			                     level_info.enter_door.y,
-			                     level_info.enter_door.rotateu,
-			                     level_info.enter_door.open);
+								 level_info.enter_door.x,
+								 level_info.enter_door.y,
+								 level_info.enter_door.rotateu,
+								 level_info.enter_door.open);
 		}
 		if (level_info.exit_door.active && currentRoom == level_info.rooms)
 		{
 			level_set_exit_door(&current_level,
-			                    level_info.exit_door.x,
-			                    level_info.exit_door.y,
-			                    level_info.exit_door.rotateu,
-			                    level_info.exit_door.open);
+								level_info.exit_door.x,
+								level_info.exit_door.y,
+								level_info.exit_door.rotateu,
+								level_info.exit_door.open);
 		}
 
 		MANY_OBJECT *many_ptr = many_get_instance();
 		/* Posicionar a Many segun de donde viene (inicio, nivel anterior/siguiente o hueco personalizado) */
-		int32_t default_spawn_y = (current_level.pixel_height - MANY_COLLISION_HEIGHT - (3 * TILE_SIZE));
+		const int32_t spawn_margin = 2 * TILE_SIZE;
+		int32_t default_spawn_y =
+			(int32_t)current_level.pixel_height - (3 * TILE_SIZE) - MANY_COLLISION_HEIGHT;
+
+		int32_t left_spawn_x = spawn_margin;
+		int32_t right_spawn_x =
+			(int32_t)current_level.pixel_width - MANY_COLLISION_WIDTH - spawn_margin;
 		LevelDoor *exit_door = level_get_exit_door(&current_level);
 		LevelDoor *enter_door = level_get_enter_door(&current_level);
 
 		if (custom_spawn_x >= 0 || custom_spawn_y >= 0)
 		{
 			int32_t spawn_x = (custom_spawn_x >= 0)
-				? custom_spawn_x
-				: (spawn_at_exit ? ((int32_t)current_level.pixel_width - MANY_COLLISION_WIDTH - 1) : 1);
+								  ? custom_spawn_x
+								  : (spawn_at_exit ? right_spawn_x : left_spawn_x);
 			int32_t spawn_y = (custom_spawn_y >= 0)
-				? custom_spawn_y
-				: default_spawn_y;
+								  ? custom_spawn_y
+								  : default_spawn_y;
 
 			many_set_position(spawn_x, spawn_y);
 			if (spawn_at_exit)
@@ -151,16 +154,16 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		else if (spawn_at_exit)
 		{
 			int32_t spawn_x = (exit_door && exit_door->active)
-				? (exit_door->x - MANY_COLLISION_WIDTH - 8)
-				: (int32_t)current_level.pixel_width - MANY_COLLISION_WIDTH - 1;
+								  ? (exit_door->x - MANY_COLLISION_WIDTH - 8)
+								  : right_spawn_x;
 			many_set_position(spawn_x, default_spawn_y);
 			many_ptr->direction = 0; // Mirando a la izquierda al entrar desde la salida
 		}
 		else
 		{
 			int32_t spawn_x = (enter_door && enter_door->active)
-				? (enter_door->x + DOOR_W_BASE + 8)
-				: 1;
+								  ? (enter_door->x + DOOR_W_BASE + 8)
+								  : left_spawn_x;;
 			many_set_position(spawn_x, default_spawn_y);
 			many_ptr->direction = 1; // Mirando a la derecha al entrar desde la entrada
 		}
@@ -183,13 +186,12 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 
 			/*
 			 * 2. Transicion por puertas en el nivel (recorriendo array de puertas)
-			*/
+			 */
 			RectangleCollisioner many_feet_box = {
 				.x = (float)many_ptr->x,
 				.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
 				.width = (float)MANY_COLLISION_WIDTH,
-				.height = 16.0f
-			};
+				.height = 16.0f};
 
 			for (uint8_t d = 0; d < current_level.door_count; d++)
 			{
@@ -203,8 +205,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 						.x = (float)(door->x - 16),
 						.y = (float)(door->y + DOOR_H - 16),
 						.width = (float)DOOR_W_BASE + 16.0f,
-						.height = 16.0f
-					};
+						.height = 16.0f};
 
 					if (check_collision_AABB(many_feet_box, enter_door_box))
 					{
@@ -220,8 +221,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 						.x = (float)door->x,
 						.y = (float)(door->y + DOOR_H - 16),
 						.width = (float)DOOR_W_BASE + 16.0f,
-						.height = 16.0f
-					};
+						.height = 16.0f};
 
 					if (check_collision_AABB(many_feet_box, exit_door_box))
 					{
@@ -251,8 +251,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				const BorderOpening *opening = level_border_find_opening_at(
 					current_border->wall_left_openings,
 					current_border->wall_left_openings_count,
-					many_ty
-				);
+					many_ty);
 
 				if (opening && opening->target_room > 0)
 				{
@@ -290,8 +289,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				const BorderOpening *opening = level_border_find_opening_at(
 					current_border->wall_right_openings,
 					current_border->wall_right_openings_count,
-					many_ty
-				);
+					many_ty);
 
 				if (opening && opening->target_room > 0)
 				{
@@ -328,8 +326,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				const BorderOpening *opening = level_border_find_opening_at(
 					current_border->ceiling_openings,
 					current_border->ceiling_openings_count,
-					many_tx
-				);
+					many_tx);
 
 				if (opening && opening->target_room > 0)
 				{
@@ -353,8 +350,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				const BorderOpening *opening = level_border_find_opening_at(
 					current_border->floor_openings,
 					current_border->floor_openings_count,
-					many_tx
-				);
+					many_tx);
 
 				if (opening && opening->target_room > 0)
 				{

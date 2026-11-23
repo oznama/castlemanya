@@ -98,9 +98,9 @@ static void many_draw_whip(int32_t x, int32_t y)
     if (many.anim[MANY_STATE_ATTACK].current_frame >= 2)
     {
         int32_t facing = many.direction ? 1 : -1;
-        int32_t origin_x = x + MANY_COLLISION_WIDTH / 2 + facing * 8;
-        int32_t segment_x = facing > 0 ? origin_x : origin_x - 64;
-        render_rect(segment_x, y + 24, 64, 1, 205, 205, 205);
+        int32_t origin_x = x + MANY_COLLISION_WIDTH + facing * 8;
+        int32_t segment_x = facing > 0 ? origin_x + 16 : origin_x - 94;
+        render_rect(segment_x, y + 8, 64, 1, 205, 205, 205);
     }
 }
 
@@ -213,6 +213,13 @@ void many_set_position(int32_t world_x, int32_t world_y)
 {
     many.x = world_x;
     many.y = world_y * FIXED_ONE;
+
+    x_velocity = 0;
+    y_velocity = 0;
+    drop_through_row = -1;
+    backdash_remaining = 0;
+    landing_timer = 0;
+    many.grouded = 1;
 }
 
 void many_render_in_camera(int32_t cam_x, int32_t cam_y)

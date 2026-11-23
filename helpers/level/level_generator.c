@@ -519,7 +519,7 @@ void level_generate_base(DynamicLevel *level, uint16_t width_tiles, uint16_t hei
     /* 1. Construir perimetro seguro: piso de 3 tiles, techo de 2 tiles, paredes de 2 tiles */
     level_build_border(level,
                        theme->floor_tile, 3,
-                       theme->ceiling_tile, 2,
+                       theme->ceiling_tile, 1,
                        theme->wall_tile, 2,
                        theme->filled_tile,
                        skip_border);

@@ -13,7 +13,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
 					.wall_right_openings = {
-						{ .start = 0, .size = 15, .active = 1, .target_room = 2, .target_x = 34, .target_y = 16 }
+						{ .start = 0, .size = 15, .active = 1, .target_room = 2, .target_x = 34, .target_y = 32 }
 					},
 					.wall_right_openings_count = 1,
 				},
@@ -24,12 +24,12 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 					.skip_ceiling = 1,
 					.skip_floor = 1,
 					.wall_left_openings = {
-						{ .start = 0, .size = 5, .active = 1, .target_room = 1, .target_x = 600, .target_y = 128 }
+						{ .start = 0, .size = 5, .active = 1, .target_room = 1, .target_x = 600, .target_y = 144 }
 					},
 					.wall_left_openings_count = 1,
 					.wall_right_openings = {
-						{ .start = 0, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 128},
-						{ .start = 19, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 128 }
+						{ .start = 0, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 144},
+						{ .start = 19, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 144 }
 					},
 					.wall_right_openings_count = 2
 				}
@@ -38,7 +38,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				.width_tiles = 20, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_left_openings = {
-						{ .start = 7, .size = 5, .active = 1, .target_room = 2, .target_x = 600, .target_y = 688 }
+						{ .start = 7, .size = 5, .active = 1, .target_room = 2, .target_x = 600, .target_y = 672 }
 					},
 					.wall_left_openings_count = 1,
 				},
@@ -49,7 +49,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 					.skip_wall_left = 1,
 					.skip_ceiling = 1,
 					.wall_left_openings = {
-						{ .start = 0, .size = 15, .active = 1, .target_room = 2, .target_x = 564, .target_y = 16 }
+						{ .start = 0, .size = 15, .active = 1, .target_room = 2, .target_x = 564, .target_y = 32 }
 					},
 					.wall_left_openings_count = 1,
 					.wall_right_openings = {
