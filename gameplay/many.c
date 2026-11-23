@@ -58,7 +58,7 @@ MANY_OBJECT many = {
 
 void many_change_state(ManyState new_state);
 uint8_t many_is_state_locked(void);
-void many_action_attack(uint16_t pressed_buttons, uint16_t buttons_history[10]);
+void many_action_attack(uint16_t held_buttons, uint16_t pressed_buttons, uint16_t buttons_history[10]);
 void many_move_crouch(uint16_t held_buttons);
 
 CD_TEXTURE many_base_tim;
@@ -72,6 +72,7 @@ static CD_TEXTURE *many_texture_for_state(ManyState state)
     case MANY_STATE_RUN:
         return &many_action_tim;
     case MANY_STATE_ATTACK:
+    case MANY_STATE_ATTACK_CROUNCH:
         return &many_attack_tim;
     default:
         return &many_base_tim;
@@ -95,16 +96,16 @@ static void many_draw_sprite(int32_t x, int32_t y)
 
 static void many_draw_whip(int32_t x, int32_t y)
 {
-    if (many.current_state != MANY_STATE_ATTACK)
+    if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_ATTACK_CROUNCH)
         return;
 
-    if (many.anim[MANY_STATE_ATTACK].current_frame >= 2)
+    if (many.anim[many.current_state].current_frame >= 2)
     {
         int32_t facing = many.direction ? 1 : -1;
         int8_t vk = many.reliq.has_vampire_killer;
         int32_t origin_x = x + MANY_COLLISION_WIDTH + facing * 8;
         int32_t segment_x = facing > 0 ? origin_x + (vk ? 16 : 8) : origin_x - ( vk ? 94 : 74);
-        render_rect(segment_x, y + 8, vk ? 64 : 48, 2, vk ? 205 : 69, vk ? 205 : 40, vk ? 205 : 60);
+        render_rect(segment_x, many.current_state == MANY_STATE_ATTACK ? y + 8 : y + 20, vk ? 64 : 48, 2, vk ? 205 : 69, vk ? 205 : 40, vk ? 205 : 60);
     }
 }
 
@@ -134,6 +135,7 @@ uint8_t many_is_state_locked(void)
 {
     if (landing_timer > 0 ||
         many.current_state == MANY_STATE_ATTACK ||
+        many.current_state == MANY_STATE_ATTACK_CROUNCH ||
         many.current_state == MANY_STATE_HURT ||
         many.current_state == MANY_STATE_BACKDASH)
     {
@@ -142,7 +144,7 @@ uint8_t many_is_state_locked(void)
     return 0;
 }
 
-void many_action_attack(uint16_t pressed_buttons, uint16_t buttons_history[10])
+void many_action_attack(uint16_t held_buttons, uint16_t pressed_buttons, uint16_t buttons_history[10])
 {
     /*
     const PadButton PAD_BACK = many.direction ? PAD_LEFT : PAD_RIGHT;
@@ -162,8 +164,14 @@ void many_action_attack(uint16_t pressed_buttons, uint16_t buttons_history[10])
         // TODO DARK SOU STILL DAIK SOUL DAY MEDAMORFOSIS!;
         // TODO Poder carta del tarok
     else*/
-    if ((pressed_buttons & PAD_SQUARE))
-        many_change_state(MANY_STATE_ATTACK);
+    if (pressed_buttons & PAD_SQUARE)
+    {
+        if (many.grouded &&
+            ((held_buttons & PAD_DOWN) || many.current_state == MANY_STATE_CROUNCH))
+            many_change_state(MANY_STATE_ATTACK_CROUNCH);
+        else
+            many_change_state(MANY_STATE_ATTACK);
+    }
 }
 
 void many_move_crouch(uint16_t held_buttons)
@@ -285,7 +293,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
             highjump_input_timer--;
         }
 
-        many_action_attack(pressed_buttons, buttons_history);
+        many_action_attack(held_buttons, pressed_buttons, buttons_history);
 
         if (!many_is_state_locked())
         {
@@ -383,7 +391,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
         vx = x_velocity;
 
         y_velocity += GRAVITY;
-        if (y_velocity > 0 && many.current_state != MANY_STATE_ATTACK && backdash_remaining == 0)
+        if (y_velocity > 0 && many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_ATTACK_CROUNCH && backdash_remaining == 0)
             many_change_state(MANY_STATE_FALL);
     }
 
@@ -467,7 +475,7 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
 
         many.can_double_jump = many.reliq.has_double_jump;
 
-        if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_CROUNCH && backdash_remaining == 0)
+        if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_ATTACK_CROUNCH && many.current_state != MANY_STATE_CROUNCH && backdash_remaining == 0)
         {
             if ((held_buttons & PAD_LEFT) || (held_buttons & PAD_RIGHT))
                 many_change_state(MANY_STATE_RUN);
@@ -492,10 +500,10 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
 
     // 5. Animaciones
     uint8_t anim_finished = update_animation(&many.anim[many.current_state]);
-    if (anim_finished && many.current_state == MANY_STATE_ATTACK)
+    if (anim_finished && (many.current_state == MANY_STATE_ATTACK || many.current_state == MANY_STATE_ATTACK_CROUNCH))
     {
         if (many.grouded)
-            many_change_state(MANY_STATE_IDLE);
+            many_change_state(many.current_state == MANY_STATE_ATTACK ? MANY_STATE_IDLE : MANY_STATE_CROUNCH);
         else
             many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
     }
