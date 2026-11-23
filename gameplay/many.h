@@ -1,7 +1,7 @@
 #include "../graphics/animation.h"
 
 #define MANY_COLLISION_WIDTH 16
-#define MANY_COLLISION_HEIGHT 64
+#define MANY_COLLISION_HEIGHT 48
 
 typedef enum
 {
