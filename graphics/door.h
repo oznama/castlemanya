@@ -1,3 +1,5 @@
+#pragma once
+
 #define DOOR_W_BASE 13
 #define DOOR_H 81
 #define DOOR_SPRITES 10

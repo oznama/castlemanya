@@ -63,7 +63,7 @@ uint8_t relic_render_in_camera(RelicObject *relicObject, int32_t cam_x, int32_t 
         return 1;
     }
     
-    render_poly_ft4(relics_tim, screen_x, screen_y, 16, 16, relic_sprites[relicObject->relic].u, relic_sprites[relicObject->relic].v, 128, 128, 128, 0, 0);
+    render_sprt(relics_tim, screen_x, screen_y, 16, 16, relic_sprites[relicObject->relic].u, relic_sprites[relicObject->relic].v, 128, 128, 128);
 
     return 0;
 }
