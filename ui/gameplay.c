@@ -3,14 +3,12 @@
 
 #include "gameplay.h"
 #include "../engine/cd_loader.h"
-#include "../engine/game_state.h"
 #include "../engine/input.h"
 #include "../engine/loader.h"
 #include "../gameplay/many.h"
 #include "../gameplay/relic.h"
 #include "../graphics/door.h"
 #include "../graphics/graphic.h"
-#include "../helpers/collisions.h"
 #include "../helpers/level/level_generator.h"
 #include "../helpers/level/level_manager.h"
 
@@ -25,12 +23,18 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 	uint8_t spawn_at_exit = 0;
 	int32_t custom_spawn_x = -1;
 	int32_t custom_spawn_y = -1;
+	uint8_t previous_level = 0;
 
 	while (currentLevel >= 1 && currentLevel <= LEVELS_COUNT)
 	{
-		loader_show();
+		/* Solo mostrar pantalla de carga cuando se entra a un nuevo mundo/nivel */
+		if (currentLevel != previous_level)
+		{
+			loader_show();
+			previous_level = currentLevel;
+		}
 
-		/* 1. Cargar texturas, fondos y generar la habitación actual vía level_manager */
+		/* 1. Cargar texturas (si es nuevo nivel) y generar la habitación actual vía level_manager */
 		if (level_manager_load_room(currentLevel, currentRoom) != 0)
 		{
 			printf("Error al cargar Room %d del Nivel %d\n", currentRoom, currentLevel);

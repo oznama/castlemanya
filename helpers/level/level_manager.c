@@ -6,9 +6,9 @@
 
 LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
     [0] = {
+        .tilename = "TLSTEXT",.bgname = {"BGEXT"},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
@@ -19,7 +19,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				},
 			},
 			[1] = {
-				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_ceiling = 1,
@@ -36,7 +35,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[2] = {
-				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 20, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.relicObject = {
 					.relic = RELIC_VAMPIRE_KILLER, .x = 250, .y = 140, .vertical_direction = 1, .active = 1
@@ -49,7 +47,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				},
 			},
 			[3] = {
-				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_wall_left = 1,
@@ -68,11 +65,11 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.rooms = LEVEL_01_ROOMS
 	},
     [1] = {
+        .tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
         .enter_door = {.x = 28, .y = 111, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 111, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
 				.width_tiles = 128, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_right_openings = {
@@ -82,7 +79,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[1] = {
-				.tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
 				.width_tiles = 30, .height_tiles = 40, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_left_openings = {
@@ -96,7 +92,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[2] = {
-				.tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_left_openings = {
@@ -109,41 +104,41 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.rooms = 3
 	},
     [2] = {
+        .tilename = "TLSTCSHW", .bgname = {"BGCSTHW1", "BGCSTHW2", "BGCSTHW3", "BGCSTHW4"},
         .enter_door = {.x = 28, .y = 111, .rotateu = 0, .open = 0,.active = 1},
         .exit_door = {.x = 984, .y = 111, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTCSHW", .bgname = {"BGCSTHW1", "BGCSTHW2", "BGCSTHW3", "BGCSTHW4"},
 				.width_tiles = 64, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 			}
 		},
 		.rooms = 1
 	},
     [3] = {
+        .tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 272, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 			}
 		},
 		.rooms = 1
 	},
     [4] = {
+        .tilename = "TLSTCLD", .bgname = {"BGCOLD"},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTCLD", .bgname = {"BGCOLD"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1}
 			}
 		},
 		.rooms = 1
 	},
     [5] = {
+        .tilename = "TLSTGRN", .bgname = {"BGGROUND"},
 		.exit_door = {.x = 442, .y = 80, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTGRN", .bgname = {"BGGROUND"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1,
@@ -155,7 +150,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
             [1] = {
-				.tilename = "TLSTGRN", .bgname = {"BGGROUND"},
 				.width_tiles = 30, .height_tiles = LEVEL_MAX_WIDTH, .level_orientation = LEVEL_VERTICAL,
 				.skip_border = {
 					.wall_left_openings = {
@@ -168,22 +162,22 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.rooms = LEVEL_06_ROOMS
 	},
 	[6] = {
+        .tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 272, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 			}
 		},
 		.rooms = 1
 	},
 	[7] = {
+        .tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 272, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
-				.tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
 				.width_tiles = 40, .height_tiles = LEVEL_MAX_HEIGHT, .level_orientation = LEVEL_HORIZONTAL
 			}
 		},
@@ -219,6 +213,9 @@ static DynamicLevel s_current_level;
 /* Caché de texturas para evitar lecturas redundantes del CD */
 static CD_TEXTURE s_tileset_tim;
 static char s_cached_tilename[24] = "";
+static CD_TEXTURE s_background_tim[BACKGROUND_MAX];
+static uint8_t s_background_count = 0;
+static uint8_t s_cached_level = 0;
 
 /* Texturas base de tema por defecto (almacenadas como constante estática) */
 static const LevelThemeTextures s_default_theme = {
@@ -271,18 +268,41 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
     const LEVEL_DATA *room_data = &level_info->level_data[currentRoom - 1];
     char buffer[32];
 
-    /* 1. Cargar textura de tileset (con cache para no releer CD si es el mismo archivo) */
-    if (strcmp(s_cached_tilename, room_data->tilename) != 0)
+    /* 1. Cargar texturas del nivel (tileset y fondos) desde CD solo si cambió el nivel */
+    if (s_cached_level != currentLevel)
     {
-        sprintf(buffer, "\\%s.TIM", room_data->tilename);
-        int res = cd_load_image(buffer, &s_tileset_tim);
-        if (res != 0)
+        /* Cargar tileset si difiere del actual en VRAM */
+        if (strcmp(s_cached_tilename, level_info->tilename) != 0)
         {
-            printf("Error al cargar tileset %s (codigo %d)\n", buffer, res);
-            return res;
+            sprintf(buffer, "\\%s.TIM", level_info->tilename);
+            int res = cd_load_image(buffer, &s_tileset_tim);
+            if (res != 0)
+            {
+                printf("Error al cargar tileset %s (codigo %d)\n", buffer, res);
+                return res;
+            }
+            strncpy(s_cached_tilename, level_info->tilename, sizeof(s_cached_tilename) - 1);
+            s_cached_tilename[sizeof(s_cached_tilename) - 1] = '\0';
         }
-        strncpy(s_cached_tilename, room_data->tilename, sizeof(s_cached_tilename) - 1);
-        s_cached_tilename[sizeof(s_cached_tilename) - 1] = '\0';
+
+        /* Cargar fondos del nivel */
+        s_background_count = 0;
+        for (int i = 0; i < BACKGROUND_MAX; i++)
+        {
+            if (level_info->bgname[i][0] == '\0')
+                continue;
+
+            sprintf(buffer, "\\%s.TIM", level_info->bgname[i]);
+            int result = cd_load_image(buffer, &s_background_tim[s_background_count]);
+            if (result != 0)
+            {
+                printf("Error al cargar fondo %s (codigo %d)\n", buffer, result);
+                return result;
+            }
+            s_background_count++;
+        }
+
+        s_cached_level = currentLevel;
     }
 
     /* 2. Generar base del nivel dinámico */
@@ -298,26 +318,8 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
     /* 3. Dibujar la geometría y plataformas específicas del nivel */
     level_draw(currentLevel, currentRoom, &s_current_level, &s_default_theme);
 
-    /* 4. Cargar fondos asociados */
-    uint8_t background_count = 0;
-    CD_TEXTURE background_tim[BACKGROUND_MAX] = {};
-
-    for (int i = 0; i < BACKGROUND_MAX; i++)
-    {
-        if (room_data->bgname[i][0] == '\0')
-            continue;
-
-        sprintf(buffer, "\\%s.TIM", room_data->bgname[i]);
-        int result = cd_load_image(buffer, &background_tim[background_count]);
-        if (result != 0)
-        {
-            printf("Error al cargar fondo %s (codigo %d)\n", buffer, result);
-            return result;
-        }
-        background_count++;
-    }
-
-    level_set_background(&s_current_level, background_tim, background_count);
+    /* 4. Asignar los fondos precargados en VRAM sin leer nuevamente el CD */
+    level_set_background(&s_current_level, s_background_tim, s_background_count);
 
     /* 5. Configurar puertas de entrada y salida de los extremos del nivel */
     if (level_info->enter_door.active && currentRoom == 1)

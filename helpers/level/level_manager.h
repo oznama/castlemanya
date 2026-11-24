@@ -9,8 +9,6 @@
 
 typedef struct
 {
-    char tilename[20];
-    char bgname[BACKGROUND_MAX][20];
     uint16_t width_tiles, height_tiles;
     LevelSkipBorder skip_border;
     LEVEL_ORIENTATION level_orientation;
@@ -19,6 +17,8 @@ typedef struct
 
 typedef struct
 {
+    char tilename[20];
+    char bgname[BACKGROUND_MAX][20];
     LevelDoor enter_door;
     LevelDoor exit_door;
     LEVEL_DATA level_data[LEVEL_MAX_ROOMS];
