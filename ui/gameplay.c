@@ -7,6 +7,7 @@
 #include "../engine/input.h"
 #include "../engine/loader.h"
 #include "../gameplay/many.h"
+#include "../gameplay/relic.h"
 #include "../graphics/door.h"
 #include "../graphics/graphic.h"
 #include "../helpers/collisions.h"
@@ -25,7 +26,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 
 	while (currentLevel >= 1 && currentLevel <= LEVELS_COUNT)
 	{
-		LEVEL_WORLD level_info = LEVELS_INFO[currentLevel - 1];
+		LEVEL_WORLD *level_info = &LEVELS_INFO[currentLevel - 1];
 
 		loader_show();
 
@@ -33,9 +34,10 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		DynamicLevel current_level;
 
 		char buffer[30];
-		sprintf(buffer, "\\%s.TIM", level_info.tilename);
+		sprintf(buffer, "\\%s.TIM", level_info->level_data[currentRoom - 1].tilename);
 		cd_load_image(buffer, &tileset_tim);
 		many_init();
+		relic_init();
 
 		// Texturas a utilizar en nivel
 		LevelThemeTextures theme = {
@@ -60,12 +62,12 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		/* Generar nivel dinamico: */
 		level_generate_base(
 			&current_level,
-			level_info.level_data[currentRoom - 1].width_tiles,
-			level_info.level_data[currentRoom - 1].height_tiles,
-			level_info.level_data[currentRoom - 1].level_orientation,
+			level_info->level_data[currentRoom - 1].width_tiles,
+			level_info->level_data[currentRoom - 1].height_tiles,
+			level_info->level_data[currentRoom - 1].level_orientation,
 			&tileset_tim,
 			&theme,
-			level_info.level_data[currentRoom - 1].skip_border);
+			level_info->level_data[currentRoom - 1].skip_border);
 
 		level_draw(
 			currentLevel,
@@ -78,10 +80,10 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 
 		for (int i = 0; i < BACKGROUND_MAX; i++)
 		{
-			if (level_info.bgname[i][0] == '\0')
+			if (level_info->level_data[currentRoom - 1].bgname[i][0] == '\0')
 				continue;
 
-			sprintf(buffer, "\\%s.TIM", level_info.bgname[i]);
+			sprintf(buffer, "\\%s.TIM", level_info->level_data[currentRoom - 1].bgname[i]);
 
 			int result = cd_load_image(
 				buffer,
@@ -100,21 +102,21 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		level_set_background(&current_level, background_tim, background_count);
 
 		/* Configurar puertas de entrada y salida solo en las habitaciones de borde */
-		if (level_info.enter_door.active && currentRoom == 1)
+		if (level_info->enter_door.active && currentRoom == 1)
 		{
 			level_set_enter_door(&current_level,
-								 level_info.enter_door.x,
-								 level_info.enter_door.y,
-								 level_info.enter_door.rotateu,
-								 level_info.enter_door.open);
+								 level_info->enter_door.x,
+								 level_info->enter_door.y,
+								 level_info->enter_door.rotateu,
+								 level_info->enter_door.open);
 		}
-		if (level_info.exit_door.active && currentRoom == level_info.rooms)
+		if (level_info->exit_door.active && currentRoom == level_info->rooms)
 		{
 			level_set_exit_door(&current_level,
-								level_info.exit_door.x,
-								level_info.exit_door.y,
-								level_info.exit_door.rotateu,
-								level_info.exit_door.open);
+								level_info->exit_door.x,
+								level_info->exit_door.y,
+								level_info->exit_door.rotateu,
+								level_info->exit_door.open);
 		}
 
 		MANY_OBJECT *many_ptr = many_get_instance();
@@ -187,11 +189,11 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			/*
 			 * 2. Transicion por puertas en el nivel (recorriendo array de puertas)
 			 */
-			RectangleCollisioner many_feet_box = {
+			RectangleCollisioner many_hit_box = {
 				.x = (float)many_ptr->x,
 				.y = (float)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16),
 				.width = (float)MANY_COLLISION_WIDTH,
-				.height = 16.0f};
+				.height = 16.0f}; // Solo los pies
 
 			for (uint8_t d = 0; d < current_level.door_count; d++)
 			{
@@ -207,7 +209,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 						.width = (float)DOOR_W_BASE + 16.0f,
 						.height = 16.0f};
 
-					if (check_collision_AABB(many_feet_box, enter_door_box))
+					if (check_collision_AABB(many_hit_box, enter_door_box))
 					{
 						door->open = 1;
 						transition = TRANSITION_ENTER_DOOR;
@@ -215,7 +217,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 						break;
 					}
 				}
-				else if (door->type == DOOR_TYPE_EXIT && currentRoom == level_info.rooms && currentLevel < LEVELS_COUNT)
+				else if (door->type == DOOR_TYPE_EXIT && currentRoom == level_info->rooms && currentLevel < LEVELS_COUNT)
 				{
 					RectangleCollisioner exit_door_box = {
 						.x = (float)door->x,
@@ -223,7 +225,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 						.width = (float)DOOR_W_BASE + 16.0f,
 						.height = 16.0f};
 
-					if (check_collision_AABB(many_feet_box, exit_door_box))
+					if (check_collision_AABB(many_hit_box, exit_door_box))
 					{
 						door->open = 1;
 						transition = TRANSITION_EXIT_DOOR;
@@ -241,7 +243,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			/* Transicion por bordes del cuarto (pantallas abiertas / huecos personalizados) */
 			LevelDoor *active_enter_door = level_get_enter_door(&current_level);
 			LevelDoor *active_exit_door = level_get_exit_door(&current_level);
-			const LevelSkipBorder *current_border = &level_info.level_data[currentRoom - 1].skip_border;
+			const LevelSkipBorder *current_border = &level_info->level_data[currentRoom - 1].skip_border;
 
 			/* Borde Izquierdo */
 			if (many_ptr->x <= 0)
@@ -303,7 +305,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 					custom_spawn_y = (opening->target_y >= 0) ? opening->target_y : -1;
 					break;
 				}
-				else if (currentRoom < level_info.rooms)
+				else if (currentRoom < level_info->rooms)
 				{
 					currentRoom++;
 					spawn_at_exit = 0;
@@ -377,6 +379,30 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 
 			/* 6. Renderizar Many encima del nivel */
 			many_render_in_camera(cam_x, cam_y);
+
+			/* 7. Render reliquia */
+			if (level_info->level_data[currentRoom - 1].relicObject.active) {
+				uint8_t relic_touched = relic_render_in_camera(
+					&level_info->level_data[currentRoom - 1].relicObject, cam_x, cam_y, many_ptr->x,
+					((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16), MANY_COLLISION_WIDTH, MANY_COLLISION_HEIGHT
+				);
+				if(relic_touched) {
+					switch (level_info->level_data[currentRoom - 1].relicObject.relic)
+					{
+					case RELIC_VAMPIRE_KILLER:
+						many_ptr->reliq.has_vampire_killer = 1;
+						break;
+					case RELIC_DOBLE_JUMP:
+						many_ptr->reliq.has_double_jump = 1;
+						break;
+					case RELIC_CROSS:
+						many_ptr->reliq.has_cross = 1;
+						break;
+					default:
+						break;
+					}
+				}
+			}
 
 			sprintf(buffer, "Mundo: %d", currentLevel);
 			render_text(50, 50, 0, buffer);

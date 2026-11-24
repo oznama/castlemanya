@@ -23,6 +23,10 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
         level_add_stairway(level, theme, level->width / 2, 25, 10, 1, 7, 3, 0, 0, STAIRWAY_RIGHT);
         level_add_stairway(level, theme, level->width / 2, 25, 15, 1, 7, 3, 0, 0, STAIRWAY_LEFT);
     }
+    else if (currentRoom == 3)
+    {
+        level_add_wall(level, level->width - 6, level->height - 5, 4, 2, theme->wall_tile, 0, theme->hillf_tile, 0, theme->hillb_tile);
+    }
     else if (currentRoom == LEVEL_01_ROOMS)
     {
     }

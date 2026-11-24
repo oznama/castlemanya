@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../graphics/animation.h"
 
 #define MANY_COLLISION_WIDTH 16
@@ -23,6 +25,7 @@ typedef struct
     uint8_t has_double_jump; // Si ya obtuvo el powerup
     uint8_t has_cross;
     uint8_t has_backdash;
+    uint8_t has_tarot_card;
     uint8_t has_high_jump; // Disponible si ya obtuvo dicha reliquia
 } MANY_RELIQ;
 

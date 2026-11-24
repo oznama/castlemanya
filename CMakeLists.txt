@@ -18,6 +18,7 @@ psn00bsdk_add_executable(
 	engine/cd_loader.c
 	engine/loader.c
 	gameplay/many.c
+	gameplay/relic.c
 	graphics/animation.c
 	graphics/door.c
 	graphics/graphic.c

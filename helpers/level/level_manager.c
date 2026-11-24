@@ -4,12 +4,11 @@
 #include "../../world/level02.h"
 #include "../../world/level06.h"
 
-const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
+LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
     [0] = {
-		.tilename = "TLSTEXT",
-        .bgname = {"BGEXT"},
 		.level_data = {
 			[0] = {
+				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
@@ -20,6 +19,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				},
 			},
 			[1] = {
+				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_ceiling = 1,
@@ -36,7 +36,11 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[2] = {
+				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 20, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+				.relicObject = {
+					.relic = RELIC_VAMPIRE_KILLER, .x = 250, .y = 140, .vertical_direction = 1, .active = 1
+				},
 				.skip_border = {
 					.wall_left_openings = {
 						{ .start = 7, .size = 5, .active = 1, .target_room = 2, .target_x = 600, .target_y = 672 }
@@ -45,6 +49,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				},
 			},
 			[3] = {
+				.tilename = "TLSTEXT",.bgname = {"BGEXT"},
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_wall_left = 1,
@@ -63,12 +68,11 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.rooms = LEVEL_01_ROOMS
 	},
     [1] = {
-		.tilename = "TLSTENT",
-        .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
         .enter_door = {.x = 28, .y = 111, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 111, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
+				.tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
 				.width_tiles = 128, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_right_openings = {
@@ -78,6 +82,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[1] = {
+				.tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
 				.width_tiles = 30, .height_tiles = 40, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_left_openings = {
@@ -91,6 +96,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
 			[2] = {
+				.tilename = "TLSTENT", .bgname = {"BGENT1", "BGENT2", "BGENT3", "BGENT4"},
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.wall_left_openings = {
@@ -103,41 +109,41 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.rooms = 3
 	},
     [2] = {
-		.tilename = "TLSTCSHW",
-        .bgname = {"BGCSTHW1", "BGCSTHW2", "BGCSTHW3", "BGCSTHW4"},
         .enter_door = {.x = 28, .y = 111, .rotateu = 0, .open = 0,.active = 1},
         .exit_door = {.x = 984, .y = 111, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
-			{ .width_tiles = 64, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL }
+			[0] = {
+				.tilename = "TLSTCSHW", .bgname = {"BGCSTHW1", "BGCSTHW2", "BGCSTHW3", "BGCSTHW4"},
+				.width_tiles = 64, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+			}
 		},
 		.rooms = 1
 	},
     [3] = {
-		.tilename = "TLSTCAS",
-        .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 272, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
-			{ .width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL }
+			[0] = {
+				.tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
+				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
+			}
 		},
 		.rooms = 1
 	},
     [4] = {
-		.tilename = "TLSTCLD",
-        .bgname = {"BGCOLD"},
 		.level_data = {
-			{
+			[0] = {
+				.tilename = "TLSTCLD", .bgname = {"BGCOLD"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL, .skip_border = {.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1}
 			}
 		},
 		.rooms = 1
 	},
     [5] = {
-		.tilename = "TLSTGRN",
-        .bgname = {"BGGROUND"},
 		.exit_door = {.x = 442, .y = 80, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
 			[0] = {
+				.tilename = "TLSTGRN", .bgname = {"BGGROUND"},
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
 				.skip_border = {
 					.skip_wall_left = 1, .skip_wall_rigth = 1, .skip_ceiling = 1,
@@ -149,6 +155,7 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				}
 			},
             [1] = {
+				.tilename = "TLSTGRN", .bgname = {"BGGROUND"},
 				.width_tiles = 30, .height_tiles = LEVEL_MAX_WIDTH, .level_orientation = LEVEL_VERTICAL,
 				.skip_border = {
 					.wall_left_openings = {
@@ -161,22 +168,24 @@ const LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.rooms = LEVEL_06_ROOMS
 	},
 	[6] = {
-		.tilename = "TLSTCAS",
-        .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 272, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
-			{ .width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL }
+			[0] = {
+				.tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
+				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
+			}
 		},
 		.rooms = 1
 	},
 	[7] = {
-		.tilename = "TLSTCAS",
-        .bgname = {"BGCASTLE"},
         .enter_door = {.x = 28, .y = 272, .rotateu = 0, .open = 0, .active = 1},
         .exit_door = {.x = 600, .y = 272, .rotateu = 1, .open = 0, .active = 1},
 		.level_data = {
-			{ .width_tiles = 40, .height_tiles = LEVEL_MAX_HEIGHT, .level_orientation = LEVEL_HORIZONTAL }
+			[0] = {
+				.tilename = "TLSTCAS", .bgname = {"BGCASTLE"},
+				.width_tiles = 40, .height_tiles = LEVEL_MAX_HEIGHT, .level_orientation = LEVEL_HORIZONTAL
+			}
 		},
 		.rooms = 1
 	},
