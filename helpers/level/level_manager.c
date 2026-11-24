@@ -10,6 +10,11 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.level_data = {
 			[0] = {
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+                .miscObjects = {
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 160, .y = 80},
+                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80},
+                    [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80}
+                },
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
 					.wall_right_openings = {
@@ -36,9 +41,9 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			},
 			[2] = {
 				.width_tiles = 20, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
-				.relicObject = {
-					.relic = RELIC_VAMPIRE_KILLER, .x = 250, .y = 140, .vertical_direction = 1, .active = 1
-				},
+				.miscObjects = {
+                    [0] = {.type = RELIC_VAMPIRE_KILLER, .x = 250, .y = 140, .vertical_direction = 1, .active = 1}
+                },
 				.skip_border = {
 					.wall_left_openings = {
 						{ .start = 7, .size = 5, .active = 1, .target_room = 2, .target_x = 600, .target_y = 672 }

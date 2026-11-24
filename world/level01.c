@@ -12,8 +12,17 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
     //     }
     // }
 
-    if (currentRoom == 1)
+    if (currentRoom == 1) // 40 x 15 tiles
     {
+        /* Esto es para dibujar columnas sin colision cada 10 tiles en x */
+        TileTextureDef tile = {
+            .u = theme->wall_tile.u,
+            .v = theme->wall_tile.v,
+            .collision = TILE_COLL_NONE
+        };
+        for(uint32_t i = 10; i<level->width; i+=10) {
+            level_fill_rect(level, i, level->height - 9, 1, 6, tile);
+        }
     }
     else if (currentRoom == 2)
     {
@@ -26,6 +35,7 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
     else if (currentRoom == 3)
     {
         level_add_wall(level, level->width - 6, level->height - 5, 4, 2, theme->wall_tile, 0, theme->hillf_tile, 0, theme->hillb_tile);
+        // Colocar reliquia aqui
     }
     else if (currentRoom == LEVEL_01_ROOMS)
     {

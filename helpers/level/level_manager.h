@@ -1,24 +1,25 @@
 #pragma once
 
 #include "level_generator.h"
-#include "../../gameplay/relic.h"
+#include "../../gameplay/misc.h"
 #include "../../graphics/door.h"
 
 #define LEVELS_COUNT 8
 #define LEVEL_MAX_ROOMS 10
+#define ARRAY_TWENTY 20
 
 typedef struct
 {
     uint16_t width_tiles, height_tiles;
     LevelSkipBorder skip_border;
     LEVEL_ORIENTATION level_orientation;
-    RelicObject relicObject;
+    MiscObject miscObjects[ARRAY_TWENTY];
 } LEVEL_DATA;
 
 typedef struct
 {
-    char tilename[20];
-    char bgname[BACKGROUND_MAX][20];
+    char tilename[ARRAY_TWENTY];
+    char bgname[BACKGROUND_MAX][ARRAY_TWENTY];
     LevelDoor enter_door;
     LevelDoor exit_door;
     LEVEL_DATA level_data[LEVEL_MAX_ROOMS];
