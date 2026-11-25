@@ -9,6 +9,8 @@
 
 #define RELICS_SPRITES 6
 #define MISC_SPRITES 2
+#define MISC_CASH_GRAVITY 1
+#define MISC_CASH_MAX_FALL_SPEED 4
 
 CD_TEXTURE relics_tim;
 
@@ -56,7 +58,20 @@ uint8_t relic_render_in_camera(MiscObject *relicObject, int32_t cam_x, int32_t c
         return 1;
     }
 
-    render_sprt(relics_tim, screen_x, screen_y, 16, 16, relic_sprites[relicObject->type].u, relic_sprites[relicObject->type].v, 128, 128, 128);
+    if (screen_x < SCREEN_XRES &&
+    screen_x + 16 > 0 &&
+    screen_y < SCREEN_YRES &&
+    screen_y + 16 > 0)
+    {
+        render_sprt(
+            relics_tim,
+            screen_x,
+            screen_y,
+            16, 16,
+            relic_sprites[relicObject->type].u,
+            relic_sprites[relicObject->type].v,
+            128, 128, 128);
+    }
 
     return 0;
 }
@@ -97,7 +112,47 @@ int16_t misc_render_in_camera(MiscObject *miscObject, int32_t cam_x, int32_t cam
         }
     }
 
-    render_poly_ft4(relics_tim, screen_x, screen_y, 16, 16, misc_sprites[sprite_index].u, misc_sprites[sprite_index].v, 128, 128, 128, miscObject->horizontal_direction, 0);
+    if (screen_x < SCREEN_XRES &&
+    screen_x + 16 > 0 &&
+    screen_y < SCREEN_YRES &&
+    screen_y + 16 > 0)
+    {
+        render_poly_ft4(
+            relics_tim,
+            screen_x, screen_y,
+            16, 16,
+            misc_sprites[sprite_index].u,
+            misc_sprites[sprite_index].v,
+            128, 128, 128,
+            miscObject->horizontal_direction, 0);
+    }
 
     return 0;
+}
+
+void misc_update(MiscObject *miscObject, const DynamicLevel *level)
+{
+    if (miscObject->type != MISC_CASH || !miscObject->falling)
+        return;
+
+    int32_t x = miscObject->x;
+    int32_t y = miscObject->y;
+    int32_t velocity_x = 0;
+    bool grounded = false;
+
+    if (miscObject->velocity_y < MISC_CASH_MAX_FALL_SPEED)
+        miscObject->velocity_y += MISC_CASH_GRAVITY;
+
+    level_resolve_entity_collision(
+        level, &x, &y, &velocity_x, &miscObject->velocity_y,
+        16, 16, -1, &grounded);
+
+    miscObject->x = x;
+    miscObject->y = y;
+
+    if (grounded)
+    {
+        miscObject->velocity_y = 0;
+        miscObject->falling = 0;
+    }
 }

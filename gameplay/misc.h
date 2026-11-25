@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "../helpers/level/level_generator.h"
 
 typedef enum
 {
@@ -15,6 +16,13 @@ typedef enum
 
 typedef struct
 {
+    // Estados iniciales
+    MISC_TYPE initial_type;
+    int32_t initial_y;
+    int32_t velocity_y;
+    uint8_t initial_state_saved;
+    uint8_t falling;
+    // Estados base
     MISC_TYPE type;
     int32_t x;
     int32_t y;
@@ -29,3 +37,4 @@ typedef struct
 void misc_init(void);
 uint8_t relic_render_in_camera(MiscObject *relicObject, int32_t cam_x, int32_t cam_y, int32_t x, int32_t y, int32_t width, int32_t height);
 int16_t misc_render_in_camera(MiscObject *miscObject, int32_t cam_x, int32_t cam_y, int32_t x, int32_t y, int32_t width, int32_t height);
+void misc_update(MiscObject *miscObject, const DynamicLevel *level);

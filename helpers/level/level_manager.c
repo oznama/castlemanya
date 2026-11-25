@@ -1,9 +1,45 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "level_manager.h"
 #include "../collisions.h"
+#include "../../gameplay/many.h"
+#include "../../graphics/graphic.h"
 
 #include "../../world/level01.h"
 #include "../../world/level02.h"
 #include "../../world/level06.h"
+
+/* Nivel dinámico alojado estáticamente en memoria BSS (evita ~8.5KB en el stack) */
+static DynamicLevel s_current_level;
+
+/* Caché de texturas para evitar lecturas redundantes del CD */
+static CD_TEXTURE s_tileset_tim;
+static char s_cached_tilename[24] = "";
+static CD_TEXTURE s_background_tim[BACKGROUND_MAX];
+static uint8_t s_background_count = 0;
+static uint8_t s_cached_level = 0;
+
+/* Texturas base de tema por defecto (almacenadas como constante estática) */
+static const LevelThemeTextures s_default_theme = {
+    .floor_tile = {.u = 0, .v = 0, .collision = TILE_COLL_SOLID},
+    .filled_tile = {.u = 0, .v = 16, .collision = TILE_COLL_SOLID},
+    .wall_tile = {.u = 32, .v = 0, .collision = TILE_COLL_SOLID},
+    .ceiling_tile = {.u = 16, .v = 0, .collision = TILE_COLL_SOLID},
+    .pltfrml_tile = {.u = 16, .v = 16, .collision = TILE_COLL_ONEWAY},
+    .pltfrmf_tile = {.u = 32, .v = 16, .collision = TILE_COLL_ONEWAY},
+    .pltfrmr_tile = {.u = 48, .v = 16, .collision = TILE_COLL_ONEWAY},
+    .hilll_tile = {.u = 48, .v = 32, .collision = TILE_COLL_SOLID},
+    .hillf_tile = {.u = 32, .v = 32, .collision = TILE_COLL_SOLID},
+    .hillb_tile = {.u = 32, .v = 48, .collision = TILE_COLL_SOLID},
+    .hillr_tile = {.u = 48, .v = 48, .collision = TILE_COLL_SOLID},
+    .stairwayl_tile = {.u = 0, .v = 32, .collision = TILE_COLL_STAIR_LEFT},
+    .stairwaybl_tile = {.u = 0, .v = 48, .collision = TILE_COLL_SOLID},
+    .stairwayr_tile = {.u = 16, .v = 32, .collision = TILE_COLL_STAIR_RIGHT},
+    .stairwaybr_tile = {.u = 16, .v = 48, .collision = TILE_COLL_SOLID},
+    .bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE},
+    .use_bg_tile = 1
+};
 
 LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
     [0] = {
@@ -199,6 +235,16 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 	},
 };
 
+const LevelThemeTextures *level_manager_get_default_theme(void)
+{
+    return &s_default_theme;
+}
+
+DynamicLevel *level_manager_get_current_level(void)
+{
+    return &s_current_level;
+}
+
 void level_draw(uint8_t currentLevel, uint8_t currentRoom, DynamicLevel *level, const LevelThemeTextures *theme) {
     
     switch (currentLevel)
@@ -255,6 +301,8 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
         }
         else
         {
+            misc_update(misc, &s_current_level);
+
             /* Cualquier otro misc (velas, dinero, etc.) */
             int16_t hit_many = misc_render_in_camera(
                 misc, cam_x, cam_y,
@@ -268,59 +316,14 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
                 // TODO Agregar aletoriedad para ver si suelta dinero y de cuanto
                 misc->type = MISC_CASH;
                 misc->horizontal_direction = 0;
-            } else if (hit_many)
+                misc->velocity_y = 0;
+                misc->falling = 1;
+            } else if (misc->type != MISC_CANDLE && hit_many)
             {
-                if (misc->type == MISC_CASH) misc->type = MISC_CANDLE;
                 misc->active = 0;
             }
         }
     }
-}
-
-#include <stdio.h>
-#include <string.h>
-#include "../../gameplay/many.h"
-#include "../../graphics/graphic.h"
-
-/* Nivel dinámico alojado estáticamente en memoria BSS (evita ~8.5KB en el stack) */
-static DynamicLevel s_current_level;
-
-/* Caché de texturas para evitar lecturas redundantes del CD */
-static CD_TEXTURE s_tileset_tim;
-static char s_cached_tilename[24] = "";
-static CD_TEXTURE s_background_tim[BACKGROUND_MAX];
-static uint8_t s_background_count = 0;
-static uint8_t s_cached_level = 0;
-
-/* Texturas base de tema por defecto (almacenadas como constante estática) */
-static const LevelThemeTextures s_default_theme = {
-    .floor_tile = {.u = 0, .v = 0, .collision = TILE_COLL_SOLID},
-    .filled_tile = {.u = 0, .v = 16, .collision = TILE_COLL_SOLID},
-    .wall_tile = {.u = 32, .v = 0, .collision = TILE_COLL_SOLID},
-    .ceiling_tile = {.u = 16, .v = 0, .collision = TILE_COLL_SOLID},
-    .pltfrml_tile = {.u = 16, .v = 16, .collision = TILE_COLL_ONEWAY},
-    .pltfrmf_tile = {.u = 32, .v = 16, .collision = TILE_COLL_ONEWAY},
-    .pltfrmr_tile = {.u = 48, .v = 16, .collision = TILE_COLL_ONEWAY},
-    .hilll_tile = {.u = 48, .v = 32, .collision = TILE_COLL_SOLID},
-    .hillf_tile = {.u = 32, .v = 32, .collision = TILE_COLL_SOLID},
-    .hillb_tile = {.u = 32, .v = 48, .collision = TILE_COLL_SOLID},
-    .hillr_tile = {.u = 48, .v = 48, .collision = TILE_COLL_SOLID},
-    .stairwayl_tile = {.u = 0, .v = 32, .collision = TILE_COLL_STAIR_LEFT},
-    .stairwaybl_tile = {.u = 0, .v = 48, .collision = TILE_COLL_SOLID},
-    .stairwayr_tile = {.u = 16, .v = 32, .collision = TILE_COLL_STAIR_RIGHT},
-    .stairwaybr_tile = {.u = 16, .v = 48, .collision = TILE_COLL_SOLID},
-    .bg_tile = {.u = 48, .v = 0, .collision = TILE_COLL_NONE},
-    .use_bg_tile = 1
-};
-
-const LevelThemeTextures *level_manager_get_default_theme(void)
-{
-    return &s_default_theme;
-}
-
-DynamicLevel *level_manager_get_current_level(void)
-{
-    return &s_current_level;
 }
 
 int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
@@ -337,6 +340,25 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
     for (uint8_t i = 0; i < ARRAY_TWENTY; i++)
     {
         MiscObject *misc = &room_data->miscObjects[i];
+
+        if (misc->initial_state_saved || misc->type >= MISC_CANDLE)
+        {
+            if (!misc->initial_state_saved)
+            {
+                misc->initial_type = misc->type;
+                misc->initial_y = misc->y;
+                misc->initial_state_saved = 1;
+            }
+
+            misc->type = misc->initial_type;
+            misc->y = misc->initial_y;
+            misc->active = 1;
+            misc->velocity_y = 0;
+            misc->falling = 0;
+            misc->current_frame = 0;
+            misc->offset_y = 0;
+            misc->horizontal_direction = 0;
+        }
 
         /* Las reliquias mantienen su estado; los demás misc reaparecen al entrar. */
         if (misc->type >= MISC_CANDLE)
