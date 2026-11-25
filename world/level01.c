@@ -35,7 +35,6 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
     else if (currentRoom == 3)
     {
         level_add_wall(level, level->width - 6, level->height - 5, 4, 2, theme->wall_tile, 0, theme->hillf_tile, 0, theme->hillb_tile);
-        // Colocar reliquia aqui
     }
     else if (currentRoom == LEVEL_01_ROOMS)
     {

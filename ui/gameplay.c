@@ -82,7 +82,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			/* 5. Renderizar jugador Many */
 			many_render_in_camera(cam_x, cam_y);
 
-			/* 6. Renderizar misc */
+			/* 6. Renderizar miscelaneos */
 			for(int16_t i = 0; i<ARRAY_TWENTY; i++) {
 				if (level_info->level_data[currentRoom - 1].miscObjects[i].active)
 				{
