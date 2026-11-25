@@ -71,11 +71,17 @@ int16_t misc_render_in_camera(MiscObject *miscObject, int32_t cam_x, int32_t cam
     if (sprite_index < 0 || sprite_index >= MISC_SPRITES)
         return 0;
 
-    if (++miscObject->current_frame >= 4)
+    // TODO Este efecto no aplica para todos, en este caso aplica para las velas
+    if (miscObject->type == MISC_CANDLE && ++miscObject->current_frame >= 4)
     {
         miscObject->current_frame = 0;
         miscObject->horizontal_direction = miscObject->horizontal_direction ? 0 : 1;
     }
+    /*
+     * TODO Agegar el efecto para el dinero,
+     * el cual debe ser caer hacia el suelo,
+     * y esto seria aumentar valor en y hasta el limite del suelo
+     */
 
     int32_t screen_x = (int32_t)miscObject->x - cam_x;
     int32_t screen_y = miscObject->y - miscObject->offset_y - cam_y;

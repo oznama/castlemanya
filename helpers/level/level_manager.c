@@ -26,6 +26,9 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			},
 			[1] = {
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
+                .miscObjects = {
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 300, .y = 230},
+                },
 				.skip_border = {
 					.skip_ceiling = 1,
 					.skip_floor = 1,
@@ -77,6 +80,11 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 		.level_data = {
 			[0] = {
 				.width_tiles = 128, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+                .miscObjects = {
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80},
+                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 960, .y = 80},
+                    [2] = {.type = MISC_CANDLE, .active = 1, .x = 1600, .y = 80},
+                },
 				.skip_border = {
 					.wall_right_openings = {
 						{ .start = 7, .size = 5, .active = 1 }
@@ -211,21 +219,64 @@ void level_draw(uint8_t currentLevel, uint8_t currentRoom, DynamicLevel *level, 
 
 void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, int32_t cam_x, int32_t cam_y, MANY_OBJECT *many_ptr)
 {
-    switch (currentLevel)
+    if (currentRoom < 1 || currentRoom > LEVEL_01_ROOMS)
+        return;
+
+    LEVEL_DATA *room_data = &LEVELS_INFO[currentLevel - 1].level_data[currentRoom - 1];
+
+    /* Obtener coordenadas y dimensiones de colisión de Many (espacio de mundo) */
+    int32_t many_box_x = (int32_t)many_ptr->x;
+    int32_t many_box_y = (int32_t)((many_ptr->y >> 8) + MANY_COLLISION_HEIGHT - 16);
+    int32_t many_box_w = MANY_COLLISION_WIDTH;
+    int32_t many_box_h = 16;
+
+    /* Obtener hitbox del látigo de Many en este frame si está atacando */
+    int32_t whip_x = 0, whip_y = 0, whip_w = 0, whip_h = 0;
+    uint8_t whip_active = many_get_whip_hitbox(&whip_x, &whip_y, &whip_w, &whip_h);
+
+    /* Renderizar y evaluar colisiones de los misceláneos de la sala */
+    for (int16_t i = 0; i < ARRAY_TWENTY; i++)
     {
-    case 1:
-        level_01_render(currentRoom, cam_x, cam_y, many_ptr);
-        break;
-    case 2:
-        level_02_render(currentRoom, cam_x, cam_y, many_ptr);
-        break;
-    case 6:
-        level_06_render(currentRoom, cam_x, cam_y, many_ptr);
-        break;
-    default:
-        break;
+        MiscObject *misc = &room_data->miscObjects[i];
+        if (!misc->active)
+            continue;
+
+        /* Si es reliquia (< MISC_CANDLE) */
+        if (misc->type < MISC_CANDLE)
+        {
+            uint8_t relic_touched = relic_render_in_camera(
+                misc, cam_x, cam_y,
+                many_box_x, many_box_y, many_box_w, many_box_h);
+
+            if (relic_touched)
+            {
+                many_collect_relic(many_ptr, misc->type);
+            }
+        }
+        else
+        {
+            /* Cualquier otro misc (velas, dinero, etc.) */
+            int16_t hit_many = misc_render_in_camera(
+                misc, cam_x, cam_y,
+                many_box_x, many_box_y, many_box_w, many_box_h);
+
+            int32_t misc_world_y = misc->y - misc->offset_y;
+
+            /* Comprobar si el látigo de Many golpea la vela/antorcha */
+            if (misc->type == MISC_CANDLE && whip_active && check_collision_box_int(whip_x, whip_y, whip_w, whip_h, misc->x, misc_world_y, 16, 16))
+            {
+                // TODO Agregar aletoriedad para ver si suelta dinero y de cuanto
+                misc->type = MISC_CASH;
+                misc->horizontal_direction = 0;
+            } else if (hit_many)
+            {
+                if (misc->type == MISC_CASH) misc->type = MISC_CANDLE;
+                misc->active = 0;
+            }
+        }
     }
 }
+
 #include <stdio.h>
 #include <string.h>
 #include "../../gameplay/many.h"
@@ -291,6 +342,12 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
         if (misc->type >= MISC_CANDLE)
         {
             misc->active = 1;
+            if (misc->type == MISC_CASH)
+            {
+                misc->type = MISC_CANDLE;
+                // TODO Restablecer a la posicion original de la vela
+                // misc->y -= 16;
+            }
         }
     }
 
