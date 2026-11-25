@@ -281,7 +281,19 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
     if (currentRoom < 1 || currentRoom > level_info->rooms)
         return -1;
 
-    const LEVEL_DATA *room_data = &level_info->level_data[currentRoom - 1];
+    LEVEL_DATA *room_data = &level_info->level_data[currentRoom - 1];
+
+    for (uint8_t i = 0; i < ARRAY_TWENTY; i++)
+    {
+        MiscObject *misc = &room_data->miscObjects[i];
+
+        /* Las reliquias mantienen su estado; los demás misc reaparecen al entrar. */
+        if (misc->type >= MISC_CANDLE)
+        {
+            misc->active = 1;
+        }
+    }
+
     char buffer[32];
 
     /* 1. Cargar texturas del nivel (tileset y fondos) desde CD solo si cambió el nivel */
