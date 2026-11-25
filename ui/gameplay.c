@@ -46,7 +46,6 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		custom_spawn_y = -1;
 
 		DynamicLevel *current_level = level_manager_get_current_level();
-		LEVEL_WORLD *level_info = &LEVELS_INFO[currentLevel - 1];
 		MANY_OBJECT *many_ptr = many_get_instance();
 
 		uint16_t buttons_history[10] = {0};
