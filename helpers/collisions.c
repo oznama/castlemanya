@@ -1,6 +1,3 @@
 #include "collisions.h"
 
-bool check_collision_AABB(RectangleCollisioner r1, RectangleCollisioner r2) {
-    return (r1.x < r2.x + r2.width) && (r1.x + r1.width > r2.x) &&
-           (r1.y < r2.y + r2.height) && (r1.y + r1.height > r2.y);
-}
+/* Las funciones de colisión están inline en collisions.h para máximo rendimiento en PS1 */

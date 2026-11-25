@@ -530,3 +530,56 @@ void many_auto_walk_step(int8_t direction)
 
     update_animation(&many.anim[MANY_STATE_RUN]);
 }
+
+void many_collect_relic(MANY_OBJECT *many_ptr, uint8_t relic_type)
+{
+    if (!many_ptr)
+        return;
+
+    switch (relic_type)
+    {
+    case 1: /* RELIC_VAMPIRE_KILLER */
+        many_ptr->reliq.has_vampire_killer = 1;
+        break;
+    case 2: /* RELIC_DOBLE_JUMP */
+        many_ptr->reliq.has_double_jump = 1;
+        break;
+    case 3: /* RELIC_CROSS */
+        many_ptr->reliq.has_cross = 1;
+        break;
+    case 4: /* RELIC_TAROT_CARD */
+        many_ptr->reliq.has_tarot_card = 1;
+        break;
+    case 5: /* RELIC_HIGH_JUMP */
+        many_ptr->reliq.has_high_jump = 1;
+        break;
+    default:
+        break;
+    }
+}
+
+uint8_t many_get_whip_hitbox(int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h)
+{
+    if (many.current_state != MANY_STATE_ATTACK && many.current_state != MANY_STATE_ATTACK_CROUNCH)
+        return 0;
+
+    if (many.anim[many.current_state].current_frame >= 2)
+    {
+        int32_t facing = many.direction ? 1 : -1;
+        int8_t vk = many.reliq.has_vampire_killer;
+        int32_t origin_x = (int32_t)many.x + MANY_COLLISION_WIDTH + facing * 8;
+        int32_t segment_x = facing > 0 ? origin_x + (vk ? 16 : 8) : origin_x - (vk ? 94 : 74);
+        int32_t segment_w = vk ? 64 : 48;
+        int32_t player_y = (int32_t)(many.y >> FIXED_SHIFT);
+        int32_t segment_y = many.current_state == MANY_STATE_ATTACK ? player_y + 8 : player_y + 20;
+
+        if (out_x) *out_x = segment_x;
+        if (out_y) *out_y = segment_y;
+        if (out_w) *out_w = segment_w;
+        if (out_h) *out_h = 8; /* Altura del látigo */
+
+        return 1;
+    }
+
+    return 0;
+}

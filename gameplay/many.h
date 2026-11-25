@@ -51,3 +51,9 @@ void many_auto_walk_step(int8_t direction);
 
 /* Actualiza y resuelve el movimiento y colisiones de Many en el nivel dinamico */
 void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint16_t buttons_history[10], void *dynamic_level_ptr);
+
+/* Otorga el efecto/habilidad de la reliquia recolectada */
+void many_collect_relic(MANY_OBJECT *many_ptr, uint8_t relic_type);
+
+/* Retorna 1 si el látigo de Many está en un frame activo de ataque y calcula su hitbox en espacio de mundo */
+uint8_t many_get_whip_hitbox(int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h);

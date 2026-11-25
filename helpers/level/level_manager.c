@@ -1,4 +1,5 @@
 #include "level_manager.h"
+#include "../collisions.h"
 
 #include "../../world/level01.h"
 #include "../../world/level02.h"
@@ -207,6 +208,24 @@ void level_draw(uint8_t currentLevel, uint8_t currentRoom, DynamicLevel *level, 
         break;
     }
 }
+
+void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, int32_t cam_x, int32_t cam_y, MANY_OBJECT *many_ptr)
+{
+    switch (currentLevel)
+    {
+    case 1:
+        level_01_render(currentRoom, cam_x, cam_y, many_ptr);
+        break;
+    case 2:
+        level_02_render(currentRoom, cam_x, cam_y, many_ptr);
+        break;
+    case 6:
+        level_06_render(currentRoom, cam_x, cam_y, many_ptr);
+        break;
+    default:
+        break;
+    }
+}
 #include <stdio.h>
 #include <string.h>
 #include "../../gameplay/many.h"
@@ -251,14 +270,6 @@ const LevelThemeTextures *level_manager_get_default_theme(void)
 DynamicLevel *level_manager_get_current_level(void)
 {
     return &s_current_level;
-}
-
-/* Comprobación de colisión AABB usando aritmética de enteros (sin floats, optimizado para MIPS R3000A) */
-static inline bool check_collision_box_int(int32_t x1, int32_t y1, int32_t w1, int32_t h1,
-                                          int32_t x2, int32_t y2, int32_t w2, int32_t h2)
-{
-    return (x1 < x2 + w2) && (x1 + w1 > x2) &&
-           (y1 < y2 + h2) && (y1 + h1 > y2);
 }
 
 int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)

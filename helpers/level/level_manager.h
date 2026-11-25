@@ -1,6 +1,7 @@
 #pragma once
 
 #include "level_generator.h"
+#include "../../gameplay/many.h"
 #include "../../gameplay/misc.h"
 #include "../../graphics/door.h"
 
@@ -62,3 +63,5 @@ LevelTransitionResult level_manager_check_transitions(uint8_t currentLevel, uint
 void level_manager_play_door_transition(const LevelTransitionResult *transition_info);
 
 void level_draw(uint8_t currentLevel, uint8_t currentRoom, DynamicLevel *level, const LevelThemeTextures *theme);
+/* Renderiza las entidades específicas de la sala actual (misceláneos, reliquias, enemigos y combate) */
+void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, int32_t cam_x, int32_t cam_y, MANY_OBJECT *many_ptr);
