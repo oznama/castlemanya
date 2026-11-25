@@ -22,15 +22,22 @@ typedef struct
     int32_t velocity_y;
     uint8_t initial_state_saved;
     uint8_t falling;
+    uint8_t initial_r;
+    uint8_t initial_g;
+    uint8_t initial_b;
     // Estados base
     MISC_TYPE type;
-    int32_t x;
-    int32_t y;
+    int32_t x; // Posicion en x
+    int32_t y; // Posicion en y
+    uint8_t r; // Tono red
+    uint8_t g; // Tono green
+    uint8_t b; // Tono blue
     uint8_t current_frame;
     int8_t offset_y;
     int8_t vertical_direction;
     uint8_t horizontal_direction;
     uint8_t active;
+    uint8_t value;
 } MiscObject;
 
 

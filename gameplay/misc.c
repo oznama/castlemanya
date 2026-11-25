@@ -123,7 +123,9 @@ int16_t misc_render_in_camera(MiscObject *miscObject, int32_t cam_x, int32_t cam
             16, 16,
             misc_sprites[sprite_index].u,
             misc_sprites[sprite_index].v,
-            128, 128, 128,
+            miscObject->r ? miscObject->r : 128,
+            miscObject->g ? miscObject->g : 128,
+            miscObject->b ? miscObject->b : 128,
             miscObject->horizontal_direction, 0);
     }
 

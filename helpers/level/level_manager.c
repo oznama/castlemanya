@@ -5,6 +5,7 @@
 #include "../collisions.h"
 #include "../../gameplay/many.h"
 #include "../../graphics/graphic.h"
+#include "../../helpers/utils.h"
 
 #include "../../world/level01.h"
 #include "../../world/level02.h"
@@ -48,9 +49,9 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			[0] = {
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
                 .miscObjects = {
-                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 160, .y = 80},
-                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80},
-                    [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80}
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 160, .y = 80, .r = 128, .g = 128, .b = 128},
+                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
+                    [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80, .r = 128, .g = 128, .b = 128}
                 },
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
@@ -63,7 +64,7 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			[1] = {
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
                 .miscObjects = {
-                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 300, .y = 230},
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 300, .y = 230, .r = 128, .g = 128, .b = 128},
                 },
 				.skip_border = {
 					.skip_ceiling = 1,
@@ -117,9 +118,9 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			[0] = {
 				.width_tiles = 128, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
                 .miscObjects = {
-                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80},
-                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 960, .y = 80},
-                    [2] = {.type = MISC_CANDLE, .active = 1, .x = 1600, .y = 80},
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
+                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 960, .y = 80, .r = 128, .g = 128, .b = 128},
+                    [2] = {.type = MISC_CANDLE, .active = 1, .x = 1600, .y = 80, .r = 128, .g = 128, .b = 128},
                 },
 				.skip_border = {
 					.wall_right_openings = {
@@ -313,14 +314,24 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
             /* Comprobar si el látigo de Many golpea la vela/antorcha */
             if (misc->type == MISC_CANDLE && whip_active && check_collision_box_int(whip_x, whip_y, whip_w, whip_h, misc->x, misc_world_y, 16, 16))
             {
-                // TODO Agregar aletoriedad para ver si suelta dinero y de cuanto
-                misc->type = MISC_CASH;
-                misc->horizontal_direction = 0;
-                misc->velocity_y = 0;
-                misc->falling = 1;
+                uint8_t money_value = drop_money();
+                if (money_value)
+                {
+                    misc->type = MISC_CASH;
+                    misc->horizontal_direction = 0;
+                    misc->velocity_y = 0;
+                    misc->falling = 1;
+                    misc->value = money_value;
+                    misc->r = money_value == 10 ? 111 : money_value == 50 ? 192 : 212;
+                    misc->g = money_value == 10 ? 78 : money_value == 50 ? 192 : 175;
+                    misc->b = money_value == 10 ? 55 : money_value == 50 ? 192 : 55;
+                } else {
+                    misc->active = 0;
+                }
             } else if (misc->type != MISC_CANDLE && hit_many)
             {
                 misc->active = 0;
+                many_collect_misc(many_ptr, misc->type, misc->value);
             }
         }
     }
@@ -348,6 +359,9 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
                 misc->initial_type = misc->type;
                 misc->initial_y = misc->y;
                 misc->initial_state_saved = 1;
+                misc->initial_r = 128;
+                misc->initial_g = 128;
+                misc->initial_b = 128;
             }
 
             misc->type = misc->initial_type;
@@ -358,6 +372,9 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
             misc->current_frame = 0;
             misc->offset_y = 0;
             misc->horizontal_direction = 0;
+            misc->r = misc->initial_r;
+            misc->g = misc->initial_g;
+            misc->b = misc->initial_b;
         }
 
         /* Las reliquias mantienen su estado; los demás misc reaparecen al entrar. */

@@ -557,6 +557,20 @@ void many_collect_relic(MANY_OBJECT *many_ptr, uint8_t relic_type)
         break;
     }
 }
+void many_collect_misc(MANY_OBJECT *many_ptr, uint8_t relic_type, uint8_t value)
+{
+    if (!many_ptr)
+        return;
+
+    switch (relic_type)
+    {
+    case 7: /* MISC_CASH */
+        many_ptr->money += value;
+        break;
+    default:
+        break;
+    }
+}
 
 uint8_t many_get_whip_hitbox(int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h)
 {

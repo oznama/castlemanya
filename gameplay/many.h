@@ -31,7 +31,9 @@ typedef struct
 
 typedef struct
 {
-    int hp, mp;
+    uint16_t hp;
+    uint8_t mp;
+    int money;
     uint32_t x, y;
     uint8_t direction;
     uint8_t grouded;
@@ -54,6 +56,8 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
 
 /* Otorga el efecto/habilidad de la reliquia recolectada */
 void many_collect_relic(MANY_OBJECT *many_ptr, uint8_t relic_type);
+/* Suma el valor del misc recolectado */
+void many_collect_misc(MANY_OBJECT *many_ptr, uint8_t relic_type, uint8_t value);
 
 /* Retorna 1 si el látigo de Many está en un frame activo de ataque y calcula su hitbox en espacio de mundo */
 uint8_t many_get_whip_hitbox(int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h);

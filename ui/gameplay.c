@@ -86,10 +86,17 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			level_manager_render_entities(currentLevel, currentRoom, cam_x, cam_y, many_ptr);
 
 			/* 7. Información de depuración */
-			sprintf(buffer, "X: %d", many_ptr->x);
-			render_text(50, 20, 0, buffer);
-			sprintf(buffer, "Y: %d", many_ptr->y >> 8);
-			render_text(150, 20, 0, buffer);
+			sprintf(buffer, "HP:%d", many_ptr->hp);
+			render_text(10, 20, 0, buffer);
+			sprintf(buffer, "MP:%d", many_ptr->mp);
+			render_text(70, 20, 0, buffer);
+			sprintf(buffer, "G:%d", many_ptr->money);
+			render_text(140, 20, 0, buffer);
+
+			sprintf(buffer, "X:%d", many_ptr->x);
+			render_text(10, 40, 0, buffer);
+			sprintf(buffer, "Y:%d", many_ptr->y >> 8);
+			render_text(70, 40, 0, buffer);
 
 			graphic_display();
 		}
