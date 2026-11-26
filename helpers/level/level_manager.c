@@ -44,10 +44,11 @@ static const LevelThemeTextures s_default_theme = {
 
 LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
     [0] = {
-        .tilename = "TLSTEXT",.bgname = {"BGEXT"},
+        .tilename = "TLSTEXT",.bgname = {"BGEXT", "BGCVRNG"},
 		.level_data = {
 			[0] = {
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+                .background_count = 1, .background_indices = {0},
                 .miscObjects = {
                     [0] = {.type = MISC_CANDLE, .active = 1, .x = 160, .y = 80, .r = 128, .g = 128, .b = 128},
                     [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
@@ -74,14 +75,19 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 					},
 					.wall_left_openings_count = 1,
 					.wall_right_openings = {
-						{ .start = 0, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 144},
+						{ .start = 0, .size = 5, .active = 1, .target_room = 10, .target_x = 34, .target_y = 144},
 						{ .start = 19, .size = 5, .active = 1, .target_room = 3, .target_x = 34, .target_y = 144 }
 					},
-					.wall_right_openings_count = 2
+					.wall_right_openings_count = 2,
+                    .floor_openings = {
+                        { .start = 2, .size = 5, .active = 1, .target_room = 4, .target_x = 480, .target_y = 16 }
+                    },
+                    .floor_openings_count = 1
 				}
 			},
 			[2] = {
 				.width_tiles = 20, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+                .background_count = 1, .background_indices = {1},
 				.miscObjects = {
                     [0] = {.type = RELIC_VAMPIRE_KILLER, .x = 250, .y = 140, .vertical_direction = 1, .active = 1}
                 },
@@ -92,8 +98,45 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 					.wall_left_openings_count = 1,
 				},
 			},
-			[3] = {
+            [3] = {
+                .width_tiles = 60, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
+                .background_count = 1, .background_indices = {1},
+                .skip_border = {
+                    .ceiling_openings = {
+                        { .start = 30, .size = 5, .active = 1, .target_room = 2, .target_x = 128, .target_y = 336}
+                    },
+                    .ceiling_openings_count = 1,
+                    .wall_left_openings = {
+                        { .start = 2, .size = 5, .active = 1, .target_room = 5, .target_x = 340, .target_y = 48 }
+                    },
+                    .wall_left_openings_count = 1
+                }
+            },
+            [4] = {
+                .width_tiles = 25, .height_tiles = 59, .level_orientation = LEVEL_VERTICAL,
+                .background_count = 1, .background_indices = {1},
+                .skip_border = {
+                    .wall_right_openings = {
+                        { .start = 1, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 32 }
+                    },
+                    .wall_right_openings_count = 1
+                }
+            },
+            [5] = {
+
+            },
+            [6] = {
+
+            },
+            [7] = {
+
+            },
+            [8] = {
+
+            },
+			[9] = {
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+                .background_count = 1, .background_indices = {0},
 				.skip_border = {
 					.skip_wall_left = 1,
 					.skip_ceiling = 1,
@@ -101,10 +144,11 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 						{ .start = 0, .size = 15, .active = 1, .target_room = 2, .target_x = 564, .target_y = 32 }
 					},
 					.wall_left_openings_count = 1,
-					.wall_right_openings = {
-						{ .start = 7, .size = 5, .active = 1 }
-					},
-					.wall_right_openings_count = 1,
+                    // TODO Agregar esta config cuando many obtenga el Vampire killer ó pague 5,000
+					// .wall_right_openings = {
+					// 	{ .start = 7, .size = 5, .active = 1 }
+					// },
+					// .wall_right_openings_count = 1,
 				},
 			}
 		},
@@ -443,7 +487,39 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
     level_draw(currentLevel, currentRoom, &s_current_level, &s_default_theme);
 
     /* 4. Asignar los fondos precargados en VRAM sin leer nuevamente el CD */
-    level_set_background(&s_current_level, s_background_tim, s_background_count);
+    CD_TEXTURE selected_backgrounds[BACKGROUND_MAX] = {0};
+    uint8_t selected_count = room_data->background_count;
+
+    if (selected_count == 0)
+    {
+        /* Compatibilidad: si no se configura la habitación, usar todos los fondos. */
+        level_set_background(&s_current_level, s_background_tim, s_background_count);
+    }
+    else
+    {
+        if (selected_count > BACKGROUND_MAX || selected_count > s_background_count)
+        {
+            printf("Error: configuracion de fondos invalida en nivel %u, habitacion %u\n",
+                currentLevel, currentRoom);
+            return -1;
+        }
+
+        for (uint8_t i = 0; i < selected_count; i++)
+        {
+            uint8_t bg_index = room_data->background_indices[i];
+
+            if (bg_index >= s_background_count)
+            {
+                printf("Error: indice de fondo invalido (%u) en nivel %u, habitacion %u\n",
+                    bg_index, currentLevel, currentRoom);
+                return -1;
+            }
+
+            selected_backgrounds[i] = s_background_tim[bg_index];
+        }
+
+        level_set_background(&s_current_level, selected_backgrounds, selected_count);
+    }
 
     /* 5. Configurar puertas de entrada y salida de los extremos del nivel */
     if (level_info->enter_door.active && currentRoom == 1)

@@ -14,6 +14,8 @@ typedef struct
     uint16_t width_tiles, height_tiles;
     LevelSkipBorder skip_border;
     LEVEL_ORIENTATION level_orientation;
+    uint8_t background_indices[BACKGROUND_MAX]; /* Indices de bgname, empezando en 0 */
+    uint8_t background_count;                   /* 0 = usar todos los fondos del nivel */
     MiscObject miscObjects[ARRAY_TWENTY];
 } LEVEL_DATA;
 

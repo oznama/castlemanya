@@ -97,6 +97,11 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 			sprintf(buffer, "Y:%d", many_ptr->y >> 8);
 			render_text(70, 40, 0, buffer);
 
+			sprintf(buffer, "Level:%d",currentLevel);
+			render_text(140, 40, 0, buffer);
+			sprintf(buffer, "Room:%d", currentRoom);
+			render_text(210, 40, 0, buffer);
+
 			graphic_display();
 		}
 

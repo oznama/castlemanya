@@ -705,7 +705,7 @@ void level_render(const DynamicLevel *level)
 
         case 2:
             render_background_row(level, 0, -1, 0, 64);
-            render_background_row(level, 1, -1, 128, 128);
+            render_background_row(level, 1, -1, 128, 64);
             break;
 
         case 3:
