@@ -88,9 +88,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			[2] = {
 				.width_tiles = 20, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
                 .background_count = 1, .background_indices = {1},
-				.miscObjects = {
-                    [0] = {.type = RELIC_VAMPIRE_KILLER, .x = 250, .y = 140, .vertical_direction = 1, .active = 1}
-                },
 				.skip_border = {
 					.wall_left_openings = {
 						{ .start = 7, .size = 5, .active = 1, .target_room = 2, .target_x = 600, .target_y = 672 }
@@ -107,7 +104,7 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                     },
                     .ceiling_openings_count = 1,
                     .wall_left_openings = {
-                        { .start = 2, .size = 5, .active = 1, .target_room = 5, .target_x = 340, .target_y = 48 }
+                        { .start = 2, .size = 5, .active = 1, .target_room = 5, .target_x = 370, .target_y = 48 }
                     },
                     .wall_left_openings_count = 1
                 }
@@ -117,22 +114,57 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                 .background_count = 1, .background_indices = {1},
                 .skip_border = {
                     .wall_right_openings = {
-                        { .start = 1, .size = 5, .active = 1, .target_room = 4, .target_x = 34, .target_y = 32 }
+                        { .start = 1, .size = 5, .active = 1, .target_room = 4, .target_x = 12, .target_y = 64 },
+                        { .start = 51, .size = 5, .active = 1, .target_room = 6, .target_x = 10, .target_y = 48 }
                     },
-                    .wall_right_openings_count = 1
+                    .wall_right_openings_count = 2
                 }
             },
             [5] = {
-
+                .width_tiles = 20, .height_tiles = 89, .level_orientation = LEVEL_VERTICAL,
+                .background_count = 1, .background_indices = {1},
+                .skip_border = {
+                    .wall_left_openings = {
+                        { .start = 1, .size = 5, .active = 1, .target_room = 5, .target_x = 368, .target_y = 848 },
+                        { .start = 81, .size = 5, .active = 1, .target_room = 7, .target_x = 612, .target_y = 544 }
+                    },
+                    .wall_left_openings_count = 2
+                }
             },
             [6] = {
-
+                .width_tiles = 40, .height_tiles = 74, .level_orientation = LEVEL_VERTICAL,
+                .background_count = 1, .background_indices = {1},
+                .skip_border = {
+                    .wall_right_openings = {
+                        { .start = 32, .size = 5, .active = 1, .target_room = 6, .target_x = 2, .target_y = 1328 },
+                        { .start = 43, .size = 5, .active = 1, .target_room = 8, .target_x = 32, .target_y = 128 }
+                    },
+                    .wall_right_openings_count = 2
+                }
             },
             [7] = {
-
+                .width_tiles = 128, .height_tiles = 64, .level_orientation = LEVEL_HORIZONTAL,
+                .background_count = 1, .background_indices = {1},
+                .skip_border = {
+                    .wall_left_openings = {
+						{ .start = 1, .size = 5, .active = 1, .target_room = 7, .target_x = 610, .target_y = 720 },
+                        { .start = 56, .size = 5, .active = 1, .target_room = 9, .target_x = 448, .target_y = 144 }
+					},
+					.wall_left_openings_count = 2
+                }
             },
             [8] = {
-
+                .width_tiles = 30, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
+                .background_count = 1, .background_indices = {1},
+                .miscObjects = {
+                    [0] = {.type = RELIC_VAMPIRE_KILLER, .x = 48, .y = 140, .vertical_direction = 1, .active = 1}
+                },
+                .skip_border = {
+                    .wall_right_openings = {
+                        { .start = 7, .size = 5, .active = 1, .target_room = 8, .target_x = 16, .target_y = 928 }
+                    },
+                    .wall_right_openings_count = 1
+                }
             },
 			[9] = {
 				.width_tiles = 40, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
