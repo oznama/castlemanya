@@ -37,17 +37,34 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
         level_add_platform(level, 2, 17, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
         break;
     case 5: // 25 x 59
-        level_add_wall(level, 7, 6, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 2, 11, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 7, 16, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 2, 21, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 7, 26, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 2, 31, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 7, 36, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 2, 41, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 7, 46, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 2, 51, 16, 2, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
+    {
+        const uint16_t wall_width = 16;
+        const uint16_t wall_height = 2;
+        const uint16_t margin_x = 2;
+        const uint16_t row_spacing = 10;
+
+        if (level->width >= wall_width + margin_x * 2)
+        {
+            const uint16_t right_x = level->width - wall_width - margin_x;
+
+            for (uint16_t row = 0; ; ++row)
+            {
+                const int32_t y = 6 + row * row_spacing;
+
+                if (y + wall_height > (int32_t)level->height - 6)
+                    break;
+
+                const uint16_t x = (row % 2 == 0) ? right_x : margin_x;
+                const uint16_t px = (row % 2 == 0) ? 2 : level->width - 4;
+
+                level_add_wall(level, x, (uint16_t)y, wall_width, wall_height,
+                            theme->filled_tile, 1, theme->hillf_tile,
+                            1, theme->hillb_tile);
+                level_add_platform(level, px, (uint16_t)y + 5, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+            }
+        }
         break;
+    }
     case 6: // 20 x 89
         level_add_platform(level, 2, 6, 16, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
         for (int i = 11; i<level->height - 3; i+=5) {
