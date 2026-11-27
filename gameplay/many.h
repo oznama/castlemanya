@@ -61,3 +61,9 @@ void many_collect_misc(MANY_OBJECT *many_ptr, uint8_t relic_type, uint8_t value)
 
 /* Retorna 1 si el látigo de Many está en un frame activo de ataque y calcula su hitbox en espacio de mundo */
 uint8_t many_get_whip_hitbox(int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h);
+
+/* Retorna 1 si Many puede recibir daño y calcula su hurtbox según su estado actual (de pie, agachado, etc.) */
+uint8_t many_get_hurtbox(const MANY_OBJECT *many_ptr, int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h);
+
+/* Aplica daño a Many, activa la animación y retroceso de MANY_STATE_HURT e inmunidad temporal */
+void many_take_damage(MANY_OBJECT *many_ptr, uint16_t damage, int32_t source_x);

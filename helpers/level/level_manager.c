@@ -54,6 +54,10 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                     [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
                     [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80, .r = 128, .g = 128, .b = 128}
                 },
+                .enemies = {
+                    [0] = {.type = ENEMY_BAT, .active = 1, .x = 240, .y = 16},
+                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 400, .y = 16}
+                },
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
 					.wall_right_openings = {
@@ -411,6 +415,50 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
             }
         }
     }
+
+    /* 2. Actualizar, evaluar combate y renderizar los enemigos de la sala */
+    int32_t many_full_y = (int32_t)(many_ptr->y >> 8);
+    int32_t many_hurt_x = 0, many_hurt_y = 0, many_hurt_w = 0, many_hurt_h = 0;
+    uint8_t many_can_take_damage = many_get_hurtbox(many_ptr, &many_hurt_x, &many_hurt_y, &many_hurt_w, &many_hurt_h);
+
+    for (int16_t i = 0; i < MAX_ROOM_ENEMIES; i++)
+    {
+        Enemy *enemy = &room_data->enemies[i];
+        if (!enemy->active)
+            continue;
+
+        /* Actualizar lógica e IA del enemigo */
+        enemy_update(enemy, (int32_t)many_ptr->x, many_full_y, (int32_t)s_current_level.pixel_width, (int32_t)s_current_level.pixel_height);
+
+        if (!enemy->active)
+            continue;
+
+        /* Comprobar si el látigo de Many golpea al enemigo */
+        if (whip_active && check_collision_box_int(whip_x, whip_y, whip_w, whip_h,
+                                                   enemy->x, enemy->y, enemy->col_w, enemy->col_h))
+        {
+            uint8_t killed = enemy_take_damage(enemy, 1);
+            if (killed)
+            {
+                /* Otorga experiencia a Many */
+                // TODO: many_add_exp(many_ptr, enemy->exp);
+                continue;
+            }
+        }
+
+        /* Comprobar colisión del enemigo contra el hurtbox de Many para infligir daño */
+        if (enemy->active && many_can_take_damage &&
+            check_collision_box_int(many_hurt_x, many_hurt_y, many_hurt_w, many_hurt_h,
+                                    enemy->x, enemy->y, enemy->col_w, enemy->col_h))
+        {
+            many_take_damage(many_ptr, enemy->damage, enemy->x);
+            /* Al entrar en estado HURT, queda invulnerable para evitar multihits en este mismo frame */
+            many_can_take_damage = 0;
+        }
+
+        /* Renderizar enemigo en pantalla */
+        enemy_render(enemy, cam_x, cam_y);
+    }
 }
 
 int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
@@ -463,6 +511,21 @@ int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
                 // TODO Restablecer a la posicion original de la vela
                 // misc->y -= 16;
             }
+        }
+    }
+
+    /* Restablecer enemigos de la habitación a sus posiciones iniciales */
+    for (uint8_t i = 0; i < MAX_ROOM_ENEMIES; i++)
+    {
+        Enemy *enemy = &room_data->enemies[i];
+        if (enemy->type != ENEMY_NONE)
+        {
+            if (enemy->initial_x == 0 && enemy->initial_y == 0 && (enemy->x != 0 || enemy->y != 0))
+            {
+                enemy->initial_x = enemy->x;
+                enemy->initial_y = enemy->y;
+            }
+            enemy_reset(enemy);
         }
     }
 

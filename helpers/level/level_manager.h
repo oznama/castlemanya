@@ -3,11 +3,13 @@
 #include "level_generator.h"
 #include "../../gameplay/many.h"
 #include "../../gameplay/misc.h"
+#include "../../gameplay/enemy.h"
 #include "../../graphics/door.h"
 
 #define LEVELS_COUNT 8
 #define LEVEL_MAX_ROOMS 10
 #define ARRAY_TWENTY 20
+#define MAX_ROOM_ENEMIES 8
 
 typedef struct
 {
@@ -17,6 +19,7 @@ typedef struct
     uint8_t background_indices[BACKGROUND_MAX]; /* Indices de bgname, empezando en 0 */
     uint8_t background_count;                   /* 0 = usar todos los fondos del nivel */
     MiscObject miscObjects[ARRAY_TWENTY];
+    Enemy enemies[MAX_ROOM_ENEMIES];
 } LEVEL_DATA;
 
 typedef struct

@@ -18,6 +18,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 	many_init();
 	door_init();
 	misc_init();
+	enemy_system_init();
 
 	uint8_t spawn_at_exit = 0;
 	int32_t custom_spawn_x = -1;

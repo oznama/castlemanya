@@ -16,12 +16,15 @@
 #define BACKDASH_DISTANCE (4 * MANY_COLLISION_WIDTH)
 #define HIGHJUMP_SPEED ((196 * FIXED_ONE) / 10)
 #define HIGHJUMP_INPUT_WINDOW 20
+#define HURT_KNOCKBACK_FRAMES 16
 
 static int32_t drop_through_row = -1;
 static int32_t backdash_remaining;
 static int8_t backdash_direction;
 static uint8_t highjump_input_timer;
 static uint8_t landing_timer;
+static uint8_t hurt_timer;
+static uint8_t invulnerable_timer;
 
 int32_t y_velocity;
 int32_t x_velocity;
@@ -46,7 +49,7 @@ MANY_OBJECT many = {
         [MANY_STATE_JUMP] = {.w = 32, .h = 64, .u = 0, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_FALL] = {.w = 32, .h = 64, .u = 32, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_CROUNCH] = {.w = 32, .h = 64, .u = 64, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
-        [MANY_STATE_HURT] = {.w = 32, .h = 64, .u = 96, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
+        [MANY_STATE_HURT] = {.w = 32, .h = 64, .u = 96, .v = 64, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 16, .anim_dir = 1},
         [MANY_STATE_BACKDASH] = {.w = 32, .h = 64, .u = 0, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1},
         [MANY_STATE_HIGHJUMP] = {.w = 32, .h = 64, .u = 32, .v = 128, .current_frame = 0, .total_frames = 1, .anim_timer = 0, .anim_speed = 1, .anim_dir = 1}
     }
@@ -77,6 +80,12 @@ static CD_TEXTURE *many_texture_for_state(ManyState state)
 
 static void many_draw_sprite(int32_t x, int32_t y)
 {
+    /* Efecto de parpadeo (i-frames) tras recibir daño */
+    if (invulnerable_timer > 0 && (invulnerable_timer & 2))
+    {
+        return;
+    }
+
     SPRITE_OBJECT *anim = &many.anim[many.current_state];
     int32_t draw_x = x + (MANY_COLLISION_WIDTH - (int32_t)anim->w) / 2;
     int32_t draw_y = y + (MANY_COLLISION_HEIGHT - (int32_t)anim->h);
@@ -320,6 +329,11 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
     {
         x_velocity = 0;
     }
+    else if (many.current_state == MANY_STATE_HURT)
+    {
+        /* En estado de daño se mantiene la inercia del knockback */
+        vx = x_velocity;
+    }
     else if (backdash_remaining > 0)
     {
         int32_t dash_step = backdash_remaining < RECOVERY_TIMER
@@ -496,12 +510,32 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
 
     // 5. Animaciones
     uint8_t anim_finished = update_animation(&many.anim[many.current_state]);
-    if (anim_finished && (many.current_state == MANY_STATE_ATTACK || many.current_state == MANY_STATE_ATTACK_CROUNCH))
+    if (many.current_state == MANY_STATE_HURT)
+    {
+        if (hurt_timer > 0)
+        {
+            hurt_timer--;
+            if (hurt_timer == 0)
+            {
+                x_velocity = 0;
+                if (many.grouded)
+                    many_change_state(MANY_STATE_IDLE);
+                else
+                    many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
+            }
+        }
+    }
+    else if (anim_finished && (many.current_state == MANY_STATE_ATTACK || many.current_state == MANY_STATE_ATTACK_CROUNCH))
     {
         if (many.grouded)
             many_change_state(many.current_state == MANY_STATE_ATTACK ? MANY_STATE_IDLE : MANY_STATE_CROUNCH);
         else
             many_change_state(y_velocity > 0 ? MANY_STATE_FALL : MANY_STATE_JUMP);
+    }
+
+    if (invulnerable_timer > 0)
+    {
+        invulnerable_timer--;
     }
 
     if (!landed_this_frame && landing_timer > 0)
@@ -596,4 +630,74 @@ uint8_t many_get_whip_hitbox(int32_t *out_x, int32_t *out_y, int32_t *out_w, int
     }
 
     return 0;
+}
+
+uint8_t many_get_hurtbox(const MANY_OBJECT *many_ptr, int32_t *out_x, int32_t *out_y, int32_t *out_w, int32_t *out_h)
+{
+    if (!many_ptr || many_ptr->hp == 0)
+        return 0;
+
+    /* Si está en animación de dolor (HURT) o tiene i-frames activos, no recibe daño */
+    if (many_ptr->current_state == MANY_STATE_HURT || invulnerable_timer > 0)
+        return 0;
+
+    int32_t px = (int32_t)many_ptr->x;
+    int32_t py = (int32_t)(many_ptr->y >> FIXED_SHIFT);
+
+    /* Ancho ligeramente centrado y justo para favorecer al jugador */
+    const int32_t hurt_w = 14;
+    const int32_t offset_x = (MANY_COLLISION_WIDTH - hurt_w) / 2;
+
+    if (many_ptr->current_state == MANY_STATE_CROUNCH ||
+        many_ptr->current_state == MANY_STATE_ATTACK_CROUNCH)
+    {
+        /* Agachado: la caja de daño es más baja (cubre la mitad inferior del cuerpo) */
+        const int32_t hurt_h = 24;
+        const int32_t hurt_y = py + (MANY_COLLISION_HEIGHT - hurt_h);
+
+        if (out_x) *out_x = px + offset_x;
+        if (out_y) *out_y = hurt_y;
+        if (out_w) *out_w = hurt_w;
+        if (out_h) *out_h = hurt_h;
+    }
+    else
+    {
+        /* De pie, corriendo, saltando o atacando de pie: cubre cuerpo completo */
+        const int32_t hurt_h = 44;
+        const int32_t hurt_y = py + (MANY_COLLISION_HEIGHT - hurt_h);
+
+        if (out_x) *out_x = px + offset_x;
+        if (out_y) *out_y = hurt_y;
+        if (out_w) *out_w = hurt_w;
+        if (out_h) *out_h = hurt_h;
+    }
+
+    return 1;
+}
+
+void many_take_damage(MANY_OBJECT *many_ptr, uint16_t damage, int32_t source_x)
+{
+    if (!many_ptr || many_ptr->hp == 0 || invulnerable_timer > 0 || many_ptr->current_state == MANY_STATE_HURT)
+        return;
+
+    if (many_ptr->hp > damage)
+        many_ptr->hp -= damage;
+    else
+        many_ptr->hp = 0;
+
+    /* Activar estado de daño */
+    many_change_state(MANY_STATE_HURT);
+
+    /* Duración de la animación de dolor y de los frames de invulnerabilidad (i-frames) */
+    hurt_timer = HURT_KNOCKBACK_FRAMES;
+    invulnerable_timer = HURT_KNOCKBACK_FRAMES + 30; /* ~1 segundo total con parpadeo */
+
+    /* Knockback clásico de Castlevania:
+     * Many retrocede en dirección opuesta a la fuente del daño y sufre un leve impulso vertical */
+    int32_t knock_dir = (many_ptr->x >= (uint32_t)source_x) ? 1 : -1;
+    many_ptr->direction = (knock_dir > 0) ? 0 : 1; /* Mira hacia el enemigo que lo golpeó */
+
+    x_velocity = knock_dir * 2;
+    y_velocity = -(4 * FIXED_ONE);
+    many_ptr->grouded = 0;
 }
