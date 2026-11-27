@@ -66,7 +66,7 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
         break;
     }
     case 6: // 20 x 89
-        level_add_platform(level, 2, 6, 16, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+        level_add_platform(level, 2, 6, 10, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
         for (int i = 11; i<level->height - 3; i+=5) {
             level_add_platform(level, level->width - 7, i, 5, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
         }

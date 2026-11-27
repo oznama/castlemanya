@@ -8,15 +8,96 @@
 #include "../helpers/collisions.h"
 
 #define RELICS_SPRITES 6
+#define RELIC_AURA_FRAME_COUNT 4
+#define RELIC_AURA_FRAME_SPEED 8
+#define RELIC_AURA_SIZE 16
+#define RELIC_AURA_V 176
 #define MISC_SPRITES 2
 #define MISC_CASH_GRAVITY 1
 #define MISC_CASH_MAX_FALL_SPEED 4
+#define HIT_EFFECT_MAX 24
+#define HIT_EFFECT_FRAME_COUNT 3
+#define HIT_EFFECT_FRAME_SPEED 4
+#define HIT_EFFECT_SIZE 16
 
 CD_TEXTURE relics_tim;
+
+typedef struct
+{
+    int32_t x;
+    int32_t y;
+    uint8_t frame;
+    uint8_t timer;
+    uint8_t active;
+} HitEffect;
+
+static HitEffect s_hit_effects[HIT_EFFECT_MAX];
 
 void misc_init(void)
 {
     cd_load_image("\\MANYMISC.TIM", &relics_tim);
+}
+
+uint8_t misc_hit_effect_spawn(int32_t center_x, int32_t center_y)
+{
+    for (uint8_t i = 0; i < HIT_EFFECT_MAX; i++)
+    {
+        HitEffect *effect = &s_hit_effects[i];
+        if (effect->active)
+            continue;
+
+        effect->x = center_x - HIT_EFFECT_SIZE / 2;
+        effect->y = center_y - HIT_EFFECT_SIZE / 2;
+        effect->frame = 0;
+        effect->timer = 0;
+        effect->active = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
+void misc_hit_effects_clear(void)
+{
+    for (uint8_t i = 0; i < HIT_EFFECT_MAX; i++)
+        s_hit_effects[i].active = 0;
+}
+
+void misc_hit_effects_render_in_camera(int32_t cam_x, int32_t cam_y)
+{
+    for (uint8_t i = 0; i < HIT_EFFECT_MAX; i++)
+    {
+        HitEffect *effect = &s_hit_effects[i];
+        if (!effect->active)
+            continue;
+
+        int32_t screen_x = effect->x - cam_x;
+        int32_t screen_y = effect->y - cam_y;
+
+        if (screen_x < SCREEN_XRES &&
+            screen_x + HIT_EFFECT_SIZE > 0 &&
+            screen_y < SCREEN_YRES &&
+            screen_y + HIT_EFFECT_SIZE > 0)
+        {
+            render_poly_ft4(
+                relics_tim,
+                screen_x, screen_y,
+                HIT_EFFECT_SIZE, HIT_EFFECT_SIZE,
+                (uint8_t)(16 + effect->frame * HIT_EFFECT_SIZE), 144,
+                128, 128, 128,
+                0, 0);
+        }
+
+        effect->timer++;
+        if (effect->timer >= HIT_EFFECT_FRAME_SPEED)
+        {
+            effect->timer = 0;
+            effect->frame++;
+
+            if (effect->frame >= HIT_EFFECT_FRAME_COUNT)
+                effect->active = 0;
+        }
+    }
 }
 
 uint8_t relic_render_in_camera(MiscObject *relicObject, int32_t cam_x, int32_t cam_y, int32_t x, int32_t y, int32_t width, int32_t height)
@@ -58,11 +139,26 @@ uint8_t relic_render_in_camera(MiscObject *relicObject, int32_t cam_x, int32_t c
         return 1;
     }
 
-    if (screen_x < SCREEN_XRES &&
-    screen_x + 16 > 0 &&
-    screen_y < SCREEN_YRES &&
-    screen_y + 16 > 0)
+    relicObject->aura_timer++;
+    if (relicObject->aura_timer >= RELIC_AURA_FRAME_SPEED)
     {
+        relicObject->aura_timer = 0;
+        relicObject->aura_frame++;
+
+        if (relicObject->aura_frame >= RELIC_AURA_FRAME_COUNT)
+            relicObject->aura_frame = 0;
+    }
+
+    if (screen_x < SCREEN_XRES && screen_x + 16 > 0 && screen_y < SCREEN_YRES && screen_y + 16 > 0)
+    {
+        render_sprt(
+            relics_tim,
+            screen_x, screen_y-3,
+            RELIC_AURA_SIZE, RELIC_AURA_SIZE,
+            (uint8_t)(relicObject->aura_frame * RELIC_AURA_SIZE),
+            RELIC_AURA_V,
+            128, 128, 128);
+
         render_sprt(
             relics_tim,
             screen_x,

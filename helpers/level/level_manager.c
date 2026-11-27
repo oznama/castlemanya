@@ -65,7 +65,8 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 			[1] = {
 				.width_tiles = 40, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
                 .miscObjects = {
-                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 300, .y = 230, .r = 128, .g = 128, .b = 128},
+                    [0] = {.type = MISC_CANDLE, .active = 1, .x = 280, .y = 230, .r = 128, .g = 128, .b = 128},
+                    [1] = {.type = MISC_CANDLE, .active = 1, .x = 340, .y = 230, .r = 128, .g = 128, .b = 128},
                 },
 				.skip_border = {
 					.skip_ceiling = 1,
@@ -347,6 +348,24 @@ void level_draw(uint8_t currentLevel, uint8_t currentRoom, DynamicLevel *level, 
     }
 }
 
+static void spawn_whip_hit_effect(
+    int32_t whip_x, int32_t whip_y, int32_t whip_w, int32_t whip_h,
+    int32_t target_x, int32_t target_y, int32_t target_w, int32_t target_h)
+{
+    int32_t left = whip_x > target_x ? whip_x : target_x;
+    int32_t top = whip_y > target_y ? whip_y : target_y;
+    int32_t whip_right = whip_x + whip_w;
+    int32_t target_right = target_x + target_w;
+    int32_t whip_bottom = whip_y + whip_h;
+    int32_t target_bottom = target_y + target_h;
+    int32_t right = whip_right < target_right ? whip_right : target_right;
+    int32_t bottom = whip_bottom < target_bottom ? whip_bottom : target_bottom;
+
+    (void)misc_hit_effect_spawn(
+        left + (right - left) / 2,
+        top + (bottom - top) / 2);
+}
+
 void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, int32_t cam_x, int32_t cam_y, MANY_OBJECT *many_ptr)
 {
     if (currentRoom < 1 || currentRoom > LEVEL_01_ROOMS)
@@ -397,6 +416,7 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
             /* Comprobar si el látigo de Many golpea la vela/antorcha */
             if (misc->type == MISC_CANDLE && whip_active && check_collision_box_int(whip_x, whip_y, whip_w, whip_h, misc->x, misc_world_y, 16, 16))
             {
+                spawn_whip_hit_effect(whip_x, whip_y, whip_w, whip_h, misc->x, misc_world_y, 16, 16);
                 uint8_t money_value = drop_money();
                 if (money_value)
                 {
@@ -440,7 +460,15 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
         if (whip_active && check_collision_box_int(whip_x, whip_y, whip_w, whip_h,
                                                    enemy->x, enemy->y, enemy->col_w, enemy->col_h))
         {
+            uint8_t can_damage = enemy->invulnerable_timer == 0;
             uint8_t killed = enemy_take_damage(enemy, 1);
+
+            if (can_damage)
+            {
+                spawn_whip_hit_effect(whip_x, whip_y, whip_w, whip_h,
+                                    enemy->x, enemy->y, enemy->col_w, enemy->col_h);
+            }
+
             if (killed)
             {
                 /* Otorga experiencia a Many */
@@ -462,12 +490,15 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
         /* Renderizar enemigo en pantalla */
         enemy_render(enemy, cam_x, cam_y);
     }
+    misc_hit_effects_render_in_camera(cam_x, cam_y);
 }
 
 int level_manager_load_room(uint8_t currentLevel, uint8_t currentRoom)
 {
     if (currentLevel < 1 || currentLevel > LEVELS_COUNT)
         return -1;
+
+    misc_hit_effects_clear();
 
     LEVEL_WORLD *level_info = &LEVELS_INFO[currentLevel - 1];
     if (currentRoom < 1 || currentRoom > level_info->rooms)

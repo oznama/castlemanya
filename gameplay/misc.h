@@ -33,6 +33,8 @@ typedef struct
     uint8_t g; // Tono green
     uint8_t b; // Tono blue
     uint8_t current_frame;
+    uint8_t aura_frame;
+    uint8_t aura_timer;
     int8_t offset_y;
     int8_t vertical_direction;
     uint8_t horizontal_direction;
@@ -45,3 +47,6 @@ void misc_init(void);
 uint8_t relic_render_in_camera(MiscObject *relicObject, int32_t cam_x, int32_t cam_y, int32_t x, int32_t y, int32_t width, int32_t height);
 int16_t misc_render_in_camera(MiscObject *miscObject, int32_t cam_x, int32_t cam_y, int32_t x, int32_t y, int32_t width, int32_t height);
 void misc_update(MiscObject *miscObject, const DynamicLevel *level);
+uint8_t misc_hit_effect_spawn(int32_t center_x, int32_t center_y);
+void misc_hit_effects_render_in_camera(int32_t cam_x, int32_t cam_y);
+void misc_hit_effects_clear(void);
