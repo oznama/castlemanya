@@ -25,16 +25,23 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
     case 3: // 20 x 15
         // level_add_wall(level, level->width - 6, level->height - 5, 4, 2, theme->wall_tile, 0, theme->hillf_tile, 0, theme->hillb_tile);
         break;
-    case 4: // 60 x 25
-        level_add_platform(level, 30, 5, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
-        level_add_wall(level, 30, 10, 22, 3, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
-        level_add_wall(level, 26, 1, 4, 12, theme->filled_tile, 0, theme->hillf_tile, 1, theme->hillb_tile);
-        for ( int i = 12; i < level->height - 3; i+=5 ) {
-            level_add_platform(level, level->width - 4, i, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
-        }
-        level_add_platform(level, 2, 7, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
-        level_add_platform(level, 15, 12, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
-        level_add_platform(level, 2, 17, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+    case 4: // 60 x 15
+        level_add_platform(level, level->width - 4, 4, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+
+        level_add_stairway(level, theme, level->width - 2, level->height - 2, 5, 6, 2, 5, 1, 0, STAIRWAY_RIGHT);
+        level_add_stairway(level, theme, 46, level->height-1, 5, 3, 1, 5, 1, 0, STAIRWAY_RIGHT);
+        level_add_stairway(level, theme, 23, level->height-1, 5, 4, 2, 5, 1, 0, STAIRWAY_LEFT);
+        level_add_stairway(level, theme, 23, level->height-2, 5, 4, 1, 5, 1, 0, STAIRWAY_RIGHT);
+        level_add_stairway(level, theme, 13, level->height-1, 5, 3, 1, 5, 1, 0, STAIRWAY_RIGHT);
+
+        // level_add_wall(level, 30, 10, 22, 3, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
+        // level_add_wall(level, 26, 1, 4, 12, theme->filled_tile, 0, theme->hillf_tile, 1, theme->hillb_tile);
+        // for ( int i = 12; i < level->height - 3; i+=5 ) {
+        //     level_add_platform(level, level->width - 4, i, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+        // }
+        // level_add_platform(level, 2, 7, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+        // level_add_platform(level, 15, 12, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+        // level_add_platform(level, 2, 17, 11, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
         break;
     case 5: // 25 x 59
     {

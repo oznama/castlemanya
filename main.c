@@ -19,7 +19,7 @@ int main() {
 		// TODO Load data
 		printf("Loading memory card\n");
 		currentLevel = 1;
-		currentRoom = 9;
+		currentRoom = 4;
 	}
 
 	gameplay_main(currentLevel, currentRoom);

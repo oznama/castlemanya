@@ -81,7 +81,7 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 					},
 					.wall_right_openings_count = 2,
                     .floor_openings = {
-                        { .start = 2, .size = 5, .active = 1, .target_room = 4, .target_x = 480, .target_y = 16 }
+                        { .start = 2, .size = 5, .active = 1, .target_room = 4, .target_x = 904, .target_y = 16 }
                     },
                     .floor_openings_count = 1
 				}
@@ -97,22 +97,24 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
 				},
 			},
             [3] = {
-                .width_tiles = 60, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
+                .width_tiles = 60, .height_tiles = 15, .level_orientation = LEVEL_HORIZONTAL,
                 .background_count = 1, .background_indices = {1},
                 .enemies = {
-                    [0] = {.type = ENEMY_BAT, .active = 1, .x = 180, .y = 16},
-                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 16},
-                    [2] = {.type = ENEMY_BAT, .active = 1, .x = 500, .y = 208},
-                    [3] = {.type = ENEMY_BAT, .active = 1, .x = 600, .y = 208},
-                    [4] = {.type = ENEMY_BAT, .active = 1, .x = 750, .y = 208}
+                    [0] = {.type = ENEMY_BAT, .active = 1, .x = 390, .y = 16},
+                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 410, .y = 16},
+                    [2] = {.type = ENEMY_BAT, .active = 1, .x = 430, .y = 16},
+                    [3] = {.type = ENEMY_BAT, .active = 1, .x = 450, .y = 16},
+                    [4] = {.type = ENEMY_BAT, .active = 1, .x = 470, .y = 16},
+                    [5] = {.type = ENEMY_BAT, .active = 1, .x = 490, .y = 16}
                 },
                 .skip_border = {
+                    .skip_floor = 1,
                     .ceiling_openings = {
-                        { .start = 30, .size = 5, .active = 1, .target_room = 2, .target_x = 120, .target_y = 300}
+                        { .start = 53, .size = 5, .active = 1, .target_room = 2, .target_x = 120, .target_y = 300}
                     },
                     .ceiling_openings_count = 1,
                     .wall_left_openings = {
-                        { .start = 2, .size = 5, .active = 1, .target_room = 5, .target_x = 370, .target_y = 48 }
+                        { .start = 7, .size = 5, .active = 1, .target_room = 5, .target_x = 370, .target_y = 48 }
                     },
                     .wall_left_openings_count = 1
                 }
@@ -120,9 +122,23 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
             [4] = {
                 .width_tiles = 25, .height_tiles = 59, .level_orientation = LEVEL_VERTICAL,
                 .background_count = 1, .background_indices = {1},
+                .enemies = {
+                    [0] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 16},
+                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 140, .y = 16},
+                    [2] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 128},
+                    [3] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 128},
+                    [4] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 288},
+                    [5] = {.type = ENEMY_BAT, .active = 1, .x = 140, .y = 288},
+                    [6] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 448},
+                    [7] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 448},
+                    [8] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 608},
+                    [9] = {.type = ENEMY_BAT, .active = 1, .x = 140, .y = 608},
+                    [10] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 768},
+                    [11] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 768}
+                },
                 .skip_border = {
                     .wall_right_openings = {
-                        { .start = 1, .size = 5, .active = 1, .target_room = 4, .target_x = 12, .target_y = 64 },
+                        { .start = 1, .size = 5, .active = 1, .target_room = 4, .target_x = 12, .target_y = 144 },
                         { .start = 51, .size = 5, .active = 1, .target_room = 6, .target_x = 10, .target_y = 48 }
                     },
                     .wall_right_openings_count = 2
