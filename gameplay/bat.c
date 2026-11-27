@@ -187,7 +187,7 @@ void bat_render(Enemy *enemy, int32_t cam_x, int32_t cam_y)
         screen_y + BAT_SPRITE_SIZE > 0)
     {
         /* Parpadeo visual si recibió daño */
-        uint8_t r = 128, g = 128, b = 128;
+        uint8_t r = 50, g = 50, b = 50;
         if (enemy->invulnerable_timer > 0 && (enemy->invulnerable_timer & 2))
         {
             r = 255;

@@ -11,6 +11,60 @@
 #include "../helpers/level/level_generator.h"
 #include "../helpers/level/level_manager.h"
 
+static void gameplay_render_room(
+    uint8_t currentLevel,
+    uint8_t currentRoom,
+    DynamicLevel *current_level,
+    MANY_OBJECT *many_ptr,
+    uint8_t fade_level)
+{
+    int32_t cam_x;
+    int32_t cam_y;
+    char buffer[32];
+
+    /* Debe agregarse antes del escenario para que quede visualmente encima. */
+    graphic_fade_overlay(fade_level);
+
+	/* 3. Actualizar y obtener cámara del nivel */
+    level_update_camera(
+        current_level,
+        many_ptr->x,
+        many_ptr->y >> 8,
+        MANY_COLLISION_WIDTH,
+        MANY_COLLISION_HEIGHT);
+
+    level_get_camera_pos(current_level, &cam_x, &cam_y);
+
+	/* 4. Renderizar nivel */
+    level_render(current_level);
+
+	/* 5. Renderizar jugador Many */
+    many_render_in_camera(cam_x, cam_y);
+
+	/* 6. Renderizar entidades del nivel (misceláneos, reliquias, enemigos y combate) */
+    level_manager_render_entities(
+        currentLevel, currentRoom, cam_x, cam_y, many_ptr);
+
+    sprintf(buffer, "HP:%d", many_ptr->hp);
+    render_text(10, 20, 0, buffer);
+    sprintf(buffer, "MP:%d", many_ptr->mp);
+    render_text(70, 20, 0, buffer);
+    sprintf(buffer, "G:%d", many_ptr->money);
+    render_text(140, 20, 0, buffer);
+
+    sprintf(buffer, "X:%d", many_ptr->x);
+    render_text(10, 40, 0, buffer);
+    sprintf(buffer, "Y:%d", many_ptr->y >> 8);
+    render_text(70, 40, 0, buffer);
+
+    sprintf(buffer, "Level:%d", currentLevel);
+    render_text(140, 40, 0, buffer);
+    sprintf(buffer, "Room:%d", currentRoom);
+    render_text(210, 40, 0, buffer);
+
+    graphic_display();
+}
+
 void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 {
 	graphic_init();
@@ -20,6 +74,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 	misc_init();
 	enemy_system_init();
 
+	uint8_t fade_in_pending = 0;
 	uint8_t spawn_at_exit = 0;
 	int32_t custom_spawn_x = -1;
 	int32_t custom_spawn_y = -1;
@@ -49,6 +104,20 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		DynamicLevel *current_level = level_manager_get_current_level();
 		MANY_OBJECT *many_ptr = many_get_instance();
 
+		if (fade_in_pending)
+		{
+			for (uint8_t level = GRAPHIC_FADE_STEPS; level > 0; level--)
+			{
+				gameplay_render_room(
+					currentLevel, currentRoom, current_level, many_ptr, level);
+			}
+
+			gameplay_render_room(
+				currentLevel, currentRoom, current_level, many_ptr, 0);
+
+			fade_in_pending = 0;
+		}
+
 		uint16_t buttons_history[10] = {0};
 		char buffer[32];
 		LevelTransitionResult transition = {0};
@@ -70,40 +139,7 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 				break;
 			}
 
-			/* 3. Actualizar y obtener cámara del nivel */
-			level_update_camera(current_level, many_ptr->x, (many_ptr->y >> 8), MANY_COLLISION_WIDTH, MANY_COLLISION_HEIGHT);
-
-			int32_t cam_x, cam_y;
-			level_get_camera_pos(current_level, &cam_x, &cam_y);
-
-			/* 4. Renderizar nivel */
-			level_render(current_level);
-
-			/* 5. Renderizar jugador Many */
-			many_render_in_camera(cam_x, cam_y);
-
-			/* 6. Renderizar entidades del nivel (misceláneos, reliquias, enemigos y combate) */
-			level_manager_render_entities(currentLevel, currentRoom, cam_x, cam_y, many_ptr);
-
-			/* 7. Información de depuración */
-			sprintf(buffer, "HP:%d", many_ptr->hp);
-			render_text(10, 20, 0, buffer);
-			sprintf(buffer, "MP:%d", many_ptr->mp);
-			render_text(70, 20, 0, buffer);
-			sprintf(buffer, "G:%d", many_ptr->money);
-			render_text(140, 20, 0, buffer);
-
-			sprintf(buffer, "X:%d", many_ptr->x);
-			render_text(10, 40, 0, buffer);
-			sprintf(buffer, "Y:%d", many_ptr->y >> 8);
-			render_text(70, 40, 0, buffer);
-
-			sprintf(buffer, "Level:%d",currentLevel);
-			render_text(140, 40, 0, buffer);
-			sprintf(buffer, "Room:%d", currentRoom);
-			render_text(210, 40, 0, buffer);
-
-			graphic_display();
+			gameplay_render_room(currentLevel, currentRoom, current_level, many_ptr, 0);
 		}
 
 		/* Animación automática al cruzar puertas (si aplica) */
@@ -111,6 +147,18 @@ void gameplay_main(uint8_t currentLevel, uint8_t currentRoom)
 		{
 			level_manager_play_door_transition(&transition);
 		}
+
+		for (uint8_t level = 1; level <= GRAPHIC_FADE_STEPS; level++)
+		{
+			gameplay_render_room(
+				currentLevel, currentRoom, current_level, many_ptr, level);
+		}
+
+		/* Presenta una pantalla completamente negra antes de cargar el siguiente cuarto. */
+		gameplay_render_room(
+			currentLevel, currentRoom, current_level, many_ptr, GRAPHIC_FADE_BLACK);
+
+		fade_in_pending = 1;
 
 		/* Aplicar destinos para el siguiente ciclo de habitación/nivel */
 		currentLevel = transition.target_level;

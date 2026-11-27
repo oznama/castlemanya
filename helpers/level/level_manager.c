@@ -54,10 +54,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                     [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
                     [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80, .r = 128, .g = 128, .b = 128}
                 },
-                .enemies = {
-                    [0] = {.type = ENEMY_BAT, .active = 1, .x = 240, .y = 16},
-                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 400, .y = 16}
-                },
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
 					.wall_right_openings = {
@@ -102,9 +98,16 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
             [3] = {
                 .width_tiles = 60, .height_tiles = 25, .level_orientation = LEVEL_HORIZONTAL,
                 .background_count = 1, .background_indices = {1},
+                .enemies = {
+                    [0] = {.type = ENEMY_BAT, .active = 1, .x = 180, .y = 16},
+                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 16},
+                    [2] = {.type = ENEMY_BAT, .active = 1, .x = 500, .y = 208},
+                    [3] = {.type = ENEMY_BAT, .active = 1, .x = 600, .y = 208},
+                    [4] = {.type = ENEMY_BAT, .active = 1, .x = 750, .y = 208}
+                },
                 .skip_border = {
                     .ceiling_openings = {
-                        { .start = 30, .size = 5, .active = 1, .target_room = 2, .target_x = 128, .target_y = 336}
+                        { .start = 30, .size = 5, .active = 1, .target_room = 2, .target_x = 120, .target_y = 300}
                     },
                     .ceiling_openings_count = 1,
                     .wall_left_openings = {

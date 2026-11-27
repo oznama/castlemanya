@@ -87,6 +87,37 @@ void render_rect(int x, int y, int w, int h, int r, int g, int b) {
     setRGB0(tile, r, g, b);
 }
 
+void graphic_fade_overlay(uint8_t level)
+{
+    if (level == 0)
+        return;
+
+    if (level >= GRAPHIC_FADE_BLACK)
+    {
+        TILE *tile = (TILE *)new_primitive(0, sizeof(TILE));
+        setTile(tile);
+        setXY0(tile, 0, 0);
+        setWH(tile, SCREEN_XRES, SCREEN_YRES);
+        setRGB0(tile, 0, 0, 0);
+        return;
+    }
+
+    /* Cada capa semitransparente negra reduce a la mitad la luz restante. */
+    for (uint8_t layer = 0; layer < level; layer++)
+    {
+        TILE *tile = (TILE *)new_primitive(0, sizeof(TILE));
+        setTile(tile);
+        setSemiTrans(tile, 1);
+        setXY0(tile, 0, 0);
+        setWH(tile, SCREEN_XRES, SCREEN_YRES);
+        setRGB0(tile, 0, 0, 0);
+    }
+
+    /* Selecciona el modo de mezcla promedio para las capas semitransparentes. */
+    DR_TPAGE *tpage = (DR_TPAGE *)new_primitive(0, sizeof(DR_TPAGE));
+    setDrawTPage(tpage, 0, 0, getTPage(0, 0, 0, 0));
+}
+
 void render_text(int x, int y, uint8_t z, const char *text) {
 	DB *buffer = &(db[db_active]);
 	db_nextpri = (char *) FntSort(&(buffer->ot[z]), db_nextpri, x, y, text);

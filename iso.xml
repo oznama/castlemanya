@@ -85,7 +85,7 @@
 			<file name="MANYBAS.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-base.tim" />
 			<file name="MANYACT.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-action.tim" />
 			<file name="MANYATK.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-attack.tim" />
-			<file name="MANYREL.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-items.tim" />
+			<file name="MANYMISC.TIM" 	type="data" source="${PROJECT_SOURCE_DIR}/assets/images/many/Many-misc.tim" />
 			<file name="BAT.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/Bat-sprite.tim" />
 			<file name="ZOMBIE.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/Zombie-sprite.tim" />
 			<file name="MEDUSA.TIM"		type="data" source="${PROJECT_SOURCE_DIR}/assets/images/enemies/Medusa-sprite.tim" />

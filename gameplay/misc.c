@@ -16,7 +16,7 @@ CD_TEXTURE relics_tim;
 
 void misc_init(void)
 {
-    cd_load_image("\\MANYREL.TIM", &relics_tim);
+    cd_load_image("\\MANYMISC.TIM", &relics_tim);
 }
 
 uint8_t relic_render_in_camera(MiscObject *relicObject, int32_t cam_x, int32_t cam_y, int32_t x, int32_t y, int32_t width, int32_t height)

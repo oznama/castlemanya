@@ -258,25 +258,25 @@ void many_update_in_level(uint16_t held_buttons, uint16_t pressed_buttons, uint1
     uint8_t drop_through_requested = 0;
 
     // Accion para que many pueda bajar plataformas
-    if (!many_is_state_locked() &&
-        many.grouded &&
-        (held_buttons & PAD_DOWN) &&
-        (pressed_buttons & PAD_CROSS))
-    {
-        int32_t player_y = (int32_t)(many.y >> FIXED_SHIFT);
-        int32_t row = many_oneway_support_row(
-            level,
-            (int32_t)many.x,
-            player_y);
+    // if (!many_is_state_locked() &&
+    //     many.grouded &&
+    //     (held_buttons & PAD_DOWN) &&
+    //     (pressed_buttons & PAD_CROSS))
+    // {
+    //     int32_t player_y = (int32_t)(many.y >> FIXED_SHIFT);
+    //     int32_t row = many_oneway_support_row(
+    //         level,
+    //         (int32_t)many.x,
+    //         player_y);
 
-        if (row >= 0)
-        {
-            drop_through_row = row;
-            drop_through_requested = 1;
-            many.grouded = 0;
-            y_velocity = 0;
-        }
-    }
+    //     if (row >= 0)
+    //     {
+    //         drop_through_row = row;
+    //         drop_through_requested = 1;
+    //         many.grouded = 0;
+    //         y_velocity = 0;
+    //     }
+    // }
 
     // 1. Acciones de ataque y agacharse si no esta bloqueado
     uint8_t highjump_requested = 0;

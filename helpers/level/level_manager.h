@@ -9,7 +9,7 @@
 #define LEVELS_COUNT 8
 #define LEVEL_MAX_ROOMS 10
 #define ARRAY_TWENTY 20
-#define MAX_ROOM_ENEMIES 8
+#define MAX_ROOM_ENEMIES 12
 
 typedef struct
 {
