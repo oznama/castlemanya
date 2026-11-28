@@ -27,12 +27,14 @@ void level_01_builder(uint8_t currentRoom, DynamicLevel *level, const LevelTheme
         break;
     case 4: // 60 x 15
         level_add_platform(level, level->width - 4, 4, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
+        level_add_platform(level, level->width - 4, 8, 2, theme->pltfrml_tile, theme->pltfrmf_tile, theme->pltfrmr_tile, 1);
 
-        level_add_stairway(level, theme, level->width - 2, level->height - 2, 5, 6, 2, 5, 1, 0, STAIRWAY_RIGHT);
-        level_add_stairway(level, theme, 46, level->height-1, 5, 3, 1, 5, 1, 0, STAIRWAY_RIGHT);
-        level_add_stairway(level, theme, 23, level->height-1, 5, 4, 2, 5, 1, 0, STAIRWAY_LEFT);
-        level_add_stairway(level, theme, 23, level->height-2, 5, 4, 1, 5, 1, 0, STAIRWAY_RIGHT);
-        level_add_stairway(level, theme, 13, level->height-1, 5, 3, 1, 5, 1, 0, STAIRWAY_RIGHT);
+        // Para crear piso irregular
+        // level_add_stairway(level, theme, level->width - 2, level->height - 2, 5, 6, 2, 5, 1, 0, STAIRWAY_RIGHT);
+        // level_add_stairway(level, theme, 46, level->height-1, 5, 3, 1, 5, 1, 0, STAIRWAY_RIGHT);
+        // level_add_stairway(level, theme, 23, level->height-1, 5, 4, 2, 5, 1, 0, STAIRWAY_LEFT);
+        // level_add_stairway(level, theme, 23, level->height-2, 5, 4, 1, 5, 1, 0, STAIRWAY_RIGHT);
+        // level_add_stairway(level, theme, 13, level->height-1, 5, 3, 1, 5, 1, 0, STAIRWAY_RIGHT);
 
         // level_add_wall(level, 30, 10, 22, 3, theme->filled_tile, 1, theme->hillf_tile, 1, theme->hillb_tile);
         // level_add_wall(level, 26, 1, 4, 12, theme->filled_tile, 0, theme->hillf_tile, 1, theme->hillb_tile);

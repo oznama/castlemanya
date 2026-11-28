@@ -55,10 +55,6 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                     [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
                     [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80, .r = 128, .g = 128, .b = 128}
                 },
-                .enemies = {
-                    [0] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 220, .y = 144},
-                    [1] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 380, .y = 144}
-                },
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
 					.wall_right_openings = {
@@ -110,10 +106,11 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                     [2] = {.type = ENEMY_BAT, .active = 1, .x = 430, .y = 16},
                     [3] = {.type = ENEMY_BAT, .active = 1, .x = 450, .y = 16},
                     [4] = {.type = ENEMY_BAT, .active = 1, .x = 470, .y = 16},
-                    [5] = {.type = ENEMY_BAT, .active = 1, .x = 490, .y = 16}
+                    [5] = {.type = ENEMY_BAT, .active = 1, .x = 490, .y = 16},
+                    [6] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 150, .y = 144},
+                    [7] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 550, .y = 144}
                 },
                 .skip_border = {
-                    .skip_floor = 1,
                     .ceiling_openings = {
                         { .start = 53, .size = 5, .active = 1, .target_room = 2, .target_x = 120, .target_y = 300}
                     },
@@ -129,17 +126,14 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                 .background_count = 1, .background_indices = {1},
                 .enemies = {
                     [0] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 16},
-                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 140, .y = 16},
-                    [2] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 128},
-                    [3] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 128},
-                    [4] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 288},
-                    [5] = {.type = ENEMY_BAT, .active = 1, .x = 140, .y = 288},
-                    [6] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 448},
-                    [7] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 448},
-                    [8] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 608},
-                    [9] = {.type = ENEMY_BAT, .active = 1, .x = 140, .y = 608},
-                    [10] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 768},
-                    [11] = {.type = ENEMY_BAT, .active = 1, .x = 320, .y = 768}
+                    [1] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 128},
+                    [2] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 288},
+                    [3] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 448},
+                    [4] = {.type = ENEMY_BAT, .active = 1, .x = 120, .y = 608},
+                    [5] = {.type = ENEMY_BAT, .active = 1, .x = 300, .y = 768},
+                    [6] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 140, .y = 528},
+                    [7] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 230, .y = 688},
+                    [8] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 140, .y = 848}
                 },
                 .skip_border = {
                     .wall_right_openings = {
