@@ -36,6 +36,8 @@ typedef struct Enemy
     uint16_t damage;            // Daño infligido al jugador Many
     uint16_t exp;               // Experiencia otorgada al ser derrotado
     uint8_t invulnerable_timer; // Temporizador de invulnerabilidad / parpadeo de daño
+    uint8_t hit_this_attack; /* Ya recibió daño durante este ataque */
+    uint16_t respawn_timer;     // Temporizador de reaparición dinámico (ej. Zombie SotN)
 
     // Hitbox y animación
     int16_t col_w;      // Ancho de la caja de colisión

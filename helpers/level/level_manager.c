@@ -4,6 +4,7 @@
 #include "level_manager.h"
 #include "../collisions.h"
 #include "../../gameplay/many.h"
+#include "../../gameplay/zombie.h"
 #include "../../graphics/graphic.h"
 #include "../../helpers/utils.h"
 
@@ -53,6 +54,10 @@ LEVEL_WORLD LEVELS_INFO[LEVELS_COUNT] = {
                     [0] = {.type = MISC_CANDLE, .active = 1, .x = 160, .y = 80, .r = 128, .g = 128, .b = 128},
                     [1] = {.type = MISC_CANDLE, .active = 1, .x = 320, .y = 80, .r = 128, .g = 128, .b = 128},
                     [2] = {.type = MISC_CANDLE, .active = 1, .x = 480, .y = 80, .r = 128, .g = 128, .b = 128}
+                },
+                .enemies = {
+                    [0] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 220, .y = 144},
+                    [1] = {.type = ENEMY_ZOMBIE, .active = 1, .x = 380, .y = 144}
                 },
 				.skip_border = {
 					.skip_wall_left = 1, .skip_ceiling = 1,
@@ -463,38 +468,53 @@ void level_manager_render_entities(uint8_t currentLevel, uint8_t currentRoom, in
     for (int16_t i = 0; i < MAX_ROOM_ENEMIES; i++)
     {
         Enemy *enemy = &room_data->enemies[i];
-        if (!enemy->active)
+        if (enemy->type == ENEMY_NONE)
             continue;
 
-        /* Actualizar lógica e IA del enemigo */
+        if (!whip_active)
+        {
+            enemy->hit_this_attack = 0;
+        }
+
+        /* Actualizar lógica e IA del enemigo (incluso si está inactivo esperando respawn) */
         enemy_update(enemy, (int32_t)many_ptr->x, many_full_y, (int32_t)s_current_level.pixel_width, (int32_t)s_current_level.pixel_height);
 
         if (!enemy->active)
             continue;
 
         /* Comprobar si el látigo de Many golpea al enemigo */
-        if (whip_active && check_collision_box_int(whip_x, whip_y, whip_w, whip_h,
-                                                   enemy->x, enemy->y, enemy->col_w, enemy->col_h))
+        if (whip_active &&
+            !enemy->hit_this_attack &&
+            check_collision_box_int(whip_x, whip_y, whip_w, whip_h,
+                                    enemy->x, enemy->y, enemy->col_w, enemy->col_h))
         {
-            uint8_t can_damage = enemy->invulnerable_timer == 0;
-            uint8_t killed = enemy_take_damage(enemy, 1);
+            uint8_t can_damage =
+                enemy->invulnerable_timer == 0 &&
+                (enemy->type != ENEMY_ZOMBIE ||
+                enemy->state == ZOMBIE_STATE_WALKING);
 
             if (can_damage)
             {
+                enemy->hit_this_attack = 1;
+
+                uint8_t killed = enemy_take_damage(enemy, 1);
+
                 spawn_whip_hit_effect(whip_x, whip_y, whip_w, whip_h,
                                     enemy->x, enemy->y, enemy->col_w, enemy->col_h);
-            }
 
-            if (killed)
-            {
-                /* Otorga experiencia a Many */
-                // TODO: many_add_exp(many_ptr, enemy->exp);
-                continue;
+                if (killed)
+                {
+                    /* Otorga experiencia a Many */
+                    // TODO: many_add_exp(many_ptr, enemy->exp);
+                    continue;
+                }
             }
         }
 
         /* Comprobar colisión del enemigo contra el hurtbox de Many para infligir daño */
-        if (enemy->active && many_can_take_damage &&
+        /* Nota: el zombie solo hace daño cuando ya ha emergido y está caminando */
+        uint8_t deals_contact_damage = (enemy->type != ENEMY_ZOMBIE || enemy->state == ZOMBIE_STATE_WALKING);
+        if (enemy->active && deals_contact_damage && many_can_take_damage &&
             check_collision_box_int(many_hurt_x, many_hurt_y, many_hurt_w, many_hurt_h,
                                     enemy->x, enemy->y, enemy->col_w, enemy->col_h))
         {

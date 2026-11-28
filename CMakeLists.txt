@@ -21,6 +21,7 @@ psn00bsdk_add_executable(
 	gameplay/misc.c
 	gameplay/enemy.c
 	gameplay/bat.c
+	gameplay/zombie.c
 	graphics/animation.c
 	graphics/door.c
 	graphics/graphic.c
